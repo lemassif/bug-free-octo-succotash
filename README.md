@@ -17,6 +17,24 @@ xdg-open index.html    # Linux
 # or just double-click the file
 ```
 
+### On iPhone / iPad (iOS)
+
+The game is fully playable on iOS Safari:
+
+- **On-screen controls** — a D-pad (left/right to move, up/down to climb) and
+  **JUMP** / pause buttons appear automatically on touch devices. They're
+  multi-touch, so you can move and jump at the same time.
+- **Tap to start** — tap anywhere on the playfield to begin or restart.
+- Pinch-zoom, double-tap zoom, and rubber-band scrolling are disabled so
+  gestures don't fight the game, and the layout respects the notch / home
+  indicator (safe-area insets).
+- Runs at the correct speed on 120 Hz **ProMotion** devices (the game logic
+  uses a fixed 60 Hz timestep independent of the display refresh rate).
+- **Add to Home Screen** (Share → *Add to Home Screen*) to launch it
+  fullscreen like a native app.
+
+Landscape orientation gives the most room, but portrait works too.
+
 ## How to play
 
 | Action            | Keys                          |

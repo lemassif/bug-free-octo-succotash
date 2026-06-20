@@ -2,24 +2,40 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Miner 2049er">
+<meta name="theme-color" content="#06060a">
 <title>Miner 2049er — Bounty Bob</title>
 <style>
-  :root { --bg:#101018; --ink:#ffd34d; }
+  :root { --ink:#ffd34d; }
   * { box-sizing: border-box; }
   html, body {
-    margin: 0; padding: 0; height: 100%;
+    margin: 0; padding: 0; height: 100%; width: 100%;
     background: #06060a;
     color: #e8e8f0;
     font-family: "Courier New", monospace;
     -webkit-font-smoothing: none;
     image-rendering: pixelated;
+    overflow: hidden;
+    /* kill iOS long-press callout, text selection, tap highlight, double-tap zoom */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+    overscroll-behavior: none;
   }
   #wrap {
+    position: relative;
     min-height: 100%;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     gap: 12px; padding: 16px;
+    /* respect the notch / home indicator in standalone mode */
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
   }
   h1 {
     margin: 0; letter-spacing: 2px;
@@ -32,8 +48,13 @@
     border: 4px solid #3a3a55;
     box-shadow: 0 0 0 4px #15152a, 0 8px 30px rgba(0,0,0,.7);
     image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    display: block;
+    /* fit the 4:3 canvas inside the viewport without distortion */
     max-width: 100%;
-    touch-action: none;
+    max-height: 80vh;
+    aspect-ratio: 4 / 3;
+    width: auto; height: auto;
   }
   #help {
     color: #8a8aa8; font-size: 13px; text-align: center; line-height: 1.6;
@@ -44,15 +65,65 @@
     background:#222238; border:1px solid #444466; border-bottom-width:2px;
     border-radius:4px; padding:1px 6px; color:#ffd34d; font-size:12px;
   }
-  #touch {
-    display:none; gap:10px; margin-top:4px; user-select:none;
+
+  /* ---- On-screen touch controls: overlaid thumb pads ---- */
+  #touch { display: none; }
+  .pad {
+    position: fixed; bottom: 0;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    z-index: 20;
+    display: grid; gap: 10px;
+    touch-action: none;
   }
-  #touch button {
-    width:64px; height:64px; font-size:24px; border-radius:10px;
-    background:#1c1c30; color:#ffd34d; border:2px solid #444466;
+  #dpad { left: max(14px, env(safe-area-inset-left));
+          grid-template-columns: repeat(3, 60px);
+          grid-template-rows: repeat(3, 60px); }
+  #actions { right: max(14px, env(safe-area-inset-right));
+             grid-auto-flow: column; align-items: end; }
+  .pad button {
+    -webkit-appearance: none; appearance: none;
+    border: 2px solid rgba(120,120,170,.6);
+    background: rgba(28,28,52,.55);
+    color: #ffd34d; font-size: 26px; line-height: 1;
+    border-radius: 14px;
+    width: 60px; height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    touch-action: none; user-select: none;
+    -webkit-user-select: none; -webkit-touch-callout: none;
   }
-  #touch button:active { background:#33335a; }
-  @media (hover: none) and (pointer: coarse) { #touch { display:flex; } }
+  .pad button.wide { width: 78px; height: 78px; border-radius: 18px; font-size: 22px; }
+  .pad button:active, .pad button.held {
+    background: rgba(90,90,150,.8);
+    transform: scale(.95);
+  }
+  /* d-pad cell placement */
+  #b-up    { grid-column: 2; grid-row: 1; }
+  #b-left  { grid-column: 1; grid-row: 2; }
+  #b-down  { grid-column: 2; grid-row: 3; }
+  #b-right { grid-column: 3; grid-row: 2; }
+
+  #rotate {
+    display: none;
+    position: fixed; inset: 0; z-index: 50;
+    background: #06060a; color: #ffd34d;
+    align-items: center; justify-content: center; text-align: center;
+    font-size: 18px; padding: 30px; line-height: 1.7;
+  }
+
+  /* show controls only on touch devices; hide the keyboard help & title there */
+  @media (hover: none) and (pointer: coarse) {
+    #touch { display: block; }
+    h1 { font-size: 20px; }
+    #help { display: none; }
+    #wrap { gap: 6px; padding: 6px; }
+    #game { max-height: 100vh; }
+  }
+  /* tiny landscape phones: nudge the game up so pads don't cover it */
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    #wrap { justify-content: flex-start; padding-top: 4px; }
+    h1 { display: none; }
+    #game { max-height: 100vh; }
+  }
 </style>
 </head>
 <body>
@@ -64,12 +135,18 @@
     <kbd>←</kbd> <kbd>→</kbd> move &nbsp;•&nbsp; <kbd>↑</kbd>/<kbd>↓</kbd> climb ladders &nbsp;•&nbsp; <kbd>Space</kbd> jump &nbsp;•&nbsp; <kbd>P</kbd> pause<br>
     Grab the <b style="color:#5cf">Pulverizer</b> to turn mutants edible for a short time. Avoid them otherwise!
   </div>
+
   <div id="touch">
-    <button data-k="left">◀</button>
-    <button data-k="up">▲</button>
-    <button data-k="down">▼</button>
-    <button data-k="jump">⤒</button>
-    <button data-k="right">▶</button>
+    <div class="pad" id="dpad">
+      <button id="b-up"    data-k="up"    aria-label="up">▲</button>
+      <button id="b-left"  data-k="left"  aria-label="left">◀</button>
+      <button id="b-down"  data-k="down"  aria-label="down">▼</button>
+      <button id="b-right" data-k="right" aria-label="right">▶</button>
+    </div>
+    <div class="pad" id="actions">
+      <button class="wide" data-k="pause" aria-label="pause">❚❚</button>
+      <button class="wide" data-k="jump"  aria-label="jump">JUMP</button>
+    </div>
   </div>
 </div>
 
@@ -280,13 +357,40 @@ addEventListener("keyup", e => { const k = KEYMAP[e.code]; if (k) keys[k] = fals
 
 document.querySelectorAll("#touch button").forEach(b => {
   const k = b.dataset.k;
-  const set = v => () => { keys[k] = v; if (v) handleEdge(k); };
-  b.addEventListener("touchstart", e => { e.preventDefault(); set(true)(); }, {passive:false});
-  b.addEventListener("touchend",   e => { e.preventDefault(); set(false)(); }, {passive:false});
-  b.addEventListener("mousedown", set(true));
-  b.addEventListener("mouseup", set(false));
-  b.addEventListener("mouseleave", set(false));
+  const press = () => { if (!keys[k]) handleEdge(k); keys[k] = true; b.classList.add("held"); };
+  const release = () => { keys[k] = false; b.classList.remove("held"); };
+  // Touch events are captured by the element where touchstart fired, so
+  // touchend/touchcancel still reach this button even if the finger slides
+  // off — and separate buttons get independent touches (true multi-touch).
+  b.addEventListener("touchstart",  e => { e.preventDefault(); press();   }, {passive:false});
+  b.addEventListener("touchend",    e => { e.preventDefault(); release(); }, {passive:false});
+  b.addEventListener("touchcancel", e => { e.preventDefault(); release(); }, {passive:false});
+  // mouse fallback for desktop testing
+  b.addEventListener("mousedown",  e => { e.preventDefault(); press();   });
+  b.addEventListener("mouseup",    release);
+  b.addEventListener("mouseleave", release);
+  b.addEventListener("contextmenu", e => e.preventDefault());
 });
+
+// Tap anywhere on the canvas to start / restart (so iOS players don't need a keyboard)
+function canvasTap(e) {
+  e.preventDefault();
+  if (state === "title") startGame();
+  else if (state === "gameover" || state === "win") toTitle();
+}
+canvas.addEventListener("touchstart", canvasTap, {passive:false});
+canvas.addEventListener("mousedown", e => { if (state !== "play") canvasTap(e); });
+
+// Block iOS pinch-zoom and double-tap-to-zoom so gameplay gestures don't zoom the page
+["gesturestart","gesturechange","gestureend"].forEach(ev =>
+  document.addEventListener(ev, e => e.preventDefault(), {passive:false}));
+document.addEventListener("touchmove", e => { e.preventDefault(); }, {passive:false});
+let lastTouchEnd = 0;
+document.addEventListener("touchend", e => {
+  const now = Date.now();
+  if (now - lastTouchEnd < 320) e.preventDefault(); // double-tap zoom guard
+  lastTouchEnd = now;
+}, {passive:false});
 
 function handleEdge(k) {
   if (state === "title" && (k === "jump" || k === "start")) startGame();
@@ -714,15 +818,28 @@ function drawTitle() {
   ctx.fillText("Best score: " + bestScore, W/2, H/2 + 104);
 }
 
-// ---- Main loop ----
-function loop() {
-  update();
+// ---- Main loop (fixed 60Hz timestep) ----
+// Decoupling logic from the display refresh keeps the game running at the
+// right speed on 120Hz ProMotion iPhones/iPads (where rAF can fire at 120fps).
+const STEP = 1000 / 60;
+let lastTime = performance.now();
+let acc = 0;
+function loop(now) {
+  acc += now - lastTime;
+  lastTime = now;
+  if (acc > 250) acc = 250;          // clamp after tab/app was backgrounded
+  let steps = 0;
+  while (acc >= STEP && steps < 5) { update(); acc -= STEP; steps++; }
   draw();
   requestAnimationFrame(loop);
 }
+// Reset the clock when returning from background so nothing fast-forwards
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) { lastTime = performance.now(); acc = 0; }
+});
 
 toTitle();
-loop();
+requestAnimationFrame(loop);
 
 })();
 </script>
