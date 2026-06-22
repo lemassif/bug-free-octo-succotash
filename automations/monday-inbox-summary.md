@@ -4,10 +4,15 @@ A recurring automation that triages **Richard's Outlook inbox** every Monday mor
 and produces a **one-page focus summary**, categorized into Must-Reply / Opportunity
 Alerts / Newsletters / Junk.
 
-- **Runs:** every **Monday at 08:40** (timezone **America/New_York** — Eastern)
+- **Runs:** every **Monday at 09:10** (timezone **America/New_York** — Eastern)
 - **Source:** Microsoft 365 / Outlook **Inbox**, unread mail from the last **24 hours**
-- **Output:** a **Gmail draft** addressed to `richard.sebastian@thekennedycollective.org`
-  **plus** the one-page summary in the session — both ready by **~08:45** (≈5-min run)
+- **Output:** the one-page summary **emailed to** `richard.sebastian@thekennedycollective.org`
+  (auto-send) **plus** posted in the session — both ready by **~09:15** (≈5-min run)
+
+> ⚠️ **Auto-send requires a send-capable email connector** (Gmail with send scope, or a
+> Microsoft Graph `Mail.Send` server). It is **not yet connected**. Until it is, the run
+> falls back to creating a **Gmail draft** you send with one click. Once the connector is
+> added, set its send-tool name in **step 6** of the prompt below.
 
 ---
 
@@ -19,11 +24,11 @@ the Claude Code web UI:
 
 1. Open this repository's environment in Claude Code on the web.
 2. **New scheduled session / automation** → set the schedule to **Weekly · Monday ·
-   08:40 · America/New_York** (cron equivalent: `40 8 * * 1`). The run takes ~5 min, so
-   the Gmail draft and session summary are ready by **~08:45**.
+   09:10 · America/New_York** (cron equivalent: `10 9 * * 1`). The run takes ~5 min, so
+   the email and session summary are ready by **~09:15**.
 3. Paste **the prompt below** as the session instructions.
-4. Ensure the environment has the **Microsoft 365** (read) and **Gmail** (draft)
-   integrations connected.
+4. Ensure the environment has the **Microsoft 365** (read), **Gmail** (draft), and a
+   **send-capable email** connector (for auto-send) connected.
 
 > See https://code.claude.com/docs/en/claude-code-on-the-web for scheduling, triggers,
 > and environment setup.
@@ -53,9 +58,11 @@ the Claude Code web UI:
 > 5. Write a **one-page** summary: a "Bottom line" focus sentence at the top, then the four
 >    sections. Each item: **Sender** — *Subject* (one short reason it matters). Surface
 >    anything urgent. If a bucket is empty, say so in one line.
-> 6. Create a **Gmail draft** of the summary to `richard.sebastian@thekennedycollective.org`
->    with `mcp__Gmail__create_draft` (subject `📋 Monday Focus — Inbox Summary (<date>)`,
->    formatted `htmlBody`). **Do not send it.**
+> 6. **Send** the summary to `richard.sebastian@thekennedycollective.org` (subject
+>    `📋 Monday Focus — Inbox Summary (<date>)`, formatted HTML) using the connected
+>    send-capable email tool — `<SEND_TOOL_NAME>` (e.g. a Gmail send-scope or Microsoft
+>    Graph `Mail.Send` tool). **Fallback:** if no send tool is available, create a Gmail
+>    draft instead with `create_draft` and note in your reply that it was drafted, not sent.
 > 7. Post the same summary as your session reply.
 >
 > Privacy: never write email contents to a file or commit them to the repo — the summary
@@ -74,10 +81,10 @@ the Claude Code web UI:
 
 ## Notes & constraints
 
-- **Outlook is read-only here.** The Microsoft 365 MCP can search/read mail but has **no
-  send or draft tool**, so the summary is delivered as a **Gmail draft** (Gmail's
-  `create_draft`) rather than an Outlook email. If a send-capable Outlook/Graph MCP is
-  later connected, switch step 6 to send via that instead.
+- **No native send yet.** The Microsoft 365 MCP is read-only, and the Gmail MCP exposes
+  only `create_draft` (no send). Auto-send therefore depends on adding a **send-capable
+  connector** — Gmail with send scope, or a Microsoft Graph `Mail.Send` server. Once added,
+  put its tool name into `<SEND_TOOL_NAME>` in step 6; until then the run drafts in Gmail.
 - The search has no native "unread" filter — unread is determined from the `isRead` field
   in the result metadata, so no message is opened (and thus none is accidentally marked
   read) during triage.
