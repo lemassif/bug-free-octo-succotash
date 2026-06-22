@@ -4,10 +4,10 @@ A recurring automation that triages **Richard's Outlook inbox** every Monday mor
 and produces a **one-page focus summary**, categorized into Must-Reply / Opportunity
 Alerts / Newsletters / Junk.
 
-- **Runs:** every **Monday at 08:20** (timezone **America/New_York** — Eastern)
+- **Runs:** every **Monday at 08:40** (timezone **America/New_York** — Eastern)
 - **Source:** Microsoft 365 / Outlook **Inbox**, unread mail from the last **24 hours**
-- **Output:** one-page summary in the session **and** a **Gmail draft** addressed to
-  `richard.sebastian@thekennedycollective.org` (ready by ~08:30; review and forward)
+- **Output:** a **Gmail draft** addressed to `richard.sebastian@thekennedycollective.org`
+  **plus** the one-page summary in the session — both ready by **~08:45** (≈5-min run)
 
 ---
 
@@ -19,7 +19,8 @@ the Claude Code web UI:
 
 1. Open this repository's environment in Claude Code on the web.
 2. **New scheduled session / automation** → set the schedule to **Weekly · Monday ·
-   08:20 · America/New_York** (cron equivalent: `20 8 * * 1`).
+   08:40 · America/New_York** (cron equivalent: `40 8 * * 1`). The run takes ~5 min, so
+   the Gmail draft and session summary are ready by **~08:45**.
 3. Paste **the prompt below** as the session instructions.
 4. Ensure the environment has the **Microsoft 365** (read) and **Gmail** (draft)
    integrations connected.
