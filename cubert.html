@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cubert">
+<meta name="theme-color" content="#101018">
+<title>Cubert — a cube-hopping arcade game</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; width: 100%;
+    background: #0a0a12;
+    color: #e8e8f0;
+    font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+    overflow: hidden;
+    /* kill iOS long-press callout, selection, tap highlight, double-tap zoom */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+    overscroll-behavior: none;
+  }
+  #wrap {
+    position: relative;
+    min-height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    gap: 6px;
+    padding: 8px;
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+  #hud {
+    width: min(96vw, 720px);
+    display: flex; justify-content: space-between; align-items: center;
+    font-weight: 700; letter-spacing: .5px;
+    padding: 2px 6px;
+    text-shadow: 0 1px 0 #000;
+  }
+  #hud .lbl { font-size: 11px; opacity: .6; display: block; letter-spacing: 1.5px; }
+  #hud .val { font-size: 18px; color: #ffd34d; }
+  #hud .val.lives { color: #ff8a3d; letter-spacing: 2px; }
+  #stage-wrap {
+    position: relative;
+    width: min(96vw, 720px);
+    aspect-ratio: 720 / 600;
+  }
+  canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    display: block;
+    image-rendering: auto;
+    border-radius: 10px;
+  }
+  #overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; gap: 14px;
+    background: radial-gradient(120% 120% at 50% 35%, rgba(20,20,40,.72), rgba(6,6,14,.92));
+    border-radius: 10px;
+    padding: 20px;
+  }
+  #overlay.hidden { display: none; }
+  #overlay h1 {
+    margin: 0; font-size: clamp(34px, 9vw, 68px);
+    letter-spacing: 3px; font-weight: 800;
+    background: linear-gradient(180deg, #ffe27a, #ff8a3d 55%, #d94fb0);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 4px 20px rgba(255,138,61,.25);
+  }
+  #overlay h2 { margin: 0; font-size: clamp(20px, 5vw, 30px); color: #ffd34d; }
+  #overlay p { margin: 0; max-width: 34ch; line-height: 1.45; font-size: clamp(13px, 3.4vw, 15px); opacity: .9; }
+  #overlay .keys { font-size: 12px; opacity: .7; line-height: 1.7; }
+  #overlay button {
+    font: inherit; font-weight: 800; letter-spacing: 1px;
+    font-size: clamp(16px, 4.5vw, 20px);
+    color: #101018; background: linear-gradient(180deg, #ffe27a, #ffb43d);
+    border: none; border-radius: 999px;
+    padding: 12px 30px; cursor: pointer;
+    box-shadow: 0 6px 0 #b26a1f, 0 10px 24px rgba(0,0,0,.4);
+    transition: transform .05s, box-shadow .05s;
+  }
+  #overlay button:active { transform: translateY(4px); box-shadow: 0 2px 0 #b26a1f, 0 4px 10px rgba(0,0,0,.4); }
+  #pause-btn {
+    position: absolute; top: 8px; right: 8px;
+    width: 40px; height: 40px; border-radius: 10px;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+    color: #fff; font-size: 16px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  /* Touch D-pad — diamond of four diagonal buttons */
+  #pad {
+    width: min(96vw, 720px);
+    max-width: 340px;
+    aspect-ratio: 1 / 1;
+    margin-top: 4px;
+    position: relative;
+    display: none;
+    touch-action: none;
+  }
+  #pad .k {
+    position: absolute; width: 46%; height: 46%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 800; color: #fff;
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.16);
+    box-shadow: inset 0 0 18px rgba(255,255,255,.04);
+    user-select: none;
+  }
+  #pad .k:active, #pad .k.on { background: rgba(255,211,77,.28); border-color: #ffd34d; }
+  #pad .ul { top: 0; left: 0; border-radius: 22px 8px 8px 8px; }
+  #pad .ur { top: 0; right: 0; border-radius: 8px 22px 8px 8px; }
+  #pad .dl { bottom: 0; left: 0; border-radius: 8px 8px 8px 22px; }
+  #pad .dr { bottom: 0; right: 0; border-radius: 8px 8px 22px 8px; }
+  #pad .hub {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+    width: 30%; height: 30%; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #ff8a3d, #c94a1e);
+    box-shadow: 0 3px 10px rgba(0,0,0,.5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 800; letter-spacing: 1px; color: #2a1200;
+    pointer-events: none;
+  }
+  @media (pointer: coarse) { #pad { display: block; } }
+  .hint-desktop { display: none; }
+  @media (pointer: fine) { .hint-desktop { display: block; } }
+</style>
+</head>
+<body>
+  <div id="wrap">
+    <div id="hud">
+      <div><span class="lbl">SCORE</span><span class="val" id="score">0</span></div>
+      <div style="text-align:center"><span class="lbl">LEVEL</span><span class="val" id="level">1</span></div>
+      <div style="text-align:right"><span class="lbl">HIGH</span><span class="val" id="high">0</span></div>
+      <div style="text-align:right"><span class="lbl">LIVES</span><span class="val lives" id="lives">♦♦</span></div>
+    </div>
+
+    <div id="stage-wrap">
+      <canvas id="game" width="720" height="600"></canvas>
+      <div id="pause-btn" title="Pause">❚❚</div>
+      <div id="overlay">
+        <h1>CUBERT</h1>
+        <p>Hop across every cube to flip it to the target color — but don't leap off the pyramid, and dodge the bouncing red balls and <b>Slinky</b> the purple snake.</p>
+        <p class="keys hint-desktop">
+          <b>Arrow keys</b> (or W&nbsp;A&nbsp;S&nbsp;D) move diagonally:<br>
+          ↑ up-right &nbsp;·&nbsp; → down-right &nbsp;·&nbsp; ↓ down-left &nbsp;·&nbsp; ← up-left<br>
+          <b>P</b> pause
+        </p>
+        <p class="keys" style="display:block">On phone, use the four corner buttons below.</p>
+        <button id="start-btn">PLAY</button>
+        <p style="font-size:12px;opacity:.6;margin-top:2px">Looking for the other game? <a href="index.html" style="color:#ffd34d">Miner 2049er →</a></p>
+      </div>
+    </div>
+
+    <div id="pad">
+      <div class="k ul" data-dir="ul">◤</div>
+      <div class="k ur" data-dir="ur">◥</div>
+      <div class="k dl" data-dir="dl">◣</div>
+      <div class="k dr" data-dir="dr">◢</div>
+      <div class="hub">HOP</div>
+    </div>
+  </div>
+
+<script>
+"use strict";
+(function () {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // ---- Layout / isometric geometry -------------------------------------
+  const HW = 44, QH = 22, DEPTH = 30;        // cube half-width, top-diamond quarter-height, side depth
+  const COLW = 2 * HW;                        // horizontal step per column
+  const ROWH = QH + DEPTH;                    // vertical step per row
+  const ROWS = 7;                             // pyramid rows (0..6)
+  const ORIGIN_X = W / 2;
+  const ORIGIN_Y = 150;
+
+  function cubeXY(row, col) {
+    return {
+      x: ORIGIN_X + (col - row / 2) * COLW,
+      y: ORIGIN_Y + row * ROWH
+    };
+  }
+  // where an entity's feet rest on top of a cube
+  function standXY(row, col) {
+    const p = cubeXY(row, col);
+    return { x: p.x, y: p.y - 6 };
+  }
+  const onPyramid = (r, c) => r >= 0 && r < ROWS && c >= 0 && c <= r;
+
+  // ---- Levels ----------------------------------------------------------
+  // hops: number of taps needed to reach target. reversible: hopping again undoes it.
+  const LEVELS = [
+    { base:'#2f45d6', target:'#ffd23f', hops:1, reversible:false, ballEvery:2400, ballSpeed:520, coilyAt:4500, coilySpeed:560, discs:[{side:'left',row:3},{side:'right',row:5}] },
+    { base:'#8a2fd6', target:'#31d67a', hops:1, reversible:false, ballEvery:2100, ballSpeed:480, coilyAt:3800, coilySpeed:500, discs:[{side:'left',row:2},{side:'right',row:4}] },
+    { base:'#1f8ad6', mid:'#d64fb0', target:'#ffd23f', hops:2, reversible:false, ballEvery:2000, ballSpeed:460, coilyAt:3500, coilySpeed:470, discs:[{side:'left',row:4},{side:'right',row:3}] },
+    { base:'#d6472f', target:'#42e0ff', hops:1, reversible:true, ballEvery:1900, ballSpeed:440, coilyAt:3200, coilySpeed:440, discs:[{side:'left',row:3},{side:'right',row:5}] },
+    { base:'#2f45d6', mid:'#ff8a3d', target:'#31d67a', hops:2, reversible:false, ballEvery:1700, ballSpeed:410, coilyAt:2800, coilySpeed:410, discs:[{side:'left',row:2},{side:'right',row:5}] },
+  ];
+  function levelDef(i) { return LEVELS[Math.min(i, LEVELS.length - 1)]; }
+  function paletteFor(def) {
+    return def.hops === 1 ? [def.base, def.target] : [def.base, def.mid, def.target];
+  }
+
+  // ---- Game state ------------------------------------------------------
+  const HOP_MS = 170;         // player/ball hop duration
+  const START_LIVES = 3;
+
+  let mode = 'title';         // title | play | dying | levelclear | gameover
+  let score = 0, level = 0, lives = START_LIVES;
+  let high = +(localStorage.getItem('cubert_high') || 0);
+  let cubes = [];             // {row,col,stage}
+  let balls = [], discs = [], coily = null, player = null;
+  let ballTimer = 0, coilyTimer = 0, stateTimer = 0;
+  let inputQueue = null;
+  let shake = 0;
+
+  const els = {
+    score: document.getElementById('score'),
+    level: document.getElementById('level'),
+    high:  document.getElementById('high'),
+    lives: document.getElementById('lives'),
+    overlay: document.getElementById('overlay'),
+  };
+
+  function makeEntity(row, col, kind) {
+    return { row, col, kind, x: standXY(row, col).x, y: standXY(row, col).y,
+             anim: null, hopTimer: 0, alive: true, state: 'idle', extra: {} };
+  }
+
+  function startLevel(keepScore) {
+    const def = levelDef(level);
+    cubes = [];
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c <= r; c++)
+        cubes.push({ row: r, col: c, stage: 0 });
+    player = makeEntity(0, 0, 'player');
+    balls = [];
+    coily = null;
+    discs = def.discs.map(d => ({ side: d.side, row: d.row, used: false, phase: Math.random() * 6.28 }));
+    ballTimer = def.ballEvery * 0.6;
+    coilyTimer = def.coilyAt;
+    inputQueue = null;
+    mode = 'play';
+    if (!keepScore) { /* score persists across levels */ }
+    updateHUD();
+  }
+
+  function newGame() {
+    score = 0; level = 0; lives = START_LIVES;
+    startLevel(false);
+    hideOverlay();
+  }
+
+  function updateHUD() {
+    els.score.textContent = score;
+    els.level.textContent = level + 1;
+    els.high.textContent = high;
+    els.lives.textContent = lives > 0 ? '♦'.repeat(lives) : '—';
+  }
+
+  function showOverlay(html) { els.overlay.innerHTML = html; els.overlay.classList.remove('hidden'); }
+  function hideOverlay() { els.overlay.classList.add('hidden'); }
+
+  // ---- Coordinate helpers for chasing (a = col, b = row - col) ----------
+  const toAB = (r, c) => ({ a: c, b: r - c });
+  const fromAB = (a, b) => ({ row: a + b, col: a });
+
+  // Direction -> delta in (row,col)
+  const DIRS = {
+    ul: (r, c) => [r - 1, c - 1],
+    ur: (r, c) => [r - 1, c],
+    dl: (r, c) => [r + 1, c],
+    dr: (r, c) => [r + 1, c + 1],
+  };
+
+  // ---- Player movement -------------------------------------------------
+  function tryPlayerMove(dir) {
+    if (mode !== 'play' || !player.alive || player.anim) { inputQueue = dir; return; }
+    const [nr, nc] = DIRS[dir](player.row, player.col);
+    beginHop(player, nr, nc, () => onPlayerLand(nr, nc, dir));
+  }
+
+  function onPlayerLand(nr, nc, dir) {
+    if (onPyramid(nr, nc)) {
+      const cube = cubeAt(nr, nc);
+      flipCube(cube);
+      collideCheck();
+      if (mode === 'play' && allComplete()) levelClear();
+      return;
+    }
+    // Off the pyramid — check for a disc on this side.
+    const side = nc < 0 ? 'left' : (nc > nr ? 'right' : null);
+    const disc = side && discs.find(d => !d.used && d.side === side && Math.abs(d.row - player.row) <= 1);
+    if (disc) rideDisc(disc);
+    else playerFall();
+  }
+
+  function cubeAt(r, c) { return cubes.find(k => k.row === r && k.col === c); }
+
+  function flipCube(cube) {
+    const def = levelDef(level);
+    const prev = cube.stage;
+    if (def.reversible) cube.stage = cube.stage === 0 ? 1 : 0;
+    else cube.stage = Math.min(cube.stage + 1, def.hops);
+    if (cube.stage !== prev && cube.stage === def.hops) score += 25;
+    else if (cube.stage !== prev) score += 5;
+    beep(520 + cube.stage * 120, 0.05, 'square', 0.05);
+    updateHUD();
+  }
+
+  function allComplete() {
+    const def = levelDef(level);
+    return cubes.every(k => k.stage === def.hops);
+  }
+
+  function rideDisc(disc) {
+    disc.used = true;
+    score += 50;
+    // Slinky (Coily) chases you off the edge and plummets.
+    if (coily && coily.alive) { killCoily(); score += 500; }
+    beep(300, 0.25, 'sine', 0.06);
+    player.state = 'disc';
+    const top = standXY(0, 0);
+    const from = { x: player.x, y: player.y };
+    animateFree(player, from, top, 520, () => {
+      player.row = 0; player.col = 0; player.state = 'idle';
+      player.x = top.x; player.y = top.y;
+      updateHUD();
+    });
+  }
+
+  function playerFall() {
+    mode = 'dying';
+    player.alive = false;
+    player.state = 'fall';
+    beep(400, 0.5, 'sawtooth', 0.07, 120);
+    const from = { x: player.x, y: player.y };
+    const to = { x: player.x + (player.col <= player.row / 2 ? -80 : 80), y: H + 120 };
+    animateFree(player, from, to, 700, () => loseLife());
+  }
+
+  // ---- Enemies ---------------------------------------------------------
+  function spawnBall() {
+    const col = Math.random() < 0.5 ? 0 : 1;
+    const b = makeEntity(1, col, 'ball');
+    b.hopTimer = 300;
+    balls.push(b);
+  }
+
+  function stepBall(b) {
+    const dir = Math.random() < 0.5 ? 'dl' : 'dr';
+    const [nr, nc] = DIRS[dir](b.row, b.col);
+    beginHop(b, nr, nc, () => {
+      if (!onPyramid(nr, nc)) { b.alive = false; return; }
+      collideCheck();
+    });
+  }
+
+  function spawnCoily() {
+    // starts as a bouncing egg near the top, then hatches into a chaser
+    const col = Math.random() < 0.5 ? 0 : 1;
+    coily = makeEntity(1, col, 'coily');
+    coily.state = 'egg';
+    coily.extra.eggHops = 0;
+    coily.hopTimer = 400;
+  }
+
+  function stepCoily() {
+    const def = levelDef(level);
+    if (coily.state === 'egg') {
+      const dir = Math.random() < 0.5 ? 'dl' : 'dr';
+      let [nr, nc] = DIRS[dir](coily.row, coily.col);
+      coily.extra.eggHops++;
+      if (!onPyramid(nr, nc) || coily.extra.eggHops >= 4) {
+        // hatch in place instead of falling off
+        coily.state = 'snake';
+        collideCheck();
+        return;
+      }
+      beginHop(coily, nr, nc, () => { if (!onPyramid(nr,nc)) coily.alive=false; else collideCheck(); });
+    } else {
+      // chase player using (a,b) coordinates
+      const me = toAB(coily.row, coily.col);
+      const you = toAB(player.row, player.col);
+      const da = you.a - me.a, db = you.b - me.b;
+      let na = me.a, nb = me.b;
+      if (Math.abs(da) >= Math.abs(db) && da !== 0) na += Math.sign(da);
+      else if (db !== 0) nb += Math.sign(db);
+      else if (da !== 0) na += Math.sign(da);
+      const p = fromAB(na, nb);
+      if (!onPyramid(p.row, p.col)) return;
+      beginHop(coily, p.row, p.col, collideCheck);
+    }
+  }
+
+  function killCoily() { if (coily) { coily.alive = false; coily = null; } }
+
+  // ---- Collision -------------------------------------------------------
+  function collideCheck() {
+    if (mode !== 'play' || !player.alive || player.state === 'disc') return;
+    const hit = (e) => e && e.alive && e.row === player.row && e.col === player.col && e.state !== 'egg-safe';
+    for (const b of balls) if (hit(b)) return playerHit();
+    if (coily && coily.state !== 'egg' && hit(coily)) return playerHit();
+  }
+
+  function playerHit() {
+    mode = 'dying';
+    player.alive = false;
+    player.state = 'hit';
+    shake = 14;
+    beep(160, 0.4, 'square', 0.08, 60);
+    stateTimer = 700;
+  }
+
+  function loseLife() {
+    lives--;
+    updateHUD();
+    if (lives <= 0) return gameOver();
+    // respawn player on top, clear enemies for a breather
+    balls = [];
+    killCoily();
+    const def = levelDef(level);
+    coilyTimer = def.coilyAt;
+    ballTimer = def.ballEvery;
+    player = makeEntity(0, 0, 'player');
+    inputQueue = null;
+    mode = 'play';
+  }
+
+  function levelClear() {
+    mode = 'levelclear';
+    stateTimer = 1600;
+    score += 200 + level * 100;
+    balls = []; killCoily();
+    beep(660, 0.12, 'square', 0.06);
+    setTimeout(() => beep(880, 0.18, 'square', 0.06), 130);
+    updateHUD();
+    saveHigh();
+  }
+
+  function gameOver() {
+    mode = 'gameover';
+    saveHigh();
+    showOverlay(
+      '<h2>GAME OVER</h2>' +
+      '<p>You reached <b>Level ' + (level + 1) + '</b> with <b>' + score + '</b> points.</p>' +
+      (score >= high ? '<p style="color:#31d67a"><b>New high score!</b></p>' : '') +
+      '<button id="start-btn">PLAY AGAIN</button>'
+    );
+    bindStart();
+  }
+
+  function saveHigh() {
+    if (score > high) { high = score; localStorage.setItem('cubert_high', high); updateHUD(); }
+  }
+
+  // ---- Hop animation ---------------------------------------------------
+  function beginHop(e, nr, nc, onLand) {
+    const from = { x: e.x, y: e.y };
+    const dest = onPyramid(nr, nc) ? standXY(nr, nc)
+                                   : offPyramidXY(e.row, e.col, nr, nc);
+    e.row = nr; e.col = nc;
+    e.anim = { t: 0, dur: HOP_MS, from, to: dest, arc: 46, cb: onLand, free: false };
+    if (e.kind === 'player') beep(760, 0.04, 'square', 0.04);
+  }
+  // For a hop that leaves the pyramid, aim past the edge so the fall reads correctly.
+  function offPyramidXY(r, c, nr, nc) {
+    const base = cubeXY(r, c);
+    const dx = (nc - c) - (nr - r) / 2;
+    return { x: base.x + dx * COLW, y: base.y + (nr - r) * ROWH };
+  }
+  function animateFree(e, from, to, dur, onDone) {
+    e.anim = { t: 0, dur, from, to, arc: 0, cb: onDone, free: true };
+  }
+
+  function updateAnims(dt) {
+    const list = [player, ...balls]; if (coily) list.push(coily);
+    for (const e of list) {
+      if (!e || !e.anim) continue;
+      e.anim.t += dt;
+      const p = Math.min(1, e.anim.t / e.anim.dur);
+      const { from, to, arc } = e.anim;
+      e.x = from.x + (to.x - from.x) * p;
+      e.y = from.y + (to.y - from.y) * p - (arc ? Math.sin(Math.PI * p) * arc : 0);
+      if (p >= 1) {
+        const cb = e.anim.cb; e.anim = null;
+        if (cb) cb();
+      }
+    }
+  }
+
+  // ---- Main update -----------------------------------------------------
+  function update(dt) {
+    if (shake > 0) shake = Math.max(0, shake - dt * 0.05);
+
+    if (mode === 'play') {
+      updateAnims(dt);
+      const def = levelDef(level);
+
+      // buffered input
+      if (!player.anim && player.alive && inputQueue) {
+        const d = inputQueue; inputQueue = null; tryPlayerMove(d);
+      }
+
+      // spawn / step balls
+      ballTimer -= dt;
+      if (ballTimer <= 0) { spawnBall(); ballTimer = def.ballEvery; }
+      for (const b of balls) {
+        if (b.anim) continue;
+        b.hopTimer -= dt;
+        if (b.hopTimer <= 0) { b.hopTimer = def.ballSpeed; stepBall(b); }
+      }
+      balls = balls.filter(b => b.alive);
+
+      // Coily
+      if (!coily) { coilyTimer -= dt; if (coilyTimer <= 0) spawnCoily(); }
+      else if (!coily.anim && coily.alive) {
+        coily.hopTimer -= dt;
+        if (coily.hopTimer <= 0) { coily.hopTimer = coily.state === 'egg' ? def.coilySpeed * 1.1 : def.coilySpeed; stepCoily(); }
+      }
+      if (coily && !coily.alive) coily = null;
+
+    } else if (mode === 'dying') {
+      updateAnims(dt);
+      if (player.state === 'hit') {
+        stateTimer -= dt;
+        if (stateTimer <= 0) loseLife();
+      }
+    } else if (mode === 'levelclear') {
+      stateTimer -= dt;
+      if (stateTimer <= 0) { level++; startLevel(true); }
+    }
+  }
+
+  // ---- Rendering -------------------------------------------------------
+  function shade(hex, amt) {
+    const n = parseInt(hex.slice(1), 16);
+    let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    r = Math.max(0, Math.min(255, r + amt));
+    g = Math.max(0, Math.min(255, g + amt));
+    b = Math.max(0, Math.min(255, b + amt));
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  }
+
+  function drawCube(cube) {
+    const def = levelDef(level);
+    const pal = paletteFor(def);
+    const top = pal[cube.stage];
+    const { x, y } = cubeXY(cube.row, cube.col);
+    // top face (diamond)
+    ctx.beginPath();
+    ctx.moveTo(x, y - QH); ctx.lineTo(x + HW, y); ctx.lineTo(x, y + QH); ctx.lineTo(x - HW, y);
+    ctx.closePath();
+    ctx.fillStyle = top; ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1.5; ctx.stroke();
+    // left face
+    ctx.beginPath();
+    ctx.moveTo(x - HW, y); ctx.lineTo(x, y + QH); ctx.lineTo(x, y + QH + DEPTH); ctx.lineTo(x - HW, y + DEPTH);
+    ctx.closePath();
+    ctx.fillStyle = shade(top, -70); ctx.fill(); ctx.stroke();
+    // right face
+    ctx.beginPath();
+    ctx.moveTo(x + HW, y); ctx.lineTo(x, y + QH); ctx.lineTo(x, y + QH + DEPTH); ctx.lineTo(x + HW, y + DEPTH);
+    ctx.closePath();
+    ctx.fillStyle = shade(top, -110); ctx.fill(); ctx.stroke();
+  }
+
+  function discXY(disc) {
+    // sit just off the correct edge, level with disc.row
+    const edgeCol = disc.side === 'left' ? 0 : disc.row;
+    const p = cubeXY(disc.row, edgeCol);
+    const off = (disc.side === 'left' ? -1 : 1) * (HW + 26);
+    return { x: p.x + off, y: p.y + 4 };
+  }
+
+  function drawDisc(disc) {
+    if (disc.used) return;
+    const { x, y } = discXY(disc);
+    const t = performance.now() / 260 + disc.phase;
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.ellipse(x, y, 26 - i * 3, 11 - i, 0, 0, Math.PI * 2);
+      const hue = (t * 40 + i * 40) % 360;
+      ctx.fillStyle = 'hsl(' + hue + ',85%,' + (55 - i * 8) + '%)';
+      ctx.globalAlpha = 0.9;
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawShadow(e) {
+    const p = standXY(e.row, e.col);
+    ctx.beginPath();
+    ctx.ellipse(p.x, p.y + 12, 18, 7, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fill();
+  }
+
+  function drawPlayer() {
+    const x = player.x, y = player.y;
+    if (player.alive && !player.anim && mode === 'play') drawShadow(player);
+    // feet
+    ctx.fillStyle = '#3a1a08';
+    ctx.beginPath(); ctx.ellipse(x - 8, y + 10, 6, 4, 0, 0, 6.3); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x + 8, y + 10, 6, 4, 0, 0, 6.3); ctx.fill();
+    // body
+    const g = ctx.createRadialGradient(x - 6, y - 12, 3, x, y - 4, 22);
+    g.addColorStop(0, '#ffb15a'); g.addColorStop(1, '#e8631d');
+    ctx.beginPath(); ctx.arc(x, y - 4, 17, 0, 6.3); ctx.fillStyle = g; ctx.fill();
+    // snout
+    ctx.beginPath(); ctx.ellipse(x, y + 2, 12, 8, 0, 0, 6.3); ctx.fillStyle = '#ff8a3d'; ctx.fill();
+    ctx.beginPath(); ctx.arc(x - 4, y + 4, 2.2, 0, 6.3); ctx.arc(x + 4, y + 4, 2.2, 0, 6.3); ctx.fillStyle = '#2a1000'; ctx.fill();
+    // eyes
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x - 6, y - 10, 5, 0, 6.3); ctx.arc(x + 6, y - 10, 5, 0, 6.3); ctx.fill();
+    ctx.fillStyle = '#111';
+    const look = player.state === 'hit' ? 0 : 1.5;
+    ctx.beginPath(); ctx.arc(x - 6 + look, y - 9, 2.3, 0, 6.3); ctx.arc(x + 6 + look, y - 9, 2.3, 0, 6.3); ctx.fill();
+    if (player.state === 'hit') {
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - 8, y - 12); ctx.lineTo(x - 4, y - 8);
+      ctx.moveTo(x - 4, y - 12); ctx.lineTo(x - 8, y - 8);
+      ctx.moveTo(x + 4, y - 12); ctx.lineTo(x + 8, y - 8);
+      ctx.moveTo(x + 8, y - 12); ctx.lineTo(x + 4, y - 8);
+      ctx.stroke();
+    }
+  }
+
+  function drawBall(b) {
+    if (b.alive && !b.anim) drawShadow(b);
+    const g = ctx.createRadialGradient(b.x - 4, b.y - 8, 2, b.x, b.y - 2, 14);
+    g.addColorStop(0, '#ff7a7a'); g.addColorStop(1, '#c11414');
+    ctx.beginPath(); ctx.arc(b.x, b.y - 2, 12, 0, 6.3); ctx.fillStyle = g; ctx.fill();
+    ctx.beginPath(); ctx.arc(b.x - 4, b.y - 6, 3, 0, 6.3); ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fill();
+  }
+
+  function drawCoily() {
+    const x = coily.x, y = coily.y;
+    if (coily.alive && !coily.anim) drawShadow(coily);
+    if (coily.state === 'egg') {
+      ctx.beginPath(); ctx.ellipse(x, y - 4, 11, 15, 0, 0, 6.3);
+      ctx.fillStyle = '#b46bff'; ctx.fill();
+      ctx.strokeStyle = '#7a2fd6'; ctx.lineWidth = 2; ctx.stroke();
+      return;
+    }
+    // snake: stacked coils + head
+    ctx.fillStyle = '#7a2fd6';
+    ctx.beginPath(); ctx.ellipse(x, y + 8, 15, 8, 0, 0, 6.3); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x, y, 13, 8, 0, 0, 6.3); ctx.fill();
+    // head
+    ctx.beginPath(); ctx.arc(x, y - 12, 13, 0, 6.3); ctx.fillStyle = '#9a4dff'; ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x - 5, y - 14, 5, 0, 6.3); ctx.arc(x + 5, y - 14, 5, 0, 6.3); ctx.fill();
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(x - 5, y - 13, 2.4, 0, 6.3); ctx.arc(x + 5, y - 13, 2.4, 0, 6.3); ctx.fill();
+    // antennae
+    ctx.strokeStyle = '#ff4fd0'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x - 4, y - 22); ctx.lineTo(x - 7, y - 28);
+    ctx.moveTo(x + 4, y - 22); ctx.lineTo(x + 7, y - 28); ctx.stroke();
+  }
+
+  function render() {
+    ctx.save();
+    if (shake > 0) ctx.translate((Math.random() - .5) * shake, (Math.random() - .5) * shake);
+
+    // background
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#141426'); bg.addColorStop(1, '#07070f');
+    ctx.fillStyle = bg; ctx.fillRect(-30, -30, W + 60, H + 60);
+
+    // target-color reminder swatch
+    if (mode !== 'title') {
+      const pal = paletteFor(levelDef(level));
+      ctx.fillStyle = 'rgba(255,255,255,.55)';
+      ctx.font = '600 13px "Trebuchet MS", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('TARGET', 20, 30);
+      ctx.fillStyle = pal[pal.length - 1];
+      ctx.beginPath(); ctx.moveTo(90, 18); ctx.lineTo(112, 26); ctx.lineTo(90, 34); ctx.lineTo(68, 26); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,.4)'; ctx.lineWidth = 1; ctx.stroke();
+    }
+
+    for (const d of discs || []) drawDisc(d);
+
+    // cubes, painted back-to-front (top rows first)
+    for (const c of cubes) drawCube(c);
+
+    // entities, sorted by screen-row so nearer ones overlap farther ones
+    const ents = [];
+    for (const b of balls) ents.push(b);
+    if (coily && coily.alive) ents.push(coily);
+    if (player && (player.alive || player.state === 'fall' || player.state === 'hit')) ents.push(player);
+    ents.sort((a, b) => a.y - b.y);
+    for (const e of ents) {
+      if (e.kind === 'player') drawPlayer();
+      else if (e.kind === 'ball') drawBall(e);
+      else if (e.kind === 'coily') drawCoily();
+    }
+
+    if (mode === 'levelclear') {
+      ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(0, H/2 - 46, W, 92);
+      ctx.fillStyle = '#ffd23f'; ctx.textAlign = 'center';
+      ctx.font = '800 40px "Trebuchet MS", sans-serif';
+      ctx.fillText('LEVEL ' + (level + 1) + ' CLEAR!', W / 2, H / 2 + 12);
+    }
+    ctx.restore();
+  }
+
+  // ---- Loop (fixed 60Hz logic, independent of refresh rate) -------------
+  let last = performance.now(), acc = 0;
+  const STEP = 1000 / 60;
+  function frame(now) {
+    let dt = now - last; last = now;
+    if (dt > 250) dt = 250;
+    acc += dt;
+    while (acc >= STEP) { update(STEP); acc -= STEP; }
+    render();
+    requestAnimationFrame(frame);
+  }
+
+  // ---- Sound (tiny WebAudio, best-effort) ------------------------------
+  let actx = null;
+  function beep(freq, dur, type, vol, slideTo) {
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = type || 'square'; o.frequency.value = freq;
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, actx.currentTime + dur);
+      g.gain.value = vol || 0.05;
+      g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
+      o.connect(g); g.connect(actx.destination);
+      o.start(); o.stop(actx.currentTime + dur);
+    } catch (e) {}
+  }
+
+  // ---- Input -----------------------------------------------------------
+  const KEYMAP = {
+    ArrowUp: 'ur', KeyW: 'ur',
+    ArrowRight: 'dr', KeyD: 'dr',
+    ArrowDown: 'dl', KeyS: 'dl',
+    ArrowLeft: 'ul', KeyA: 'ul',
+  };
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'KeyP') { togglePause(); return; }
+    if ((e.code === 'Space' || e.code === 'Enter') && (mode === 'title' || mode === 'gameover')) {
+      newGame(); e.preventDefault(); return;
+    }
+    const dir = KEYMAP[e.code];
+    if (dir) { e.preventDefault(); if (actx) actx.resume(); tryPlayerMove(dir); }
+  });
+
+  let paused = false;
+  function togglePause() {
+    if (mode !== 'play' && !paused) return;
+    paused = !paused;
+    if (paused) { showOverlay('<h2>PAUSED</h2><button id="start-btn">RESUME</button>'); bindResume(); }
+    else hideOverlay();
+  }
+  document.getElementById('pause-btn').addEventListener('click', togglePause);
+
+  // touch pad
+  document.querySelectorAll('#pad .k').forEach(k => {
+    const dir = k.getAttribute('data-dir');
+    const press = (e) => { e.preventDefault(); if (actx) actx.resume();
+      k.classList.add('on'); tryPlayerMove(dir); };
+    const release = () => k.classList.remove('on');
+    k.addEventListener('touchstart', press, { passive: false });
+    k.addEventListener('touchend', release);
+    k.addEventListener('touchcancel', release);
+    k.addEventListener('mousedown', press);
+    k.addEventListener('mouseup', release);
+    k.addEventListener('mouseleave', release);
+  });
+
+  function bindStart() {
+    const b = document.getElementById('start-btn');
+    if (b) b.addEventListener('click', () => { if (actx) actx.resume(); newGame(); });
+  }
+  function bindResume() {
+    const b = document.getElementById('start-btn');
+    if (b) b.addEventListener('click', () => { paused = false; hideOverlay(); });
+  }
+
+  // ---- Boot ------------------------------------------------------------
+  updateHUD();
+  bindStart();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

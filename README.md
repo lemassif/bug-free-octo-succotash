@@ -1,3 +1,15 @@
+> This repo contains **two** self-contained browser games:
+>
+> | Game | File | Play |
+> |------|------|------|
+> | **Miner 2049er** (platformer) | [`index.html`](index.html) | open `index.html` |
+> | **Cubert** (cube-hopping arcade) | [`cubert.html`](cubert.html) | open `cubert.html` |
+>
+> See [`CUBERT.md`](CUBERT.md) for the Cubert instructions. The rest of this
+> file documents Miner 2049er.
+
+---
+
 # Miner 2049er — Bounty Bob
 
 A browser remake of the classic 1982 platformer *Miner 2049er*. You play
