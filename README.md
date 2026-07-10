@@ -1,3 +1,39 @@
+# Games
+
+Two self-contained browser games, no build step, no dependencies — just open
+the file:
+
+| Game | File | Genre | Session length |
+|------|------|-------|----------------|
+| **Ferrow Light** | `ferrow-light.html` | Zork-style text adventure | 20–30 minutes |
+| **Miner 2049er** | `index.html` | Arcade platformer | as long as you last |
+
+---
+
+# Ferrow Light
+
+A Zork-style interactive fiction game, sized to be finished in one sitting
+(20–30 minutes). You are the relief keeper of Ferrow Point Light: the keeper
+is missing, the lamp is dark, a storm is building, and the evening packet
+steamer is due through the shoals at dusk.
+
+## Play
+
+Open `ferrow-light.html` in any modern browser (works on phones too). Type
+commands at the `>` prompt:
+
+- **Move**: `NORTH`, `SOUTH`, `EAST`, `WEST`, `UP`, `DOWN` (or `N`/`S`/`E`/`W`/`U`/`D`)
+- **Look around**: `LOOK`, `EXAMINE thing` (or `X thing`), `READ thing`
+- **Act**: `TAKE`, `DROP`, `OPEN`, `UNLOCK`, `LIGHT`, `POUR`, `WIND`, `PUT X IN Y`
+- **Helpers**: `INVENTORY` (`I`), `HINT` for a contextual nudge, `SCORE`, `HELP`, `RESTART`
+
+Nine rooms, four chained puzzles, a 100-point score with ranks, and one
+faithful homage to a certain lurker in dark places. Everything is
+deterministic and fair — the game warns you (twice) about the one thing that
+can kill you. If you're ever stuck, `HINT` always points at the next step.
+
+---
+
 # Miner 2049er — Bounty Bob
 
 A browser remake of the classic 1982 platformer *Miner 2049er*. You play

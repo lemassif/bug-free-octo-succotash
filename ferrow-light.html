@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f1c">
+<title>Ferrow Light — a half-hour text adventure</title>
+</head>
+<body>
+<style>
+  :root{
+    --ground:#0a0f1c;
+    --panel:#0f1729;
+    --line:#22314e;
+    --phos:#f0b763;
+    --bright:#ffe6b3;
+    --dim:#7d8ca8;
+    --danger:#e0655b;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;
+  }
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--ground);
+    background-image:radial-gradient(1200px 600px at 50% -10%, #16223c 0%, var(--ground) 70%);
+    background-attachment:fixed;
+    color:var(--phos);
+    font-family:var(--mono);
+    font-size:15px;
+    line-height:1.55;
+  }
+  .frame{
+    max-width:74ch;
+    margin:0 auto;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    padding:0 16px;
+  }
+  header.masthead{
+    text-align:center;
+    padding:26px 0 14px;
+    user-select:none;
+  }
+  h1.title{
+    margin:0;
+    font-size:clamp(22px,5vw,34px);
+    font-weight:700;
+    letter-spacing:.42em;
+    text-indent:.42em;
+    color:var(--bright);
+    background:linear-gradient(100deg,
+      var(--phos) 0%, var(--phos) 38%,
+      #fff7e3 50%,
+      var(--phos) 62%, var(--phos) 100%);
+    background-size:300% 100%;
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    animation:beam 9s linear infinite;
+    text-shadow:0 0 22px rgba(240,183,99,.18);
+  }
+  @keyframes beam{
+    0%{background-position:120% 0;}
+    100%{background-position:-180% 0;}
+  }
+  .tagline{
+    margin:8px 0 0;
+    color:var(--dim);
+    font-size:12px;
+    letter-spacing:.18em;
+    text-indent:.18em;
+    text-transform:uppercase;
+  }
+  .status{
+    position:sticky;
+    top:0;
+    z-index:5;
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    background:var(--phos);
+    color:var(--ground);
+    padding:3px 12px;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    font-variant-numeric:tabular-nums;
+    border-radius:2px;
+    box-shadow:0 0 18px rgba(240,183,99,.25);
+  }
+  .status .right{white-space:nowrap;}
+  #out{
+    flex:1;
+    padding:18px 2px 8px;
+    overflow-wrap:break-word;
+  }
+  #out p{margin:0 0 12px;}
+  #out p.echo{color:var(--dim);margin-top:4px;}
+  #out p.roomname{color:var(--bright);font-weight:700;margin-bottom:2px;letter-spacing:.04em;}
+  #out p.alert{color:var(--danger);}
+  #out p.bright{color:var(--bright);}
+  #out p.banner{
+    color:var(--bright);
+    border:1px solid var(--line);
+    background:var(--panel);
+    padding:10px 14px;
+    border-radius:3px;
+  }
+  #out .sep{color:var(--line);}
+  form.cmd{
+    position:sticky;
+    bottom:0;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 2px calc(14px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--ground) 65%, rgba(10,15,28,0));
+  }
+  form.cmd .prompt{
+    color:var(--bright);
+    font-weight:700;
+    user-select:none;
+  }
+  form.cmd input{
+    flex:1;
+    background:transparent;
+    border:none;
+    border-bottom:1px solid var(--line);
+    outline:none;
+    color:var(--bright);
+    font-family:var(--mono);
+    font-size:16px;
+    padding:4px 2px;
+    caret-color:var(--phos);
+  }
+  form.cmd input:focus{border-bottom-color:var(--phos);}
+  footer.colophon{
+    text-align:center;
+    color:var(--dim);
+    font-size:11px;
+    letter-spacing:.08em;
+    padding:0 0 12px;
+    user-select:none;
+  }
+  @media (prefers-reduced-motion: reduce){
+    h1.title{animation:none;background-position:50% 0;}
+  }
+</style>
+
+<div class="frame">
+  <header class="masthead">
+    <h1 class="title">FERROW LIGHT</h1>
+    <p class="tagline">a half-hour of fog, brass, and one very dark tower</p>
+  </header>
+
+  <div class="status" aria-live="off">
+    <span id="stRoom">Shore Road</span>
+    <span class="right">Score: <span id="stScore">0</span> &nbsp; Moves: <span id="stTurns">0</span></span>
+  </div>
+
+  <div id="out" aria-live="polite"></div>
+
+  <form class="cmd" id="cmdForm" autocomplete="off">
+    <span class="prompt">&gt;</span>
+    <input id="cmdInput" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" aria-label="Command" />
+  </form>
+
+  <footer class="colophon">an interactive fog &middot; in the tradition of the great cave crawlers &middot; type HELP</footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+/* ---------------- state ---------------- */
+
+const freshState = () => ({
+  room: "shore",
+  score: 0, turns: 0,
+  dead: false, won: false,
+  lanternLit: false,
+  doorUnlocked: false, doorOpen: false,
+  trapOpen: false,
+  tinOpen: false, toolboxOpen: false,
+  clockWound: false, lampFilled: false, lampLit: false,
+  darkTurns: 0,
+  awarded: {}, visited: {},
+  pendingRestart: false,
+});
+let st = freshState();
+
+/* ---------------- items ---------------- */
+
+const ITEMS = {
+  matchbox: {
+    name: "box of matches",
+    aliases: ["matches", "matchbox", "match", "box of matches"],
+    loc: "cottage", takeable: true,
+    inRoom: "A box of keeper's matches sits on the mantelpiece.",
+    desc: "A tin box of matches with fat sulphur heads. It rattles about half-full — plenty."
+  },
+  note: {
+    name: "note",
+    aliases: ["note", "paper", "letter"],
+    loc: "cottage", takeable: true,
+    inRoom: "A note is pinned under a mug on the table.",
+    desc: "A note in a firm, careful hand. You could READ it.",
+    text: "“Relief — if I’m not at the landing, the tide went sideways on me and I’ve rowed for Wick Harbor. Light the lamp before dusk; the evening packet cuts close to the shoals. The tower key is in the tea tin, same as always. Oil’s in the cellar. Mind the dark down there — I mean it. — E. Marsh”"
+  },
+  lantern: {
+    name: "storm lantern",
+    aliases: ["lantern", "storm lantern"],
+    loc: "bedroom", takeable: true,
+    inRoom: "A storm lantern sits on the bedside table.",
+    desc: null // dynamic
+  },
+  diary: {
+    name: "keeper's diary",
+    aliases: ["diary", "journal", "keepers diary", "keeper's diary", "book"],
+    loc: "bedroom", takeable: true,
+    inRoom: "A diary lies on the bedside table with a pencil still in it.",
+    desc: "Thirty years of weather, wicks, and complaints about gulls. You could READ it.",
+    text: "Most entries are weather and chores. One is underlined: “The clockwork wants winding every four hours or the lens stands still, and a still light is a lie. The crank lives in the cellar toolbox, where visitors can’t ‘borrow’ it.” The last page is in different ink: “Something has been at the cellar in the nights. Eaten the candles, of all things. I keep a light with me now.”"
+  },
+  key: {
+    name: "brass key",
+    aliases: ["key", "brass key"],
+    loc: "hidden", takeable: true,
+    inRoom: "A small brass key lies here.",
+    desc: "Small, heavy, polished by thirty years of the same pocket. Stamped: FERROW No.1."
+  },
+  tin: {
+    name: "tea tin",
+    aliases: ["tin", "tea tin", "caddy"],
+    loc: "cottage", takeable: false,
+    inRoom: null, // mentioned in room prose
+    desc: null // dynamic
+  },
+  oilcan: {
+    name: "oil can",
+    aliases: ["oil", "can", "oilcan", "oil can", "paraffin"],
+    loc: "cellar", takeable: true,
+    inRoom: "A dented oil can stands by the steps.",
+    desc: "A gallon can of lamp oil, dented but full. It sloshes with a rich, promising weight."
+  },
+  toolbox: {
+    name: "toolbox",
+    aliases: ["toolbox", "tool box", "chest"],
+    loc: "cellar", takeable: false,
+    inRoom: "A wooden toolbox sits under the shelf.",
+    desc: null // dynamic
+  },
+  crank: {
+    name: "iron crank",
+    aliases: ["crank", "handle", "crank handle", "iron crank"],
+    loc: "hidden", takeable: true,
+    inRoom: "An iron crank handle lies here.",
+    desc: "A heavy iron crank with a square-cut end, worn bright where hands have gripped it four times a night for decades."
+  },
+  spyglass: {
+    name: "spyglass",
+    aliases: ["spyglass", "telescope", "glass"],
+    loc: "cliff", takeable: true,
+    inRoom: "A brass spyglass is wedged in the ribs of the wrecked skiff.",
+    desc: "Salt-fogged brass, but the optics are sound. You could LOOK THROUGH it."
+  },
+};
+
+/* ---------------- rooms ---------------- */
+
+const ROOMS = {
+  shore: {
+    name: "Shore Road",
+    exits: { north: "garden", east: "cliff" },
+    desc: () =>
+      "You stand at the end of a rutted shore road, grey sea on one side and salt-bent grass on the other. The ferry that brought you is already a smudge on the water, and it is not coming back tonight. A keeper’s cottage sits in its garden to the north; a path runs east along the cliff toward the lighthouse — dark, which is exactly the problem. Weather is coming in off the water like it means it. A painted sign leans by the road."
+  },
+  garden: {
+    name: "Keeper's Garden",
+    exits: { south: "shore", north: "cottage" },
+    desc: () =>
+      "A square of vegetable garden gone leggy, staked beans rattling in the wind. The cottage door stands ajar to the north, knocking softly on its hinges — not a sound a tidy keeper allows. The shore road lies south."
+  },
+  cottage: {
+    name: "Keeper's Cottage",
+    exits: { south: "garden", east: "bedroom" },
+    desc: () =>
+      "One warm-ish room: a cold stove, a table with its one chair pushed back in a hurry, and a mantelpiece over a dead fire. A shelf by the window holds the clutter a man collects in thirty years, including a battered tea tin. A doorway leads east to the bedroom; the garden is south."
+  },
+  bedroom: {
+    name: "Small Bedroom",
+    exits: { west: "cottage" },
+    desc: () =>
+      "A narrow bed, neatly made — Marsh was tidy where it counted. A small window shows the tower standing dark against the weather. The only door is west."
+  },
+  cliff: {
+    name: "Cliff Path",
+    exits: { west: "shore", north: "towerdoor" },
+    desc: () =>
+      "The path runs along the cliff edge, close enough that the wind keeps grabbing your sleeve to show you the drop. On the rocks below, an old skiff lies wrecked and bleached. The lighthouse rises to the north; the shore road is west."
+  },
+  towerdoor: {
+    name: "Foot of the Lighthouse",
+    exits: { south: "cliff", north: "towerbase" },
+    desc: () => {
+      let d = "The tower goes up and up, white paint weathered grey, until your neck complains. Set in its base is a door of iron-strapped oak";
+      if (!st.doorUnlocked) d += ", and it is very locked.";
+      else if (!st.doorOpen) d += ", unlocked but shut.";
+      else d += ", standing open on darkness.";
+      return d + " The cliff path runs south.";
+    }
+  },
+  towerbase: {
+    name: "Tower: Ground Floor",
+    exits: { south: "towerdoor", up: "watchroom", down: "cellar" },
+    desc: () =>
+      "The bottom of the tower is one round room smelling of rope, whitewash, and paraffin. A spiral stair screws up into the gloom. A trapdoor is set into the stone floor" +
+      (st.trapOpen ? ", open on steps going down into the dark." : ".") +
+      " The door south leads outside."
+  },
+  cellar: {
+    name: "Cellar",
+    exits: { up: "towerbase" },
+    desc: () =>
+      "Stone walls sweating salt. Coils of rope, spare wicks, a shelf of whitewash and paint. Steps lead up to the trapdoor."
+  },
+  watchroom: {
+    name: "Watch Room",
+    exits: { down: "towerbase", up: "lamproom" },
+    desc: () =>
+      "One flight below the lamp itself: the working heart of the tower. A great clockwork mechanism fills the middle of the room — brass drums, a hanging weight on its chain, and a square winding socket. " +
+      (st.clockWound
+        ? "It ticks with a slow, certain patience, the weight creeping down its chain."
+        : "It is run all the way down; nothing moves.") +
+      " Stairs lead up and down."
+  },
+  lamproom: {
+    name: "Lamp Room",
+    exits: { down: "watchroom" },
+    desc: () => {
+      let d = "The top of Ferrow Light: a lantern room of glass panes with the whole grey sea beyond them. At the center, inside a first-order Fresnel lens like a pearl in a chandelier, sits the great lamp. ";
+      if (st.lampLit && st.clockWound) d += "The lamp burns high and white, and the lens wheels around it, throwing its beam out over the shoals.";
+      else if (st.lampLit) d += "The lamp burns — but the lens stands still, staring at one patch of sea.";
+      else if (st.lampFilled) d += "The lamp is filled and waiting for a match.";
+      else d += "The lamp is cold, its reservoir dry as a sermon.";
+      return d;
+    }
+  },
+};
+
+/* ---------------- scenery ---------------- */
+
+const SCENERY = {
+  shore: {
+    "sign": "Salt-eaten letters: FERROW POINT LIGHT STATION — EST. 1871. KEEPER: E. MARSH. Visitors are asked to mind the cliff edge and the keeper’s temper.",
+    "sea|water|ocean|waves": "Grey, muscular, and rising. The kind of sea that collects boats.",
+    "storm|sky|weather|clouds": "A bruise-colored front is shouldering in from the west. Dusk will come early tonight.",
+    "ferry|boat|smudge": "Gone, or as good as. You work here now.",
+    "grass|road": "Rutted road, whipping grass. Nothing useful."
+  },
+  garden: {
+    "garden|beans|vegetables|plants": "Beans gone to string, cabbages holding their own. A garden a week short of tending.",
+    "cottage|door": "The cottage door hangs ajar, tapping in the wind. North will take you in."
+  },
+  cottage: {
+    "stove": "Cold. The kettle on it is cold too. Marsh left in a hurry, but he left like a keeper — nothing burning.",
+    "table|chair|mug": "The mug on the table holds an inch of cold tea and the note is pinned under it.",
+    "mantel|mantelpiece|fireplace|fire": "A dead fire, swept. On the mantelpiece: the matches.",
+    "shelf|clutter": "Fishing weights, a cracked barometer, carved gulls, and the battered tea tin."
+  },
+  bedroom: {
+    "bed": "Neatly made. You resist the urge to check under it; you are not that kind of guest.",
+    "window": "Through the salt-streaked glass, the tower stands against the weather like an unlit candle.",
+    "table|bedside table|bedside": "It holds whatever is listed there. Sturdy, otherwise unremarkable."
+  },
+  cliff: {
+    "skiff|boat|wreck|ribs|rocks": "A rowing skiff, wrecked years ago and bleached to bone. Wedged in its ribs is a brass spyglass.",
+    "cliff|edge|drop": "A long way down onto black rock. The wind offers to show you. You decline.",
+    "sea|water|waves|ocean": "Whitecaps to the horizon — and, if your eyes don’t lie, a smudge of steamer smoke out there. The spyglass would tell you.",
+    "lighthouse|tower|light": "Ferrow Light, tall and cold and dark. Your job, as of an hour ago."
+  },
+  towerdoor: {
+    "tower|lighthouse": "From this close it is all wall — a white cliff of brick with a lamp asleep at the top.",
+    "door": null // handled dynamically
+  },
+  towerbase: {
+    "stair|stairs|staircase|spiral": "Iron steps bolted to the wall, spiraling up. They ring faintly when the wind leans on the tower.",
+    "trapdoor|trap door|hatch": null, // dynamic
+    "rope|coils|paint|whitewash": "Keeper's stores. Nothing you need."
+  },
+  cellar: {
+    "shelf|wicks|rope|paint|walls|stone": "Stores, neatly kept. Deep shadow behind everything, and — you notice — not a single candle anywhere."
+  },
+  watchroom: {
+    "clockwork|mechanism|machine|gears|works": null, // dynamic
+    "socket|winding socket": "A square socket, cut for a crank. The metal around it is worn bright.",
+    "weight|chain": "The drive weight hangs at the very bottom of its chain. Run all the way down.",
+    "stair|stairs|staircase": "Up to the lamp room; down to the ground floor."
+  },
+  lamproom: {
+    "lens|fresnel|fresnel lens|glass": "A first-order Fresnel lens: a ton of cut glass arranged like a frozen dahlia. It floats on its bearing, waiting to be turned.",
+    "lamp|great lamp|light": null, // dynamic
+    "sea|window|panes|view": "Shoals to the northeast, showing their teeth in the swell. Exactly where the packet will pass.",
+    "reservoir|wick": "The wick is trimmed and ready. The reservoir feeds it — when there’s oil in it."
+  },
+};
+
+/* ---------------- output ---------------- */
+
+const out = document.getElementById("out");
+const stRoom = document.getElementById("stRoom");
+const stScore = document.getElementById("stScore");
+const stTurns = document.getElementById("stTurns");
+
+function print(text, cls) {
+  const p = document.createElement("p");
+  if (cls) p.className = cls;
+  p.textContent = text;
+  out.appendChild(p);
+  window.scrollTo(0, document.body.scrollHeight);
+  return p;
+}
+function printHTML(html, cls) {
+  const p = document.createElement("p");
+  if (cls) p.className = cls;
+  p.innerHTML = html;
+  out.appendChild(p);
+  window.scrollTo(0, document.body.scrollHeight);
+}
+function status() {
+  stRoom.textContent = ROOMS[st.room].name;
+  stScore.textContent = st.score;
+  stTurns.textContent = st.turns;
+}
+
+/* ---------------- helpers ---------------- */
+
+function carrying(id) { return ITEMS[id].loc === "player"; }
+function here(id) { return ITEMS[id].loc === st.room; }
+function accessible(id) { return carrying(id) || here(id); }
+
+function lightHere() {
+  if (st.room !== "cellar") return true;
+  return st.lanternLit && (carrying("lantern") || here("lantern"));
+}
+
+function award(key, pts) {
+  if (st.awarded[key]) return;
+  st.awarded[key] = true;
+  st.score += pts;
+  printHTML(`<span class="sep">[Your score just went up by ${pts} points.]</span>`);
+}
+
+function itemLine(id) {
+  const it = ITEMS[id];
+  return it.inRoom || ("There is a " + it.name + " here.");
+}
+
+function describeRoom(full) {
+  const r = ROOMS[st.room];
+  print(r.name, "roomname");
+  if (full || !st.visited[st.room]) {
+    print(r.desc());
+    for (const id in ITEMS) {
+      if (here(id) && ITEMS[id].inRoom !== null && !ITEMS[id].suppress) print(itemLine(id));
+    }
+  } else {
+    // brief: still list items
+    const lines = [];
+    for (const id in ITEMS) {
+      if (here(id) && ITEMS[id].inRoom !== null) lines.push(itemLine(id));
+    }
+    if (lines.length) lines.forEach(l => print(l));
+  }
+  st.visited[st.room] = true;
+}
+
+function enterRoom() {
+  if (st.room === "cellar" && !lightHere()) {
+    print("You feel your way down the steps into a darkness so complete it has texture.", "");
+    return;
+  }
+  describeRoom(!st.visited[st.room]);
+}
+
+function darknessWarning() {
+  print("It is pitch black. You are likely to be eaten by a grue.", "alert");
+}
+
+function die(msg) {
+  st.dead = true;
+  print(msg, "alert");
+  printHTML(`<span class="alert">*** You have died ***</span>`, "banner");
+  print(`In ${st.turns} moves you scored ${st.score} of 100 points. Type RESTART to try again — the packet still needs its light.`);
+}
+
+function rank() {
+  if (st.score >= 100) return "Keeper of Ferrow Light";
+  if (st.score >= 70) return "Assistant Keeper";
+  if (st.score >= 35) return "Wickie's Apprentice";
+  return "Stowaway";
+}
+
+function checkWin() {
+  if (st.won || !(st.lampLit && st.clockWound)) return;
+  st.won = true;
+  print("");
+  print("The lens takes the flame and multiplies it into a blade of light that swings out over the water — once, twice — sweeping the shoals like a hand clearing a table. Far out, a whistle answers: three short blasts. The packet has seen you. She leans away from the rocks and stands safely out to sea.", "bright");
+  print("Somewhere below, the wind drops, as if the storm has lost interest now that the trick won’t work.");
+  printHTML(`<span class="bright">*** You have won ***</span>`, "banner");
+  print(`In ${st.turns} moves you scored ${st.score} of 100 points, earning the rank of ${rank()}.`);
+  print("Keeper Marsh will hear of this. Type RESTART to play again.");
+}
+
+/* ---------------- intro / meta ---------------- */
+
+function intro() {
+  printHTML(
+    `FERROW LIGHT<br>An Interactive Fog — finishable in one sitting, twenty to thirty minutes.<br><span class="sep">A homage to the great cave crawlers. Type HELP for how to play, HINT if you’re stuck.</span>`,
+    "banner"
+  );
+  print("The letter said Keeper Marsh would meet you at the landing. He did not. You are the relief keeper of Ferrow Point Light — as of one hour ago, apparently its only keeper — and the evening packet is due through the shoals at dusk.");
+  print("The light is cold and dark. Best fix that.");
+  print("");
+  enterRoom();
+  status();
+}
+
+function help() {
+  print("Play by typing simple commands, like the ones that built the genre:");
+  print("• Moving: NORTH, SOUTH, EAST, WEST, UP, DOWN (or N, S, E, W, U, D).");
+  print("• Looking: LOOK. Examine things with X THING (e.g. X SIGN). READ what’s readable.");
+  print("• Doing: TAKE, DROP, OPEN, UNLOCK, LIGHT, POUR, WIND, PUT X IN Y. INVENTORY (or I) lists what you carry.");
+  print("• Useful extras: HINT for a nudge, SCORE, WAIT (or Z), RESTART.");
+  print("Everything you need is on this headland, nothing is randomized, and nothing is unfair — though one thing in this game bites, and the diary warns you about it.");
+}
+
+function hint() {
+  if (st.won) { print("The light is lit. The only hint left is: enjoy it."); return; }
+  if (!st.awarded.key) {
+    if (!st.visited.cottage) print("Start with the cottage, north of the shore road. Keepers leave notes.");
+    else print("The note on the cottage table says where the tower key lives. (Keepers are creatures of habit — and of tea.)");
+  } else if (!st.doorUnlocked) {
+    print("The brass key fits the lighthouse door — take the cliff path east of the shore road, then north.");
+  } else if (!carrying("lantern") && !st.awarded.crank) {
+    print("You’ll want the storm lantern from the cottage bedroom, and the matches from the mantel, before you go anywhere dark.");
+  } else if (!st.awarded.crank || !st.awarded.oil) {
+    if (!st.lanternLit) print("The cellar under the tower is pitch black, and the diary is not joking about what lives in the dark. LIGHT LANTERN first.");
+    else print("Down in the cellar: the oil can is in plain sight, and the crank is in the toolbox. OPEN TOOLBOX.");
+  } else if (!st.clockWound) {
+    print("The clockwork in the watch room turns the lens. The crank fits its square socket — WIND CLOCKWORK.");
+  } else if (!st.lampFilled) {
+    print("The great lamp is dry. In the lamp room: POUR OIL INTO LAMP.");
+  } else if (!st.lampLit) {
+    print("You have matches. You have a filled lamp. LIGHT LAMP.");
+  } else {
+    print("The lamp burns but the beam doesn’t sweep — the clockwork below needs winding.");
+  }
+}
+
+function about() {
+  print("FERROW LIGHT — a compact text adventure in the tradition of Zork and its lantern-carrying descendants. One headland, nine rooms, one grue-shaped debt of gratitude. Built to be finished, with all limbs attached, in under half an hour.");
+}
+
+function doRestart() {
+  st = freshState();
+  out.innerHTML = "";
+  intro();
+}
+
+/* ---------------- parsing ---------------- */
+
+const DIRS = {
+  north: "north", n: "north", south: "south", s: "south",
+  east: "east", e: "east", west: "west", w: "west",
+  up: "up", u: "up", down: "down", d: "down",
+};
+
+function findScenery(noun) {
+  const table = SCENERY[st.room] || {};
+  for (const keys in table) {
+    if (keys.split("|").includes(noun)) return { keys, text: table[keys] };
+  }
+  return null;
+}
+
+function resolveItem(noun) {
+  if (!noun) return null;
+  // context: "lamp"/"light" in the lamp room means the great lamp (scenery)
+  const candidates = [];
+  for (const id in ITEMS) {
+    if (ITEMS[id].aliases.includes(noun)) candidates.push(id);
+  }
+  if (!candidates.length) return null;
+  // prefer carried, then here
+  candidates.sort((a, b) => {
+    const w = id => (carrying(id) ? 0 : here(id) ? 1 : 2);
+    return w(a) - w(b);
+  });
+  const best = candidates[0];
+  return accessible(best) ? best : null;
+}
+
+function nounOf(tokens, from) {
+  return tokens.slice(from).join(" ");
+}
+
+/* dynamic descriptions */
+
+function describeThing(noun) {
+  // special dynamic objects first
+  if ((noun === "lamp" || noun === "great lamp" || noun === "light") && st.room === "lamproom") {
+    if (st.lampLit) print("The great lamp burns with a steady white flame the size of your two fists. " + (st.clockWound ? "The lens wheels around it, serene as an orrery." : "Around it the lens stands still — the clockwork below isn’t turning it."));
+    else if (st.lampFilled) print("Filled, wick trimmed, waiting for a match.");
+    else print("The great lamp of Ferrow Light — cold, and its reservoir dry. It wants oil, then flame.");
+    return true;
+  }
+  if ((noun === "clockwork" || noun === "mechanism" || noun === "machine" || noun === "gears" || noun === "works") && st.room === "watchroom") {
+    print(st.clockWound
+      ? "Wound and working: drums turning, weight descending with glacial dignity. It will run for hours."
+      : "Brass drums, a governor, a chain-hung weight run all the way down. A square winding socket faces you at chest height, worn bright. It wants a crank, and then it wants winding.");
+    return true;
+  }
+  if ((noun === "door") && st.room === "towerdoor") {
+    print(st.doorOpen ? "Iron-strapped oak, standing open." : st.doorUnlocked ? "Unlocked now, but still shut." : "Iron-strapped oak with a brass lock older than you. Very much locked.");
+    return true;
+  }
+  if ((noun === "trapdoor" || noun === "trap door" || noun === "hatch") && st.room === "towerbase") {
+    print(st.trapOpen ? "Open on stone steps that go down into perfect black." : "A stout trapdoor set flush in the floor, with an iron ring.");
+    return true;
+  }
+  if ((noun === "tin" || noun === "tea tin" || noun === "caddy") && accessible("tin")) {
+    print(st.tinOpen ? "An old tea tin, open. The smell of thirty years of tea." : "A battered tea tin, its lid rusted but willing. It doesn’t rattle like tea.");
+    return true;
+  }
+  if ((noun === "toolbox" || noun === "tool box" || noun === "chest") && accessible("toolbox")) {
+    if (!lightHere()) return false;
+    print(st.toolboxOpen ? "Open. Tools of the trade, minus whatever you’ve taken." : "A wooden toolbox with a hasp, no lock. Keepers trust the sea to keep thieves away.");
+    return true;
+  }
+  if ((noun === "lantern" || noun === "storm lantern" || (noun === "lamp" && st.room !== "lamproom")) && accessible("lantern")) {
+    print(st.lanternLit ? "The storm lantern burns with a good yellow flame behind its glass. It makes you feel professionally equipped." : "A keeper’s storm lantern, wick trimmed, half a night’s oil in it. Unlit.");
+    return true;
+  }
+  // ordinary items
+  const id = resolveItem(noun);
+  if (id) {
+    if (!lightHere() && !carrying(id)) return false;
+    print(ITEMS[id].desc || ("It’s a " + ITEMS[id].name + "."));
+    return true;
+  }
+  // scenery
+  const sc = findScenery(noun);
+  if (sc && sc.text) { print(sc.text); return true; }
+  return false;
+}
+
+/* ---------------- verbs ---------------- */
+
+function goDir(dir) {
+  const r = ROOMS[st.room];
+  const dest = r.exits[dir];
+  if (!dest) { print("You can’t go that way."); return; }
+  // gates
+  if (st.room === "towerdoor" && dir === "north") {
+    if (!st.doorUnlocked) { print("The door is locked — iron-strapped oak, brass lock, no give at all. A key would change the conversation."); return; }
+    if (!st.doorOpen) { st.doorOpen = true; print("(first opening the door)"); }
+  }
+  if (st.room === "towerbase" && dir === "down" && !st.trapOpen) {
+    st.trapOpen = true;
+    print("(first opening the trapdoor)");
+  }
+  if (st.room === "cellar" && dir === "up") {
+    st.darkTurns = 0;
+  }
+  st.room = dest;
+  if (dest === "towerbase" && !st.awarded.tower) award("tower", 5);
+  enterRoom();
+}
+
+function takeAll() {
+  let got = 0;
+  for (const id in ITEMS) {
+    if (here(id) && ITEMS[id].takeable) {
+      ITEMS[id].loc = "player";
+      print("Taken: " + ITEMS[id].name + ".");
+      afterTake(id);
+      got++;
+    }
+  }
+  if (!got) print("There’s nothing here worth pocketing.");
+}
+
+function afterTake(id) {
+  if (id === "key") award("key", 10);
+  if (id === "crank") award("crank", 10);
+  if (id === "oilcan") award("oil", 5);
+}
+
+function doTake(noun) {
+  if (noun === "all" || noun === "everything") { takeAll(); return; }
+  const id = resolveItem(noun);
+  if (!id) {
+    if (findScenery(noun) || describableSpecial(noun)) { print("That’s not something you can carry off, and the Lighthouse Board would notice."); }
+    else print("You don’t see any such thing.");
+    return;
+  }
+  if (carrying(id)) { print("You already have the " + ITEMS[id].name + "."); return; }
+  if (!ITEMS[id].takeable) { print("That stays where it is."); return; }
+  ITEMS[id].loc = "player";
+  print("Taken.");
+  afterTake(id);
+}
+
+function describableSpecial(noun) {
+  return ["lamp","great lamp","clockwork","mechanism","door","trapdoor","tin","tea tin","toolbox","lens","stairs","socket"].includes(noun);
+}
+
+function doDrop(noun) {
+  const id = resolveItem(noun);
+  if (!id || !carrying(id)) { print("You’re not carrying that."); return; }
+  ITEMS[id].loc = st.room;
+  print("Dropped.");
+}
+
+function doInventory() {
+  const inv = Object.keys(ITEMS).filter(carrying);
+  if (!inv.length) { print("You are empty-handed, which is a bold way to run a lighthouse."); return; }
+  print("You are carrying:");
+  for (const id of inv) {
+    let line = "  • a " + ITEMS[id].name;
+    if (id === "lantern" && st.lanternLit) line += " (lit)";
+    print(line);
+  }
+}
+
+function doOpen(noun) {
+  if (["tin","tea tin","caddy"].includes(noun) && accessible("tin")) {
+    if (st.tinOpen) { print("It’s already open."); return; }
+    st.tinOpen = true;
+    if (ITEMS.key.loc === "hidden") {
+      ITEMS.key.loc = st.room;
+      print("The lid pops off with a sigh of tea dust. Inside, on a bed of ancient leaves, lies a small brass key.");
+    } else print("Open, and empty but for old tea.");
+    return;
+  }
+  if (["toolbox","tool box","chest"].includes(noun) && accessible("toolbox")) {
+    if (!lightHere()) { cantSeeDark(); return; }
+    if (st.toolboxOpen) { print("It’s already open."); return; }
+    st.toolboxOpen = true;
+    if (ITEMS.crank.loc === "hidden") {
+      ITEMS.crank.loc = st.room;
+      print("The hasp gives easily. Inside, among pliers and wick-scissors, lies a heavy iron crank with a square-cut end.");
+    } else print("Open. Pliers, wick-scissors, honest tools.");
+    return;
+  }
+  if (noun === "door" && st.room === "towerdoor") {
+    if (!st.doorUnlocked) { print("Locked. It doesn’t even rattle politely."); return; }
+    if (st.doorOpen) { print("It’s already open."); return; }
+    st.doorOpen = true;
+    print("The door swings inward on well-oiled hinges — the one thing here that’s been kept perfect.");
+    return;
+  }
+  if (["trapdoor","trap door","hatch"].includes(noun) && st.room === "towerbase") {
+    if (st.trapOpen) { print("It’s already open."); return; }
+    st.trapOpen = true;
+    print("You haul the trapdoor up by its ring. Cold air breathes out of the dark below — and the dark down there is total.");
+    return;
+  }
+  print("You can’t open that.");
+}
+
+function doUnlock(noun) {
+  if (noun && noun !== "door" && !noun.startsWith("door")) { print("That’s not locked."); return; }
+  if (st.room !== "towerdoor") { print("There’s nothing to unlock here."); return; }
+  if (st.doorUnlocked) { print("It’s already unlocked."); return; }
+  if (!carrying("key")) { print("With what? Your optimism? You need a key."); return; }
+  st.doorUnlocked = true;
+  award("door", 10);
+  print("The brass key turns with a clack you feel in your teeth. FERROW No.1 indeed.");
+}
+
+function doRead(noun) {
+  const id = resolveItem(noun);
+  if (id && ITEMS[id].text) {
+    if (!lightHere() && !carrying(id)) { cantSeeDark(); return; }
+    print(ITEMS[id].text);
+    return;
+  }
+  if (noun === "sign" && st.room === "shore") { print(SCENERY.shore["sign"]); return; }
+  if (!describeThing(noun)) print("Nothing is written on that.");
+}
+
+function doLight(noun) {
+  if (!noun || noun === "match" || noun === "matches") {
+    print("You strike a match; it flares, admires itself briefly, and dies in the draught. Better to light something that holds a flame.");
+    return;
+  }
+  if (["lantern","storm lantern"].includes(noun) || (noun === "lamp" && st.room !== "lamproom")) {
+    if (!accessible("lantern")) { print("You don’t have a lantern."); return; }
+    if (st.lanternLit) { print("It’s already lit."); return; }
+    if (!carrying("matchbox")) { print("You have nothing to light it with. There were matches in the cottage."); return; }
+    st.lanternLit = true;
+    st.darkTurns = 0;
+    award("lit", 5);
+    print("You strike a match and touch it to the wick. The storm lantern takes the flame and holds it steady behind its glass, and the world gains a warm ten-foot circle with you at the middle of it.");
+    if (st.room === "cellar") { print(""); describeRoom(true); }
+    return;
+  }
+  if (["lamp","great lamp","light","wick"].includes(noun) && st.room === "lamproom") {
+    if (st.lampLit) { print("The lamp is already burning."); return; }
+    if (!carrying("matchbox")) { print("You have nothing to light it with. There were matches in the cottage."); return; }
+    if (!st.lampFilled) { print("You hold the match to the wick and it gutters out at once. The reservoir is dry as a sermon — it wants oil first."); return; }
+    st.lampLit = true;
+    award("lamp", 25);
+    print("You strike a match, shelter it in your palm the way you’ve seen keepers do in pictures, and touch it to the wick. The flame catches, steadies, grows — and the lens gathers it up greedily.");
+    if (!st.clockWound) print("But the lens stands still. The beam stares at one patch of empty sea like a man who has forgotten why he walked into a room. Something below should be turning it.");
+    checkWin();
+    return;
+  }
+  print("You can’t light that.");
+}
+
+function doExtinguish(noun) {
+  if ((!noun || ["lantern","storm lantern","lamp","light"].includes(noun))) {
+    if (st.room === "lamproom" && (noun === "lamp" || noun === "light") && st.lampLit) {
+      print("Absolutely not. There is a ship out there."); return;
+    }
+    if (st.lanternLit) { st.lanternLit = false; print("You blow out the lantern. The dark leans in, interested."); return; }
+  }
+  print("Nothing you’re carrying is burning.");
+}
+
+function doPour(noun, targetNoun) {
+  const pouringOil = !noun || ["oil","oilcan","oil can","can","paraffin"].includes(noun) || ["lamp","great lamp","reservoir","it"].includes(noun);
+  if (!pouringOil) { print("Pour what?"); return; }
+  if (!carrying("oilcan")) { print("You have no oil. The keeper’s note mentioned the cellar."); return; }
+  if (st.room !== "lamproom") { print("Better to save the oil for the great lamp upstairs. Wickies don’t waste."); return; }
+  if (st.lampFilled) { print("The reservoir is full. Any more and you’d be mopping."); return; }
+  st.lampFilled = true;
+  award("filled", 10);
+  print("You unscrew the cap and pour. Oil runs into the reservoir with a sound like a promise being kept, and the wick darkens as it drinks. The lamp is ready for flame.");
+}
+
+function doWind(noun) {
+  if (noun && !["clockwork","mechanism","machine","clock","crank","works","it"].includes(noun)) {
+    print("You can’t wind that."); return;
+  }
+  if (st.room !== "watchroom") { print("There’s nothing here to wind. The clockwork is in the watch room, below the lamp."); return; }
+  if (st.clockWound) { print("It’s wound — the weight has hours of falling left to do."); return; }
+  if (!carrying("crank")) { print("The winding socket is square-cut and empty. You need the crank; the diary said Marsh keeps it in the cellar toolbox."); return; }
+  st.clockWound = true;
+  award("wound", 20);
+  print("You seat the iron crank in the socket and lean into it. The gears take up the slack — click, click, click — the weight climbs its chain, and when you step back the whole column keeps ticking with a slow, certain patience. Above your head, something begins to turn.");
+  checkWin();
+}
+
+function doPutIn(nounA, nounB) {
+  if (["crank","handle","iron crank","crank handle"].includes(nounA) && ["socket","clockwork","mechanism","machine","winding socket"].includes(nounB)) { doWind("clockwork"); return; }
+  if (["oil","oilcan","oil can","can","paraffin"].includes(nounA) && ["lamp","great lamp","reservoir"].includes(nounB)) { doPour("oil"); return; }
+  if (["key","brass key"].includes(nounA) && ["door","lock"].includes(nounB)) { doUnlock("door"); return; }
+  print("That doesn’t go there.");
+}
+
+function doLookThrough(noun) {
+  if (["spyglass","telescope","glass"].includes(noun)) {
+    if (!accessible("spyglass")) { print("You don’t have the spyglass."); return; }
+    if (st.won) { print("The packet is standing safely out to sea, running lights bobbing. Someone on deck may well be toasting you."); return; }
+    print("You find the horizon, then the thing on it: a packet steamer, low and laboring, making straight for the shoals off Ferrow Point. She is counting on a light to tell her where the rocks are. There is no light. Yet.");
+    return;
+  }
+  print("Looking through that shows you nothing useful.");
+}
+
+function cantSeeDark() {
+  print("It’s far too dark to see anything here.");
+}
+
+/* ---------------- main dispatcher ---------------- */
+
+const STRIP = new Set(["the","a","an","at","to","of","that","this","my"]);
+
+function parse(raw) {
+  let sRaw = raw.trim().toLowerCase().replace(/[.,!?'"]/g, " ").replace(/\s+/g, " ").trim();
+  if (!sRaw) return;
+
+  printHTML("&gt; " + escapeHTML(raw.trim()), "echo");
+
+  if (st.pendingRestart) {
+    st.pendingRestart = false;
+    if (["yes","y","restart"].includes(sRaw)) { doRestart(); return; }
+    print("Carrying on, then.");
+    status();
+    return;
+  }
+
+  if (st.dead || st.won) {
+    if (["restart","reset","again","play again"].includes(sRaw)) { doRestart(); return; }
+    if (sRaw === "score") { print(`You scored ${st.score} of 100 points in ${st.turns} moves — ${rank()}.`); return; }
+    print(st.dead ? "You are, regrettably, dead. Type RESTART." : "The story is over — happily. Type RESTART to play again.");
+    return;
+  }
+
+  // phrase rewrites
+  sRaw = sRaw
+    .replace(/^pick up /, "take ")
+    .replace(/^go /, "")
+    .replace(/^walk /, "")
+    .replace(/^head /, "")
+    .replace(/^move /, "")
+    .replace(/^climb (up|down)$/, "$1")
+    .replace(/^climb stairs?$/, "up")
+    .replace(/^look at /, "x ")
+    .replace(/^look through /, "lookthrough ")
+    .replace(/^blow out /, "extinguish ")
+    .replace(/^put out /, "extinguish ")
+    .replace(/^(turn|switch) on /, "light ")
+    .replace(/^(turn|switch) off /, "extinguish ")
+    .replace(/ with (the )?match(es)?$/, "")
+    .replace(/ with (the )?key$/, "")
+    .replace(/ with (the )?crank$/, "")
+    .replace(/ with (the )?oil( can)?$/, "");
+
+  let tokens = sRaw.split(" ").filter(t => !STRIP.has(t));
+  if (!tokens.length) { print("Say again?"); return; }
+
+  const v = tokens[0];
+  const rest = tokens.slice(1).join(" ");
+  let meta = false;
+
+  // darkness gate: in an unlit cellar most actions are impossible
+  const inDark = (st.room === "cellar" && !lightHere());
+
+  if (DIRS[sRaw]) {
+    goDir(DIRS[sRaw]);
+  } else if (v === "enter" && (rest.includes("lighthouse") || rest.includes("tower") || rest === "" || rest === "door") && st.room === "towerdoor") {
+    goDir("north");
+  } else if (v === "enter" && rest.includes("cottage") && st.room === "garden") {
+    goDir("north");
+  } else if (["look","l"].includes(v) && !rest) {
+    if (inDark) { darknessWarning(); }
+    else describeRoom(true);
+  } else if (["x","examine","inspect","look"].includes(v)) {
+    if (inDark) { cantSeeDark(); }
+    else if (!rest) print("Examine what?");
+    else if (!describeThing(rest)) print("You see no such thing here.");
+  } else if (v === "lookthrough") {
+    doLookThrough(rest);
+  } else if (["take","get","grab"].includes(v)) {
+    if (inDark && rest !== "lantern") { cantSeeDark(); }
+    else if (!rest) print("Take what?");
+    else doTake(rest);
+  } else if (v === "drop") {
+    if (!rest) print("Drop what?"); else doDrop(rest);
+  } else if (["i","inv","inventory"].includes(v)) {
+    doInventory(); meta = false;
+  } else if (v === "open") {
+    if (inDark) cantSeeDark(); else if (!rest) print("Open what?"); else doOpen(rest);
+  } else if (v === "close" || v === "shut") {
+    print("You leave it be. A keeper opens things; the sea closes them.");
+  } else if (v === "unlock") {
+    doUnlock(rest);
+  } else if (v === "read") {
+    if (inDark) cantSeeDark(); else if (!rest) print("Read what?"); else doRead(rest);
+  } else if (["light","ignite","burn"].includes(v)) {
+    doLight(rest);
+  } else if (["extinguish","douse","snuff"].includes(v)) {
+    doExtinguish(rest.replace(/^out /, ""));
+  } else if (["pour","fill","refill"].includes(v)) {
+    // "fill lamp", "pour oil", "pour oil in lamp"
+    doPour(rest.split(" in")[0].split(" into")[0]);
+  } else if (["wind","turn","crank"].includes(v)) {
+    if (inDark) { cantSeeDark(); }
+    else doWind(rest);
+  } else if (v === "put" || v === "insert" || v === "use") {
+    const m = rest.match(/^(.*?) (?:in|into|on|onto) (.*)$/);
+    if (m) doPutIn(m[1].trim(), m[2].trim());
+    else if (v === "use") print("Try a more particular verb — OPEN, LIGHT, POUR, WIND, UNLOCK.");
+    else print("Put it where?");
+  } else if (["wait","z"].includes(v)) {
+    print("Time passes. Somewhere out there, so does the packet.");
+  } else if (v === "search") {
+    if (inDark) cantSeeDark();
+    else if (!describeThing(rest || "")) print("You rummage and find nothing new.");
+  } else if (["help","?","commands","verbs"].includes(v)) {
+    help(); meta = true;
+  } else if (["hint","hints","clue"].includes(v)) {
+    hint(); meta = true;
+  } else if (v === "score") {
+    print(`Your score is ${st.score} of 100 points, in ${st.turns} moves. Current rank: ${rank()}.`); meta = true;
+  } else if (["about","credits","version"].includes(v)) {
+    about(); meta = true;
+  } else if (["restart","reset"].includes(v)) {
+    st.pendingRestart = true;
+    print("Restart from the beginning? Type YES to confirm."); meta = true;
+  } else if (["quit","q","exit"].includes(v)) {
+    print("There’s no quitting a lighthouse — but you can simply close the page, or type RESTART to begin again."); meta = true;
+  } else if (["xyzzy","plugh","plover"].includes(v)) {
+    print("A hollow voice says, “This is a different cave.”");
+  } else if (["pray"].includes(v)) {
+    print("You offer a short word for sailors, keepers, and relief staff everywhere. It can’t hurt.");
+  } else if (["yell","shout","scream"].includes(v)) {
+    print("You shout into the wind. The wind wins.");
+  } else if (["sleep","rest"].includes(v)) {
+    print("Sleep? The packet is due at dusk. Keep moving, keeper.");
+  } else {
+    print("That verb isn’t in the keeper’s manual. Type HELP for the ones that are.");
+    meta = true;
+  }
+
+  if (!meta && !st.dead && !st.won) tick();
+  status();
+}
+
+function tick() {
+  st.turns++;
+  // grue logic
+  if (st.room === "cellar" && !lightHere()) {
+    st.darkTurns++;
+    if (st.darkTurns === 1) {
+      darknessWarning();
+    } else if (st.darkTurns === 2) {
+      print("Something slithers across the stone, closer now. It sounds patient, and hungry, and very used to the dark. Get to the light. NOW.", "alert");
+    } else if (st.darkTurns >= 3) {
+      die("There is a soft, wet, unhurried sound in the darkness beside you — the sound of something that has eaten all the candles and has been so patient. A slavering grue! The keeper’s diary tried to warn you.");
+      return;
+    }
+  } else {
+    st.darkTurns = 0;
+  }
+  // storm flavor
+  if (!st.won) {
+    if (st.turns === 18) print("Outside, the wind climbs a register. The storm is no longer pretending to be weather in general.", "alert");
+    if (st.turns === 36) print("Rain arrives all at once, flung sideways. Somewhere out on the water, a ship’s whistle sounds — once, questioning.", "alert");
+    if (st.turns === 54) print("The whistle again, closer, twice — the sound of a ship that would very much like to know where the rocks are.", "alert");
+  }
+}
+
+function escapeHTML(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/* ---------------- input plumbing ---------------- */
+
+const form = document.getElementById("cmdForm");
+const input = document.getElementById("cmdInput");
+const history = [];
+let histIdx = -1;
+
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  const raw = input.value;
+  input.value = "";
+  if (raw.trim()) {
+    history.push(raw.trim());
+    histIdx = history.length;
+    parse(raw);
+  }
+  input.focus();
+});
+
+input.addEventListener("keydown", e => {
+  if (e.key === "ArrowUp") {
+    if (histIdx > 0) { histIdx--; input.value = history[histIdx]; }
+    e.preventDefault();
+  } else if (e.key === "ArrowDown") {
+    if (histIdx < history.length - 1) { histIdx++; input.value = history[histIdx]; }
+    else { histIdx = history.length; input.value = ""; }
+    e.preventDefault();
+  }
+});
+
+document.addEventListener("click", () => {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) input.focus();
+});
+
+intro();
+input.focus();
+})();
+</script>
+</body>
+</html>
