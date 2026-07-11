@@ -5,32 +5,44 @@ the file:
 
 | Game | File | Genre | Session length |
 |------|------|-------|----------------|
-| **Ferrow Light** | `ferrow-light.html` | Zork-style text adventure | 20–30 minutes |
+| **Ferrow Light** | `ferrow-light.html` | Zork-style text adventure, 4 chapters | ~1 hour (autosaves between sittings) |
 | **Miner 2049er** | `index.html` | Arcade platformer | as long as you last |
 
 ---
 
 # Ferrow Light
 
-A Zork-style interactive fiction game, sized to be finished in one sitting
-(20–30 minutes). You are the relief keeper of Ferrow Point Light: the keeper
-is missing, the lamp is dark, a storm is building, and the evening packet
-steamer is due through the shoals at dusk.
+A Zork-style interactive fiction game in **four chapters** — one long night
+on a storm-bound headland. You are the relief keeper of Ferrow Point Light:
+the keeper is missing, the lamp is dark, and the evening packet steamer is
+due through the shoals.
+
+1. **The Cold Light** — relight the abandoned lighthouse.
+2. **The Man Below** — the falling tide uncovers a wrecked skiff, and a sea
+   cave that floods on a timer.
+3. **The False Light** — someone has hung a decoy light where a light should
+   never be. Put it out.
+4. **Keeping the Light** — the storm fights back. Keep your lamp burning
+   until dawn.
 
 ## Play
 
-Open `ferrow-light.html` in any modern browser (works on phones too). Type
-commands at the `>` prompt:
+Open `ferrow-light.html` in any modern browser (works on phones too).
+Progress **autosaves after every move** — close the page and your watch
+resumes where you left it. Type commands at the `>` prompt:
 
 - **Move**: `NORTH`, `SOUTH`, `EAST`, `WEST`, `UP`, `DOWN` (or `N`/`S`/`E`/`W`/`U`/`D`)
 - **Look around**: `LOOK`, `EXAMINE thing` (or `X thing`), `READ thing`
-- **Act**: `TAKE`, `DROP`, `OPEN`, `UNLOCK`, `LIGHT`, `POUR`, `WIND`, `PUT X IN Y`
+- **Act**: `TAKE`, `DROP`, `OPEN`, `UNLOCK`, `LIGHT`, `POUR`, `WIND`, `PRY`,
+  `TIE`, `THROW`, `CLIMB`, `FILL`, `GIVE`, `PUT X IN Y`
 - **Helpers**: `INVENTORY` (`I`), `HINT` for a contextual nudge, `SCORE`, `HELP`, `RESTART`
 
-Nine rooms, four chained puzzles, a 100-point score with ranks, and one
-faithful homage to a certain lurker in dark places. Everything is
-deterministic and fair — the game warns you (twice) about the one thing that
-can kill you. If you're ever stuck, `HINT` always points at the next step.
+Fifteen rooms, a dozen chained puzzles, a 250-point score with keeper ranks,
+a tide that keeps its own clock, and one faithful homage to a certain lurker
+in dark places. Everything is deterministic and fair — both of the things
+that can kill you warn you first, twice. If you're ever stuck, `HINT` always
+points at the next step, and dying only costs you one move: reload the page
+to return to just before it went wrong.
 
 ---
 
