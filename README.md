@@ -1,3 +1,16 @@
+> This repo is a small **retro arcade** with two self-contained browser games.
+> Open [`index.html`](index.html) for the **menu**, then pick a game:
+>
+> | Game | File | Description |
+> |------|------|-------------|
+> | **Cubert** | [`cubert.html`](cubert.html) | cube-hopping isometric arcade — see [`CUBERT.md`](CUBERT.md) |
+> | **Miner 2049er** | [`miner.html`](miner.html) | platformer (documented below) |
+>
+> Every page cross-links, so you can hop between the menu and either game.
+> The rest of this file documents Miner 2049er.
+
+---
+
 # Miner 2049er — Bounty Bob
 
 A browser remake of the classic 1982 platformer *Miner 2049er*. You play
@@ -7,13 +20,14 @@ dodging the radioactive mutants that roam the shafts.
 
 ## Play
 
-Just open `index.html` in any modern browser. No build step, no dependencies —
-it's a single self-contained HTML file using the Canvas 2D API.
+Open `index.html` for the arcade menu and pick Miner 2049er, or open
+`miner.html` directly. No build step, no dependencies — it's a single
+self-contained HTML file using the Canvas 2D API.
 
 ```
 # from the repo root
-open index.html        # macOS
-xdg-open index.html    # Linux
+open miner.html        # macOS   (or open index.html for the menu)
+xdg-open miner.html    # Linux
 # or just double-click the file
 ```
 
