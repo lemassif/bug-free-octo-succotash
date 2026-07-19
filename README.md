@@ -1,12 +1,16 @@
 # Games
 
-Two self-contained browser games, no build step, no dependencies — just open
-the file:
-
-| Game | File | Genre | Session length |
-|------|------|-------|----------------|
-| **Ferrow Light** | `ferrow-light.html` | Zork-style text adventure, 4 chapters | ~1 hour (autosaves between sittings) |
-| **Miner 2049er** | `index.html` | Arcade platformer | as long as you last |
+> This repo is a small **retro arcade** of self-contained browser games —
+> no build step, no dependencies. Open [`index.html`](index.html) for the
+> **menu**, then pick a game:
+>
+> | Game | File | Description |
+> |------|------|-------------|
+> | **Ferrow Light** | [`ferrow-light.html`](ferrow-light.html) | four-chapter Zork-style text adventure (documented below) |
+> | **Cubert** | [`cubert.html`](cubert.html) | cube-hopping isometric arcade — see [`CUBERT.md`](CUBERT.md) |
+> | **Miner 2049er** | [`miner.html`](miner.html) | platformer (documented below) |
+>
+> Every page cross-links, so you can hop between the menu and any game.
 
 ---
 
@@ -55,13 +59,14 @@ dodging the radioactive mutants that roam the shafts.
 
 ## Play
 
-Just open `index.html` in any modern browser. No build step, no dependencies —
-it's a single self-contained HTML file using the Canvas 2D API.
+Open `index.html` for the arcade menu and pick Miner 2049er, or open
+`miner.html` directly. No build step, no dependencies — it's a single
+self-contained HTML file using the Canvas 2D API.
 
 ```
 # from the repo root
-open index.html        # macOS
-xdg-open index.html    # Linux
+open miner.html        # macOS   (or open index.html for the menu)
+xdg-open miner.html    # Linux
 # or just double-click the file
 ```
 

@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Miner 2049er">
+<meta name="theme-color" content="#06060a">
+<title>Miner 2049er — Bounty Bob</title>
+<style>
+  :root { --ink:#ffd34d; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; width: 100%;
+    background: #06060a;
+    color: #e8e8f0;
+    font-family: "Courier New", monospace;
+    -webkit-font-smoothing: none;
+    image-rendering: pixelated;
+    overflow: hidden;
+    /* kill iOS long-press callout, text selection, tap highlight, double-tap zoom */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+    overscroll-behavior: none;
+  }
+  #wrap {
+    position: relative;
+    min-height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 12px; padding: 16px;
+    /* respect the notch / home indicator in standalone mode */
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  h1 {
+    margin: 0; letter-spacing: 2px;
+    color: var(--ink);
+    text-shadow: 2px 2px 0 #7a4b00;
+    font-size: 26px;
+  }
+  #game {
+    background: #000;
+    border: 4px solid #3a3a55;
+    box-shadow: 0 0 0 4px #15152a, 0 8px 30px rgba(0,0,0,.7);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    display: block;
+    /* fit the 4:3 canvas inside the viewport without distortion */
+    max-width: 100%;
+    max-height: 80vh;
+    aspect-ratio: 4 / 3;
+    width: auto; height: auto;
+  }
+  #help {
+    color: #8a8aa8; font-size: 13px; text-align: center; line-height: 1.6;
+    max-width: 640px;
+  }
+  #help b { color: var(--ink); }
+  kbd {
+    background:#222238; border:1px solid #444466; border-bottom-width:2px;
+    border-radius:4px; padding:1px 6px; color:#ffd34d; font-size:12px;
+  }
+
+  /* ---- On-screen touch controls: overlaid thumb pads ---- */
+  #touch { display: none; }
+  .pad {
+    position: fixed; bottom: 0;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    z-index: 20;
+    display: grid; gap: 10px;
+    touch-action: none;
+  }
+  #dpad { left: max(14px, env(safe-area-inset-left));
+          grid-template-columns: repeat(3, 60px);
+          grid-template-rows: repeat(3, 60px); }
+  #actions { right: max(14px, env(safe-area-inset-right));
+             grid-auto-flow: column; align-items: end; }
+  .pad button {
+    -webkit-appearance: none; appearance: none;
+    border: 2px solid rgba(120,120,170,.6);
+    background: rgba(28,28,52,.55);
+    color: #ffd34d; font-size: 26px; line-height: 1;
+    border-radius: 14px;
+    width: 60px; height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    touch-action: none; user-select: none;
+    -webkit-user-select: none; -webkit-touch-callout: none;
+  }
+  .pad button.wide { width: 78px; height: 78px; border-radius: 18px; font-size: 22px; }
+  .pad button:active, .pad button.held {
+    background: rgba(90,90,150,.8);
+    transform: scale(.95);
+  }
+  /* d-pad cell placement */
+  #b-up    { grid-column: 2; grid-row: 1; }
+  #b-left  { grid-column: 1; grid-row: 2; }
+  #b-down  { grid-column: 2; grid-row: 3; }
+  #b-right { grid-column: 3; grid-row: 2; }
+
+  #rotate {
+    display: none;
+    position: fixed; inset: 0; z-index: 50;
+    background: #06060a; color: #ffd34d;
+    align-items: center; justify-content: center; text-align: center;
+    font-size: 18px; padding: 30px; line-height: 1.7;
+  }
+
+  /* show controls only on touch devices; hide the keyboard help & title there */
+  @media (hover: none) and (pointer: coarse) {
+    #touch { display: block; }
+    h1 { font-size: 20px; }
+    #help { display: none; }
+    #wrap { gap: 6px; padding: 6px; }
+    #game { max-height: 100vh; }
+  }
+  /* tiny landscape phones: nudge the game up so pads don't cover it */
+  @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    #wrap { justify-content: flex-start; padding-top: 4px; }
+    h1 { display: none; }
+    #game { max-height: 100vh; }
+  }
+</style>
+</head>
+<body>
+<a href="index.html" style="position:fixed;top:max(8px,env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));z-index:60;color:#ffd34d;background:rgba(28,28,52,.7);border:1px solid #444466;border-radius:8px;padding:4px 10px;font:600 13px 'Courier New',monospace;text-decoration:none">☰ Menu</a>
+<div id="wrap">
+  <h1>MINER&nbsp;2049er</h1>
+  <canvas id="game" width="640" height="480"></canvas>
+  <div id="help">
+    <b>Bounty Bob</b> must claim every floor tile in the mine — walk over each one to turn it gold.<br>
+    <kbd>←</kbd> <kbd>→</kbd> move &nbsp;•&nbsp; <kbd>↑</kbd>/<kbd>↓</kbd> climb ladders &nbsp;•&nbsp; <kbd>Space</kbd> jump &nbsp;•&nbsp; <kbd>P</kbd> pause<br>
+    Grab the <b style="color:#5cf">Pulverizer</b> to turn mutants edible for a short time. Avoid them otherwise!
+  </div>
+
+  <div id="touch">
+    <div class="pad" id="dpad">
+      <button id="b-up"    data-k="up"    aria-label="up">▲</button>
+      <button id="b-left"  data-k="left"  aria-label="left">◀</button>
+      <button id="b-down"  data-k="down"  aria-label="down">▼</button>
+      <button id="b-right" data-k="right" aria-label="right">▶</button>
+    </div>
+    <div class="pad" id="actions">
+      <button class="wide" data-k="pause" aria-label="pause">❚❚</button>
+      <button class="wide" data-k="jump"  aria-label="jump">JUMP</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
+
+const W = canvas.width, H = canvas.height;
+const TILE = 20;                 // tile size in px
+const COLS = W / TILE;           // 32
+const ROWS = H / TILE;           // 24
+
+// ---- Tile legend for level maps ----
+//  '#'  solid floor that must be CLAIMED (walkable, starts un-claimed)
+//  '='  solid floor already part of structure (claimable too)
+//  'H'  ladder
+//  ' '  empty space
+//  'P'  player start
+//  'M'  mutant start
+//  '*'  pulverizer power-up
+// Floors are the rows of '#'. Bob walks the TOP surface of a floor row.
+
+const LEVELS = [
+// Level 1 — "First Shaft"
+[
+"                                ",
+"  P                             ",
+"  ###############     H         ",
+"                H    #####       ",
+"     *          H    #   #       ",
+"   #######      H    # M #       ",
+"          H     H    #   #       ",
+"          H     ##############   ",
+"          H              H       ",
+"   ###############       H       ",
+"          H              H       ",
+"          H     *        H       ",
+"   ##################     H      ",
+"   H                      H      ",
+"   H    #############     H      ",
+"   H              H       H      ",
+"   H        M     H    ########  ",
+"   H#############HH################",
+"   H            H H              ",
+"   H            H H     *        ",
+"   ################################",
+"                                ",
+"                                ",
+"                                ",
+],
+// Level 2 — "Crossing Caverns"
+[
+"                                ",
+"  P              *               ",
+" ##########   ###########  ##### ",
+"     H            H        H     ",
+"     H   M        H        H     ",
+" #########    #########    ##### ",
+"     H            H   M     H    ",
+"     H            H         H    ",
+" ##########  ############# ##### ",
+"     H            H        H     ",
+"  *  H            H        H     ",
+" #########   ##########    ##### ",
+"     H            H   M     H    ",
+"     H            H         H    ",
+" ###########  ##########  ###### ",
+"          H       H        H     ",
+"          H   *   H        H     ",
+"###################################",
+"                                ",
+"                                ",
+"                                ",
+"                                ",
+"                                ",
+"                                ",
+],
+];
+
+// ---- Game state ----
+let state, level, floors, ladders, claimable, claimed, totalClaim;
+let player, mutants, pulverizers, particles;
+let score, lives, levelIndex, powerTimer, paused, message, messageTimer;
+let bestScore = +(localStorage.getItem("miner2049_best") || 0);
+
+const GRAV = 0.45;
+const WALK = 1.9;
+const CLIMB = 1.5;
+const JUMP_V = -7.4;
+const POWER_TIME = 360;          // frames mutants stay edible (~6s)
+
+function buildLevel(idx) {
+  const map = LEVELS[idx];
+  floors = [];        // each cell: solid?  (for collision)
+  ladders = [];
+  claimable = [];     // cell needs claiming?
+  claimed = [];
+  mutants = [];
+  pulverizers = [];
+  particles = [];
+  totalClaim = 0;
+
+  for (let r = 0; r < ROWS; r++) {
+    floors[r] = []; ladders[r] = []; claimable[r] = []; claimed[r] = [];
+    const line = (map[r] || "").padEnd(COLS, " ");
+    for (let c = 0; c < COLS; c++) {
+      const ch = line[c];
+      floors[r][c] = (ch === "#" || ch === "=");
+      ladders[r][c] = (ch === "H");
+      claimable[r][c] = (ch === "#"); // '#' tiles must be claimed
+      claimed[r][c] = false;
+      if (claimable[r][c]) totalClaim++;
+      if (ch === "P") {
+        player = makePlayer(c * TILE, r * TILE);
+      } else if (ch === "M") {
+        mutants.push(makeMutant(c * TILE, r * TILE));
+      } else if (ch === "*") {
+        pulverizers.push({ x: c * TILE + TILE/2, y: r * TILE + TILE/2, taken: false });
+      }
+    }
+  }
+  if (!player) player = makePlayer(2 * TILE, 2 * TILE);
+  powerTimer = 0;
+}
+
+function makePlayer(x, y) {
+  return { x, y, w: 14, h: 18, vx: 0, vy: 0, onGround: false,
+           onLadder: false, face: 1, walkAnim: 0 };
+}
+function makeMutant(x, y) {
+  return { x, y, w: 14, h: 16, vx: (Math.random()<.5?-1:1)*1.1, vy: 0,
+           onGround: false, onLadder: false, dir: 1, climbCool: 0,
+           anim: 0, alive: true, scared: false };
+}
+
+// ---- Collision helpers (top-surface platforming) ----
+function tileAt(px, py) {
+  const c = Math.floor(px / TILE), r = Math.floor(py / TILE);
+  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return { solid:false, ladder:false, r, c };
+  return { solid: floors[r][c], ladder: ladders[r][c], r, c };
+}
+function isSolidRect(x, y, w, h) {
+  // check the row of tiles just under the feet
+  for (let xx = x; xx <= x + w; xx += TILE/2) {
+    const t = tileAt(xx, y + h);
+    if (t.solid) return t;
+    const t2 = tileAt(x + w, y + h);
+    if (t2.solid) return t2;
+  }
+  return null;
+}
+function ladderAt(x, y, w, h) {
+  const cx = x + w/2;
+  for (let yy = y; yy <= y + h; yy += TILE/2) {
+    const t = tileAt(cx, yy);
+    if (t.ladder) return true;
+  }
+  return tileAt(cx, y + h - 1).ladder;
+}
+
+function claimUnder(ent) {
+  // claim the floor tile directly beneath the entity's feet
+  const cx = Math.floor((ent.x + ent.w/2) / TILE);
+  const fr = Math.floor((ent.y + ent.h + 1) / TILE);
+  if (fr >= 0 && fr < ROWS && cx >= 0 && cx < COLS) {
+    if (claimable[fr][cx] && !claimed[fr][cx]) {
+      claimed[fr][cx] = true;
+      totalClaim--;
+      score += 10;
+      spawnSparkle(cx * TILE + TILE/2, fr * TILE + 3);
+      if (totalClaim <= 0) nextLevel();
+    }
+  }
+}
+
+function spawnSparkle(x, y) {
+  for (let i = 0; i < 6; i++) {
+    particles.push({ x, y, vx:(Math.random()-.5)*2, vy:-Math.random()*2-1,
+      life: 22, col:"#ffe680" });
+  }
+}
+function spawnBurst(x, y, col) {
+  for (let i = 0; i < 16; i++) {
+    const a = Math.random()*Math.PI*2, s = Math.random()*3+1;
+    particles.push({ x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s, life: 30, col });
+  }
+}
+
+// ---- Input ----
+const keys = {};
+const KEYMAP = {
+  ArrowLeft:"left", ArrowRight:"right", ArrowUp:"up", ArrowDown:"down",
+  KeyA:"left", KeyD:"right", KeyW:"up", KeyS:"down",
+  Space:"jump", KeyP:"pause", Enter:"start"
+};
+addEventListener("keydown", e => {
+  const k = KEYMAP[e.code];
+  if (k) { e.preventDefault();
+    if (!keys[k]) handleEdge(k);
+    keys[k] = true;
+  }
+});
+addEventListener("keyup", e => { const k = KEYMAP[e.code]; if (k) keys[k] = false; });
+
+document.querySelectorAll("#touch button").forEach(b => {
+  const k = b.dataset.k;
+  const press = () => { if (!keys[k]) handleEdge(k); keys[k] = true; b.classList.add("held"); };
+  const release = () => { keys[k] = false; b.classList.remove("held"); };
+  // Touch events are captured by the element where touchstart fired, so
+  // touchend/touchcancel still reach this button even if the finger slides
+  // off — and separate buttons get independent touches (true multi-touch).
+  b.addEventListener("touchstart",  e => { e.preventDefault(); press();   }, {passive:false});
+  b.addEventListener("touchend",    e => { e.preventDefault(); release(); }, {passive:false});
+  b.addEventListener("touchcancel", e => { e.preventDefault(); release(); }, {passive:false});
+  // mouse fallback for desktop testing
+  b.addEventListener("mousedown",  e => { e.preventDefault(); press();   });
+  b.addEventListener("mouseup",    release);
+  b.addEventListener("mouseleave", release);
+  b.addEventListener("contextmenu", e => e.preventDefault());
+});
+
+// Tap anywhere on the canvas to start / restart (so iOS players don't need a keyboard)
+function canvasTap(e) {
+  e.preventDefault();
+  if (state === "title") startGame();
+  else if (state === "gameover" || state === "win") toTitle();
+}
+canvas.addEventListener("touchstart", canvasTap, {passive:false});
+canvas.addEventListener("mousedown", e => { if (state !== "play") canvasTap(e); });
+
+// Block iOS pinch-zoom and double-tap-to-zoom so gameplay gestures don't zoom the page
+["gesturestart","gesturechange","gestureend"].forEach(ev =>
+  document.addEventListener(ev, e => e.preventDefault(), {passive:false}));
+document.addEventListener("touchmove", e => { e.preventDefault(); }, {passive:false});
+let lastTouchEnd = 0;
+document.addEventListener("touchend", e => {
+  const now = Date.now();
+  if (now - lastTouchEnd < 320) e.preventDefault(); // double-tap zoom guard
+  lastTouchEnd = now;
+}, {passive:false});
+
+function handleEdge(k) {
+  if (state === "title" && (k === "jump" || k === "start")) startGame();
+  else if (state === "gameover" && (k === "jump" || k === "start")) toTitle();
+  else if (state === "win" && (k === "jump" || k === "start")) toTitle();
+  else if (k === "pause" && state === "play") paused = !paused;
+}
+
+// ---- Game flow ----
+function toTitle() { state = "title"; }
+function startGame() {
+  score = 0; lives = 3; levelIndex = 0; paused = false;
+  buildLevel(levelIndex);
+  banner("LEVEL 1");
+  state = "play";
+}
+function nextLevel() {
+  score += 500;
+  levelIndex++;
+  if (levelIndex >= LEVELS.length) { winGame(); return; }
+  buildLevel(levelIndex);
+  banner("LEVEL " + (levelIndex + 1));
+}
+function loseLife() {
+  lives--;
+  spawnBurst(player.x + player.w/2, player.y + player.h/2, "#ff5a5a");
+  if (lives <= 0) { gameOver(); return; }
+  // respawn keeps claimed progress
+  const saveClaim = claimed.map(r => r.slice());
+  const saveTotal = totalClaim;
+  const savePulv = pulverizers.map(p => ({...p}));
+  buildLevel(levelIndex);
+  claimed = saveClaim; totalClaim = saveTotal; pulverizers = savePulv;
+  banner("OUCH!  " + lives + " LEFT");
+}
+function gameOver() {
+  if (score > bestScore) { bestScore = score; localStorage.setItem("miner2049_best", bestScore); }
+  state = "gameover";
+}
+function winGame() {
+  if (score > bestScore) { bestScore = score; localStorage.setItem("miner2049_best", bestScore); }
+  state = "win";
+}
+function banner(text) { message = text; messageTimer = 110; }
+
+// ---- Update ----
+function update() {
+  if (state !== "play" || paused) return;
+  if (messageTimer > 0) messageTimer--;
+  if (powerTimer > 0) {
+    powerTimer--;
+    if (powerTimer === 0) mutants.forEach(m => m.scared = false);
+  }
+  updatePlayer();
+  updateMutants();
+  updateParticles();
+  checkPickups();
+  checkMutantCollisions();
+}
+
+function updatePlayer() {
+  const p = player;
+  const onLad = ladderAt(p.x, p.y, p.w, p.h);
+  // ladder climbing
+  if (onLad && (keys.up || keys.down)) {
+    p.onLadder = true;
+  }
+  if (p.onLadder && !onLad) p.onLadder = false;
+
+  if (p.onLadder) {
+    p.vy = 0;
+    if (keys.up) p.vy = -CLIMB;
+    if (keys.down) p.vy = CLIMB;
+    if (keys.left) { p.x -= WALK*0.6; p.face = -1; }
+    if (keys.right){ p.x += WALK*0.6; p.face = 1; }
+    p.y += p.vy;
+    // leave ladder by jumping
+    if (keys.jump) { p.onLadder = false; p.vy = JUMP_V*0.7; }
+    // if no ladder beneath after climbing down, drop to platform
+    if (!ladderAt(p.x, p.y, p.w, p.h)) p.onLadder = false;
+  } else {
+    // horizontal
+    p.vx = 0;
+    if (keys.left)  { p.vx = -WALK; p.face = -1; }
+    if (keys.right) { p.vx =  WALK; p.face =  1; }
+    p.x += p.vx;
+    if (p.vx !== 0) p.walkAnim += 0.25; else p.walkAnim = 0;
+
+    // jump
+    if (keys.jump && p.onGround) { p.vy = JUMP_V; p.onGround = false; }
+
+    // gravity
+    p.vy += GRAV;
+    if (p.vy > 9) p.vy = 9;
+    p.y += p.vy;
+
+    // floor collision (only when falling)
+    p.onGround = false;
+    if (p.vy >= 0) {
+      const hit = isSolidRect(p.x + 2, p.y, p.w - 4, p.h);
+      if (hit) {
+        p.y = hit.r * TILE - p.h;
+        p.vy = 0; p.onGround = true;
+      }
+    }
+    // grab ladder when pressing up/down while overlapping
+    if (onLad && (keys.up || keys.down)) p.onLadder = true;
+  }
+
+  // bounds
+  if (p.x < 0) p.x = 0;
+  if (p.x + p.w > W) p.x = W - p.w;
+  if (p.y > H) { loseLife(); return; }
+
+  claimUnder(p);
+}
+
+function updateMutants() {
+  for (const m of mutants) {
+    if (!m.alive) continue;
+    m.anim += 0.15;
+    m.scared = powerTimer > 0;
+    const speed = m.scared ? 0.7 : 1.15;
+
+    // simple AI: walk, sometimes climb ladders toward player row
+    const onLad = ladderAt(m.x, m.y, m.w, m.h);
+    if (m.climbCool > 0) m.climbCool--;
+
+    let wantClimb = false;
+    if (onLad && m.climbCool === 0) {
+      const dr = player.y - m.y;
+      if (Math.abs(dr) > TILE && Math.random() < 0.04) {
+        m.climbDir = dr < 0 ? -1 : 1;
+        m.climbing = true; m.climbCool = 40;
+      }
+    }
+    if (m.climbing) {
+      m.y += m.climbDir * CLIMB * (m.scared?0.7:1);
+      if (!ladderAt(m.x, m.y, m.w, m.h)) m.climbing = false;
+      wantClimb = true;
+    }
+
+    if (!wantClimb) {
+      // chase horizontally a bit, else patrol
+      if (!m.scared && Math.random() < 0.5) {
+        m.dir = player.x < m.x ? -1 : 1;
+      } else if (m.scared) {
+        m.dir = player.x < m.x ? 1 : -1; // flee
+      }
+      m.x += m.dir * speed;
+
+      // turn at walls / ledges
+      m.vy += GRAV; if (m.vy > 9) m.vy = 9;
+      m.y += m.vy;
+      const hit = isSolidRect(m.x + 1, m.y, m.w - 2, m.h);
+      if (hit && m.vy >= 0) { m.y = hit.r * TILE - m.h; m.vy = 0; }
+
+      // ledge / wall detection -> reverse
+      const aheadX = m.dir < 0 ? m.x - 2 : m.x + m.w + 2;
+      const wall = tileAt(aheadX, m.y + m.h/2).solid;
+      const groundAhead = tileAt(aheadX, m.y + m.h + 2).solid;
+      if (wall || !groundAhead) m.dir *= -1;
+      if (m.x < 0) { m.x = 0; m.dir = 1; }
+      if (m.x + m.w > W) { m.x = W - m.w; m.dir = -1; }
+    }
+  }
+}
+
+function updateParticles() {
+  for (const pt of particles) {
+    pt.x += pt.vx; pt.y += pt.vy; pt.vy += 0.12; pt.life--;
+  }
+  particles = particles.filter(p => p.life > 0);
+}
+
+function checkPickups() {
+  for (const pu of pulverizers) {
+    if (pu.taken) continue;
+    if (Math.abs(pu.x - (player.x+player.w/2)) < 14 &&
+        Math.abs(pu.y - (player.y+player.h/2)) < 16) {
+      pu.taken = true;
+      powerTimer = POWER_TIME;
+      score += 100;
+      mutants.forEach(m => m.scared = true);
+      spawnBurst(pu.x, pu.y, "#5cf");
+      banner("PULVERIZER!");
+    }
+  }
+}
+
+function checkMutantCollisions() {
+  for (const m of mutants) {
+    if (!m.alive) continue;
+    if (rectHit(player, m)) {
+      if (powerTimer > 0) {
+        m.alive = false;
+        score += 250;
+        spawnBurst(m.x+m.w/2, m.y+m.h/2, "#9cff5a");
+        banner("+250");
+      } else {
+        loseLife();
+        return;
+      }
+    }
+  }
+}
+function rectHit(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x &&
+         a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+// ---- Render ----
+function draw() {
+  ctx.fillStyle = "#05050c";
+  ctx.fillRect(0, 0, W, H);
+
+  if (state === "title") { drawTitle(); return; }
+
+  // mine walls background tint
+  drawTiles();
+  drawPulverizers();
+  drawParticles();
+  drawMutants();
+  drawPlayer();
+  drawHUD();
+
+  if (messageTimer > 0) drawBanner(message);
+  if (paused) drawCenter("PAUSED", "#fff");
+  if (state === "gameover") drawOverlay("GAME OVER", "Press SPACE / ENTER");
+  if (state === "win") drawOverlay("YOU CLEARED THE MINE!", "Press SPACE / ENTER");
+}
+
+function drawTiles() {
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const x = c * TILE, y = r * TILE;
+      if (floors[r][c]) {
+        if (claimable[r][c]) {
+          if (claimed[r][c]) {
+            ctx.fillStyle = "#caa12a";
+            ctx.fillRect(x, y, TILE, TILE);
+            ctx.fillStyle = "#ffd34d";
+            ctx.fillRect(x, y, TILE, 4);
+          } else {
+            ctx.fillStyle = "#5a4a2a";
+            ctx.fillRect(x, y, TILE, TILE);
+            ctx.fillStyle = "#6e5a34";
+            ctx.fillRect(x, y, TILE, 4);
+          }
+        } else {
+          ctx.fillStyle = "#3a3550";
+          ctx.fillRect(x, y, TILE, TILE);
+          ctx.fillStyle = "#4a4566";
+          ctx.fillRect(x, y, TILE, 3);
+        }
+        ctx.fillStyle = "rgba(0,0,0,.25)";
+        ctx.fillRect(x, y + TILE - 3, TILE, 3);
+      }
+      if (ladders[r][c]) {
+        ctx.fillStyle = "#a06a2a";
+        ctx.fillRect(x + 3, y, 3, TILE);
+        ctx.fillRect(x + TILE - 6, y, 3, TILE);
+        ctx.fillStyle = "#c08a3a";
+        for (let yy = 3; yy < TILE; yy += 7) ctx.fillRect(x + 3, y + yy, TILE - 6, 2);
+      }
+    }
+  }
+}
+
+function drawPulverizers() {
+  for (const pu of pulverizers) {
+    if (pu.taken) continue;
+    const t = performance.now() / 200;
+    const r = 6 + Math.sin(t) * 1.5;
+    ctx.fillStyle = "#5cf";
+    ctx.beginPath(); ctx.arc(pu.x, pu.y, r, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#bff";
+    ctx.beginPath(); ctx.arc(pu.x - 1.5, pu.y - 1.5, r/2.4, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = "rgba(120,200,255,.5)";
+    ctx.beginPath(); ctx.arc(pu.x, pu.y, r + 3 + Math.sin(t)*1.5, 0, Math.PI*2); ctx.stroke();
+  }
+}
+
+function drawPlayer() {
+  const p = player;
+  const bob = (p.onGround && p.vx !== 0) ? Math.sin(p.walkAnim*3)*1 : 0;
+  const x = Math.round(p.x), y = Math.round(p.y + bob);
+  // body (red miner)
+  ctx.fillStyle = "#d83a2a";
+  ctx.fillRect(x + 2, y + 6, p.w - 4, p.h - 6);
+  // legs
+  ctx.fillStyle = "#2a3a8a";
+  const stride = p.onGround && p.vx !== 0 ? Math.sin(p.walkAnim*3)*2 : 0;
+  ctx.fillRect(x + 3, y + p.h - 4, 4, 4 + stride*0.5);
+  ctx.fillRect(x + p.w - 7, y + p.h - 4, 4, 4 - stride*0.5);
+  // head
+  ctx.fillStyle = "#f0c08a";
+  ctx.fillRect(x + 4, y, p.w - 8, 7);
+  // hard hat
+  ctx.fillStyle = "#ffd34d";
+  ctx.fillRect(x + 2, y - 2, p.w - 4, 4);
+  ctx.fillRect(x + (p.face>0? p.w-3 : 1), y, 2, 3);
+  // eye
+  ctx.fillStyle = "#000";
+  ctx.fillRect(x + (p.face>0? p.w-7 : 4), y + 3, 2, 2);
+}
+
+function drawMutants() {
+  for (const m of mutants) {
+    if (!m.alive) continue;
+    const x = Math.round(m.x), y = Math.round(m.y);
+    const blink = m.scared && powerTimer < 90 && (Math.floor(powerTimer/8)%2===0);
+    let body = m.scared ? (blink ? "#fff" : "#3a5ad8") : "#8a3ad8";
+    const wob = Math.sin(m.anim)*2;
+    ctx.fillStyle = body;
+    // blobby body
+    ctx.fillRect(x + 1, y + 2, m.w - 2, m.h - 4);
+    ctx.fillRect(x, y + 5, m.w, m.h - 8);
+    // tentacle feet
+    ctx.fillRect(x + 1, y + m.h - 3, 3, 3 + wob);
+    ctx.fillRect(x + m.w/2 - 1, y + m.h - 3, 3, 3 - wob);
+    ctx.fillRect(x + m.w - 4, y + m.h - 3, 3, 3 + wob);
+    // eyes
+    ctx.fillStyle = m.scared ? "#fff" : "#ffd34d";
+    ctx.fillRect(x + 3, y + 5, 3, 3);
+    ctx.fillRect(x + m.w - 6, y + 5, 3, 3);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(x + 4, y + 6, 1.5, 1.5);
+    ctx.fillRect(x + m.w - 5, y + 6, 1.5, 1.5);
+  }
+}
+
+function drawParticles() {
+  for (const pt of particles) {
+    ctx.globalAlpha = Math.max(0, pt.life / 30);
+    ctx.fillStyle = pt.col;
+    ctx.fillRect(pt.x, pt.y, 3, 3);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawHUD() {
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, W, 16);
+  ctx.font = "12px 'Courier New', monospace";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#ffd34d";
+  ctx.textAlign = "left";
+  ctx.fillText("SCORE " + String(score).padStart(6, "0"), 6, 9);
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#9cff5a";
+  ctx.fillText("LEVEL " + (levelIndex + 1), W/2 - 40, 9);
+  // lives as little hats
+  ctx.fillStyle = "#ffd34d";
+  for (let i = 0; i < lives; i++) ctx.fillRect(W/2 + 10 + i*12, 6, 8, 5);
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#5cf";
+  ctx.fillText("BEST " + String(bestScore).padStart(6, "0"), W - 6, 9);
+
+  // power timer bar
+  if (powerTimer > 0) {
+    ctx.fillStyle = "#5cf";
+    ctx.fillRect(6, 17, (W - 12) * (powerTimer / POWER_TIME), 3);
+  }
+  // remaining tiles
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#caa12a";
+  ctx.font = "10px 'Courier New', monospace";
+  ctx.fillText("CLAIM LEFT: " + totalClaim, 6, 26);
+}
+
+function drawBanner(text) {
+  ctx.font = "bold 22px 'Courier New', monospace";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const a = Math.min(1, messageTimer / 30);
+  ctx.globalAlpha = a;
+  ctx.fillStyle = "#000"; ctx.fillText(text, W/2+2, H/2 - 38);
+  ctx.fillStyle = "#ffd34d"; ctx.fillText(text, W/2, H/2 - 40);
+  ctx.globalAlpha = 1;
+}
+function drawCenter(text, col) {
+  ctx.font = "bold 26px 'Courier New', monospace";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillStyle = col; ctx.fillText(text, W/2, H/2);
+}
+function drawOverlay(title, sub) {
+  ctx.fillStyle = "rgba(0,0,0,.72)";
+  ctx.fillRect(0, 0, W, H);
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = "bold 30px 'Courier New', monospace";
+  ctx.fillStyle = "#ffd34d"; ctx.fillText(title, W/2, H/2 - 30);
+  ctx.font = "14px 'Courier New', monospace";
+  ctx.fillStyle = "#fff"; ctx.fillText(sub, W/2, H/2 + 10);
+  ctx.fillStyle = "#9cff5a";
+  ctx.fillText("SCORE " + score + "   BEST " + bestScore, W/2, H/2 + 36);
+}
+
+function drawTitle() {
+  // animated mine backdrop
+  const t = performance.now() / 1000;
+  for (let i = 0; i < 40; i++) {
+    ctx.fillStyle = `rgba(255,211,77,${0.04 + 0.03*Math.sin(t+i)})`;
+    ctx.fillRect((i*37) % W, (i*53 + Math.sin(t+i)*8) % H, 6, 6);
+  }
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = "bold 44px 'Courier New', monospace";
+  ctx.fillStyle = "#7a4b00"; ctx.fillText("MINER 2049er", W/2+3, H/2 - 77);
+  ctx.fillStyle = "#ffd34d"; ctx.fillText("MINER 2049er", W/2, H/2 - 80);
+
+  ctx.font = "16px 'Courier New', monospace";
+  ctx.fillStyle = "#e8e8f0";
+  ctx.fillText("Help Bounty Bob claim the uranium mine", W/2, H/2 - 36);
+
+  // mini bob
+  const bx = W/2 - 7, by = H/2 + 4 + Math.sin(t*4)*3;
+  ctx.fillStyle = "#d83a2a"; ctx.fillRect(bx+2, by+6, 10, 12);
+  ctx.fillStyle = "#f0c08a"; ctx.fillRect(bx+4, by, 6, 7);
+  ctx.fillStyle = "#ffd34d"; ctx.fillRect(bx+2, by-2, 10, 4);
+
+  ctx.font = "14px 'Courier New', monospace";
+  ctx.fillStyle = (Math.floor(t*2)%2) ? "#9cff5a" : "#5cf";
+  ctx.fillText("PRESS SPACE / ENTER TO START", W/2, H/2 + 60);
+  ctx.fillStyle = "#8a8aa8"; ctx.font = "11px 'Courier New', monospace";
+  ctx.fillText("Arrows move • Up/Down climb • Space jump • P pause", W/2, H/2 + 86);
+  ctx.fillText("Best score: " + bestScore, W/2, H/2 + 104);
+}
+
+// ---- Main loop (fixed 60Hz timestep) ----
+// Decoupling logic from the display refresh keeps the game running at the
+// right speed on 120Hz ProMotion iPhones/iPads (where rAF can fire at 120fps).
+const STEP = 1000 / 60;
+let lastTime = performance.now();
+let acc = 0;
+function loop(now) {
+  acc += now - lastTime;
+  lastTime = now;
+  if (acc > 250) acc = 250;          // clamp after tab/app was backgrounded
+  let steps = 0;
+  while (acc >= STEP && steps < 5) { update(); acc -= STEP; steps++; }
+  draw();
+  requestAnimationFrame(loop);
+}
+// Reset the clock when returning from background so nothing fast-forwards
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) { lastTime = performance.now(); acc = 0; }
+});
+
+toTitle();
+requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
