@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Cubert">
 <meta name="theme-color" content="#101018">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
 <title>Cubert — a cube-hopping arcade game</title>
 <style>
   * { box-sizing: border-box; }
@@ -794,5 +796,6 @@
   requestAnimationFrame(frame);
 })();
 </script>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }</script>
 </body>
 </html>
