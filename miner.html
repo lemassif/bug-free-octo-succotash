@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Miner 2049er">
 <meta name="theme-color" content="#06060a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
 <title>Miner 2049er — Bounty Bob</title>
 <style>
   :root { --ink:#ffd34d; }
@@ -844,5 +846,6 @@ requestAnimationFrame(loop);
 
 })();
 </script>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }</script>
 </body>
 </html>
