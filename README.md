@@ -1,18 +1,25 @@
-> This repo is a small **retro arcade** with three self-contained browser games.
-> Open [`index.html`](index.html) for the **menu**, then pick a game:
+> This repo is a small **retro arcade** with three self-contained browser games,
+> plus a learning app. Open [`index.html`](index.html) for the **menu**, then
+> pick one:
 >
-> | Game | File | Description |
+> | App | File | Description |
 > |------|------|-------------|
+> | **Chance Academy** | [`chance/`](chance/index.html) | a 60-day science, math &amp; phonics curriculum for a curious second-grader — see [`CHANCE.md`](CHANCE.md) |
 > | **Cubert** | [`cubert.html`](cubert.html) | cube-hopping isometric arcade — see [`CUBERT.md`](CUBERT.md) |
 > | **Miner 2049er** | [`miner.html`](miner.html) | platformer (documented below) |
 > | **Ferrow Light** | [`ferrow-light.html`](ferrow-light.html) | a four-chapter Zork-style text adventure |
 >
 > Every page cross-links, so you can hop between the menu and any game.
 >
-> **Play anywhere, online or offline.** The arcade is an installable PWA: it
-> ships a web app manifest and a service worker (`sw.js`) that caches all three
-> games on first visit. Add it to your phone's Home Screen (Share → *Add to
+> **Use it anywhere, online or offline.** Everything here is an installable PWA:
+> the arcade ships a web app manifest and a service worker (`sw.js`) that caches
+> all three games on first visit, and Chance Academy ships its own that caches
+> the whole curriculum. Add either to your device's Home Screen (Share → *Add to
 > Home Screen*) and it launches fullscreen and works with no connection.
+>
+> Chance Academy wants **Safari on an iPad** specifically — it reads every lesson
+> aloud in a soft female voice and listens to him read words back through the
+> microphone, and Safari is where both of those work.
 >
 > Hosted with GitHub Pages, so it's shareable with a single link — just send
 > friends and family the Pages URL for this repo.

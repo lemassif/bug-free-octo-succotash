@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Chance Academy">
+<meta name="theme-color" content="#0f2a4a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="stylesheet" href="app.css">
+<title>Chance Academy — Science, Numbers &amp; Reading</title>
+</head>
+<body>
+
+<!-- ============================= HOME ============================= -->
+<section class="screen" id="screen-home" data-screen="home">
+  <header class="hero">
+    <div class="hero-badge" id="homeAvatar">🚀</div>
+    <div class="hero-text">
+      <h1>Chance Academy</h1>
+      <p id="homeGreeting">Tap a picture to start.</p>
+    </div>
+    <button class="icon-btn small" id="btnGrownups" aria-label="Grown-ups area">👨‍👩‍👦</button>
+  </header>
+
+  <div class="today-card" id="todayCard" role="button" tabindex="0">
+    <div class="today-icon" id="todayIcon">🌎</div>
+    <div class="today-body">
+      <span class="kicker">TODAY'S MISSION <b id="todayNumber">Day 1</b></span>
+      <strong id="todayTitle">Loading…</strong>
+      <span class="today-sub" id="todaySub">3 quick stops · about 7 minutes</span>
+      <div class="dots" id="todayDots"></div>
+    </div>
+    <div class="today-go">▶</div>
+  </div>
+
+  <nav class="icon-grid" id="iconGrid">
+    <button class="tile tile-science" data-go="station:discover">
+      <span class="tile-icon">🔭</span><span class="tile-label">Science</span>
+    </button>
+    <button class="tile tile-math" data-go="station:numbers">
+      <span class="tile-icon">🔢</span><span class="tile-label">Numbers</span>
+    </button>
+    <button class="tile tile-read" data-go="station:reading">
+      <span class="tile-icon">📖</span><span class="tile-label">Read &amp; Say</span>
+    </button>
+    <button class="tile tile-map" data-go="map">
+      <span class="tile-icon">🗺️</span><span class="tile-label">Mission Map</span>
+    </button>
+    <button class="tile tile-rewards" data-go="rewards">
+      <span class="tile-icon">🏆</span><span class="tile-label">My Rewards</span>
+      <span class="tile-count" id="tileStarCount">0</span>
+    </button>
+    <button class="tile tile-word" data-go="wordwall">
+      <span class="tile-icon">🗣️</span><span class="tile-label">Word Wall</span>
+    </button>
+  </nav>
+
+  <div class="goal-strip">
+    <div class="goal" id="goalWeek">
+      <span class="goal-icon">📅</span>
+      <div><b>This week</b><i id="goalWeekText">0 of 5 days</i></div>
+      <div class="bar"><span id="goalWeekBar"></span></div>
+    </div>
+    <div class="goal" id="goalMonth">
+      <span class="goal-icon">🎖️</span>
+      <div><b>This month</b><i id="goalMonthText">0 of 20 days</i></div>
+      <div class="bar"><span id="goalMonthBar"></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ MISSION =========================== -->
+<section class="screen" id="screen-mission" data-screen="mission" hidden>
+  <header class="bar-top">
+    <button class="icon-btn" data-go="home" aria-label="Home">🏠</button>
+    <div class="progress-pips" id="missionPips"></div>
+    <div class="think-meter" id="thinkMeter" title="Thinking meter">
+      <span class="tm-icon">🧠</span><span class="tm-fill"><i id="thinkFill"></i></span>
+    </div>
+    <button class="icon-btn" id="btnReplay" aria-label="Read it again">🔊</button>
+  </header>
+
+  <div class="stage" id="stage"><!-- stations render here --></div>
+
+  <div class="coach" id="coach" hidden>
+    <div class="coach-face" id="coachFace">🦉</div>
+    <div class="coach-bubble"><p id="coachText"></p></div>
+    <button class="icon-btn" id="coachSpeak" aria-label="Say it again">🔊</button>
+  </div>
+</section>
+
+<!-- ============================== MAP ============================= -->
+<section class="screen" id="screen-map" data-screen="map" hidden>
+  <header class="bar-top">
+    <button class="icon-btn" data-go="home" aria-label="Home">🏠</button>
+    <h2>Mission Map</h2>
+    <span class="spacer"></span>
+  </header>
+  <div class="scroll" id="mapBody"></div>
+</section>
+
+<!-- ============================ REWARDS ========================== -->
+<section class="screen" id="screen-rewards" data-screen="rewards" hidden>
+  <header class="bar-top">
+    <button class="icon-btn" data-go="home" aria-label="Home">🏠</button>
+    <h2>My Rewards</h2>
+    <span class="spacer"></span>
+  </header>
+  <div class="scroll" id="rewardsBody"></div>
+</section>
+
+<!-- =========================== WORD WALL ========================= -->
+<section class="screen" id="screen-wordwall" data-screen="wordwall" hidden>
+  <header class="bar-top">
+    <button class="icon-btn" data-go="home" aria-label="Home">🏠</button>
+    <h2>Word Wall</h2>
+    <span class="spacer"></span>
+  </header>
+  <div class="scroll" id="wordwallBody"></div>
+</section>
+
+<!-- =========================== GROWN-UPS ========================= -->
+<section class="screen" id="screen-grownup" data-screen="grownup" hidden>
+  <header class="bar-top">
+    <button class="icon-btn" data-go="home" aria-label="Home">🏠</button>
+    <h2>Grown-Ups: Thinking Report</h2>
+    <span class="spacer"></span>
+  </header>
+  <div class="scroll" id="grownupBody"></div>
+</section>
+
+<!-- ============================ OVERLAY ========================== -->
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<div class="confetti" id="confetti" aria-hidden="true"></div>
+
+<script src="data/curriculum.js"></script>
+<script src="data/unit1-space.js"></script>
+<script src="data/unit2-woods.js"></script>
+<script src="data/unit3-forces.js"></script>
+<script src="js/voice.js"></script>
+<script src="js/evaluate.js"></script>
+<script src="js/progress.js"></script>
+<script src="js/rewards.js"></script>
+<script src="js/stations.js"></script>
+<script src="js/grownup.js"></script>
+<script src="js/app.js"></script>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }</script>
+</body>
+</html>

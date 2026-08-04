@@ -1,5 +1,5 @@
 /* Retro Arcade service worker — caches the whole arcade for offline play. */
-const CACHE = 'arcade-v1';
+const CACHE = 'arcade-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -11,6 +11,11 @@ const ASSETS = [
   './icon-512.png',
   './icon-180.png'
 ];
+/* Chance Academy lives under ./chance/ and ships its own service
+   worker, which caches the curriculum with a narrower scope. This
+   one only pre-caches its entry point so the menu link works
+   offline; opening it once installs the rest. */
+ASSETS.push('./chance/', './chance/index.html', './chance/app.css');
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
@@ -21,7 +26,12 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      // Only clear our own old versions. Chance Academy keeps its
+      // curriculum in a 'chance-academy-*' cache under ./chance/ —
+      // deleting that here would knock the learning app offline.
+      .then((keys) => Promise.all(
+        keys.filter((k) => k.startsWith('arcade-') && k !== CACHE).map((k) => caches.delete(k))
+      ))
       .then(() => self.clients.claim())
   );
 });
