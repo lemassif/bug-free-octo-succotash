@@ -461,6 +461,16 @@ table.tbl th { background: #eef4fb; font-size: 13px; letter-spacing: .5px; }
   <div class="scroll" id="grownupBody"></div>
 </section>
 
+<!-- ============================ STUDIO ========================== -->
+<section class="screen" id="screen-studio" data-screen="studio" hidden>
+  <header class="bar-top">
+    <button class="icon-btn" data-go="grownup" aria-label="Back to grown-ups">⬅️</button>
+    <h2>Record in Your Own Voice</h2>
+    <span class="spacer"></span>
+  </header>
+  <div class="scroll" id="studioBody"></div>
+</section>
+
 <!-- ============================ OVERLAY ========================== -->
 <div class="overlay" id="overlay" hidden>
   <div class="sheet" id="sheet"></div>
@@ -4570,6 +4580,384 @@ window.Curriculum = (function () {
 })();
 
 
+/* ===== js/recordings.js ===== */
+/* ============================================================
+   recordings.js — Grandpa's voice instead of the robot's
+
+   The synthesized voice is fine as a fallback, but it is not the
+   voice that matters to him. This lets a real person record any
+   line in the app, in their own voice, and from then on that
+   recording plays instead of the robot — everywhere that line is
+   spoken.
+
+   How it hangs together:
+   - Every spoken string is keyed by a hash of its own text. Record
+     "Whoa, speedy! That was faster than the question." once and it
+     plays every time the owl says it, on any day, forever.
+   - Clips live in IndexedDB on the device (localStorage cannot hold
+     audio). A list of which keys exist is kept in memory so the
+     lookup on every line is instant and never delays the lesson.
+   - Anything not yet recorded falls back to the synthesized voice,
+     so a half-finished recording session still works fine. You can
+     record the 40 lines he hears most and stop there.
+   - Export writes every clip to one file you can back up or carry
+     to another iPad.
+
+   iOS notes:
+   - MediaRecorder needs iOS 14.3+ and gives us audio/mp4.
+   - Audio playback needs one user gesture before it will work, so
+     a single shared <audio> element is unlocked on the first tap
+     and reused for every clip after that.
+   ============================================================ */
+
+window.Recordings = (function () {
+
+  var DB_NAME = 'chance-recordings';
+  var STORE = 'clips';
+  var db = null;
+  var known = Object.create(null);   // id -> {text, kind, size}
+  var ready = false;
+  var player = null;                  // one shared, unlocked <audio>
+  var currentUrl = null;
+
+  /* ------------------------- keys ------------------------- */
+  function norm(s) {
+    return String(s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  }
+  function hash(s) {
+    var h = 2166136261, t = norm(s);
+    for (var i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = (h * 16777619) >>> 0; }
+    return h.toString(36);
+  }
+  /* kind separates a phoneme from a word that happens to spell the
+     same thing — the "or" sound versus the word "or". */
+  function keyFor(text, kind) { return (kind || 'say') + '_' + hash(text); }
+
+  /* ----------------------- IndexedDB ---------------------- */
+  function open() {
+    return new Promise(function (resolve, reject) {
+      if (db) return resolve(db);
+      if (!window.indexedDB) return reject(new Error('no IndexedDB'));
+      var req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = function () {
+        var d = req.result;
+        if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE, { keyPath: 'id' });
+      };
+      req.onsuccess = function () { db = req.result; resolve(db); };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+
+  function tx(mode) {
+    return open().then(function (d) { return d.transaction(STORE, mode).objectStore(STORE); });
+  }
+
+  function init() {
+    return tx('readonly').then(function (store) {
+      return new Promise(function (resolve) {
+        var req = store.openCursor();
+        req.onsuccess = function () {
+          var cur = req.result;
+          if (cur) {
+            var v = cur.value;
+            known[v.id] = { text: v.text, kind: v.kind, size: v.blob ? v.blob.size : 0, ts: v.ts };
+            cur.continue();
+          } else { ready = true; resolve(true); }
+        };
+        req.onerror = function () { ready = true; resolve(false); };
+      });
+    }).catch(function () { ready = true; return false; });
+  }
+
+  function save(text, kind, blob) {
+    var id = keyFor(text, kind);
+    var rec = { id: id, text: String(text), kind: kind || 'say', blob: blob, ts: Date.now() };
+    return tx('readwrite').then(function (store) {
+      return new Promise(function (resolve, reject) {
+        var req = store.put(rec);
+        req.onsuccess = function () {
+          known[id] = { text: rec.text, kind: rec.kind, size: blob.size, ts: rec.ts };
+          resolve(id);
+        };
+        req.onerror = function () { reject(req.error); };
+      });
+    });
+  }
+
+  function load(id) {
+    return tx('readonly').then(function (store) {
+      return new Promise(function (resolve) {
+        var req = store.get(id);
+        req.onsuccess = function () { resolve(req.result ? req.result.blob : null); };
+        req.onerror = function () { resolve(null); };
+      });
+    }).catch(function () { return null; });
+  }
+
+  function remove(text, kind) {
+    var id = keyFor(text, kind);
+    return tx('readwrite').then(function (store) {
+      return new Promise(function (resolve) {
+        var req = store.delete(id);
+        req.onsuccess = function () { delete known[id]; resolve(true); };
+        req.onerror = function () { resolve(false); };
+      });
+    }).catch(function () { return false; });
+  }
+
+  function clearAll() {
+    return tx('readwrite').then(function (store) {
+      return new Promise(function (resolve) {
+        var req = store.clear();
+        req.onsuccess = function () { known = Object.create(null); resolve(true); };
+        req.onerror = function () { resolve(false); };
+      });
+    }).catch(function () { return false; });
+  }
+
+  /* ---------------------- playback ------------------------ */
+  /* One element, unlocked once. iOS will not let us create a new
+     Audio() mid-lesson and play it without a fresh tap. */
+  function unlock() {
+    if (player) return;
+    player = new Audio();
+    player.preload = 'auto';
+    // a 0.05s silent wav, just to satisfy the gesture requirement
+    player.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';
+    var p = player.play();
+    if (p && p.catch) p.catch(function () {});
+    setTimeout(function () { try { player.pause(); player.currentTime = 0; } catch (e) {} }, 30);
+  }
+
+  function has(text, kind) { return !!known[keyFor(text, kind)]; }
+
+  /* play() resolves true when a real recording was played, false
+     when there is nothing recorded for this line (so the caller
+     falls back to the synthesized voice). */
+  function play(text, kind) {
+    var id = keyFor(text, kind);
+    if (!known[id]) return Promise.resolve(false);
+    return load(id).then(function (blob) {
+      if (!blob) return false;
+      return new Promise(function (resolve) {
+        if (!player) player = new Audio();
+        if (currentUrl) { URL.revokeObjectURL(currentUrl); currentUrl = null; }
+        currentUrl = URL.createObjectURL(blob);
+        var done = false;
+        function finish(v) { if (!done) { done = true; resolve(v); } }
+        player.onended = function () { finish(true); };
+        player.onerror = function () { finish(false); };
+        player.src = currentUrl;
+        var pr = player.play();
+        if (pr && pr.catch) pr.catch(function () { finish(false); });
+        // never let a stuck clip hang the lesson
+        setTimeout(function () { finish(true); }, 30000);
+      });
+    });
+  }
+
+  function stop() {
+    if (player) { try { player.pause(); player.currentTime = 0; } catch (e) {} }
+  }
+
+  /* ---------------------- recording ----------------------- */
+  var stream = null, recorder = null, chunks = [];
+
+  function pickMime() {
+    if (!window.MediaRecorder) return null;
+    var options = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'];
+    for (var i = 0; i < options.length; i++) {
+      if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(options[i])) return options[i];
+    }
+    return '';
+  }
+
+  function canRecord() {
+    return !!(window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  }
+
+  function startRecording() {
+    if (!canRecord()) return Promise.reject(new Error('This browser cannot record audio.'));
+    return navigator.mediaDevices.getUserMedia({ audio: true }).then(function (s) {
+      stream = s;
+      chunks = [];
+      var mime = pickMime();
+      recorder = mime ? new MediaRecorder(s, { mimeType: mime }) : new MediaRecorder(s);
+      recorder.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+      recorder.start();
+      return true;
+    });
+  }
+
+  /* stopRecording() resolves with the finished Blob. */
+  function stopRecording() {
+    return new Promise(function (resolve, reject) {
+      if (!recorder) return reject(new Error('not recording'));
+      recorder.onstop = function () {
+        var type = recorder.mimeType || 'audio/mp4';
+        var blob = new Blob(chunks, { type: type });
+        if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+        recorder = null; chunks = [];
+        resolve(blob);
+      };
+      try { recorder.stop(); } catch (e) { reject(e); }
+    });
+  }
+
+  function isRecording() { return !!recorder; }
+
+  function cancelRecording() {
+    try { if (recorder) recorder.stop(); } catch (e) {}
+    if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+    recorder = null; chunks = [];
+  }
+
+  /* ------------------- backup / transfer ------------------ */
+  function blobToBase64(blob) {
+    return new Promise(function (resolve) {
+      var r = new FileReader();
+      r.onloadend = function () { resolve(String(r.result).split(',')[1] || ''); };
+      r.readAsDataURL(blob);
+    });
+  }
+  function base64ToBlob(b64, type) {
+    var bin = atob(b64), n = bin.length, arr = new Uint8Array(n);
+    while (n--) arr[n] = bin.charCodeAt(n);
+    return new Blob([arr], { type: type || 'audio/mp4' });
+  }
+
+  function exportAll(onProgress) {
+    var ids = Object.keys(known);
+    var out = { app: 'chance-academy-voice', version: 1, made: new Date().toISOString(), clips: [] };
+    var p = Promise.resolve();
+    ids.forEach(function (id, i) {
+      p = p.then(function () {
+        return load(id).then(function (blob) {
+          if (!blob) return;
+          return blobToBase64(blob).then(function (b64) {
+            out.clips.push({ id: id, text: known[id].text, kind: known[id].kind, type: blob.type, data: b64 });
+            if (onProgress) onProgress(i + 1, ids.length);
+          });
+        });
+      });
+    });
+    return p.then(function () { return out; });
+  }
+
+  function importAll(json) {
+    if (!json || json.app !== 'chance-academy-voice' || !json.clips) {
+      return Promise.reject(new Error('That is not a Chance Academy voice file.'));
+    }
+    var p = Promise.resolve(), n = 0;
+    json.clips.forEach(function (c) {
+      p = p.then(function () {
+        return save(c.text, c.kind, base64ToBlob(c.data, c.type)).then(function () { n++; });
+      });
+    });
+    return p.then(function () { return n; });
+  }
+
+  function stats() {
+    var ids = Object.keys(known), bytes = 0;
+    ids.forEach(function (id) { bytes += known[id].size || 0; });
+    return { count: ids.length, bytes: bytes, mb: (bytes / 1048576).toFixed(1) };
+  }
+
+  /* ---------------- what there is to record ---------------- */
+  /* Ordered by how often he will actually hear it, so somebody with
+     twenty minutes records the lines that matter and stops. */
+  function inventory() {
+    var groups = [];
+
+    // 1. the owl. Every one of these repeats across all 60 days.
+    var coach = [];
+    Object.keys(Evaluate.allTags()).forEach(function (t) {
+      coach.push({ text: Evaluate.allTags()[t].say, kind: 'say', note: Evaluate.allTags()[t].label });
+    });
+    Object.keys(Evaluate.BEHAVIOR).forEach(function (b) {
+      coach.push({ text: Evaluate.BEHAVIOR[b].say, kind: 'say', note: Evaluate.BEHAVIOR[b].label });
+    });
+    groups.push({
+      id: 'coach', em: '🦉', name: 'Coach lines',
+      blurb: 'What the owl says when he picks a wrong answer. These repeat on every single day — record these first.',
+      lines: coach
+    });
+
+    // 2. praise and the app's own phrases
+    var praise = Evaluate.praiseLines().map(function (t) { return { text: t, kind: 'say', note: 'praise' }; });
+    Object.keys(Phrases).forEach(function (k) {
+      if (typeof Phrases[k] === 'string') praise.push({ text: Phrases[k], kind: 'say', note: k });
+    });
+    groups.push({
+      id: 'app', em: '⭐', name: 'Praise & app lines',
+      blurb: 'Well done, station finished, mission complete. Also heard constantly.',
+      lines: praise
+    });
+
+    // 3. one group per mission day
+    Curriculum.allDays().forEach(function (d) {
+      var lines = [];
+      d.discover.intro.forEach(function (t) { lines.push({ text: t, kind: 'say', note: 'science' }); });
+      if (d.discover.word) {
+        lines.push({ text: 'Big word: ' + d.discover.word.w + '. ' + d.discover.word.mean + '.', kind: 'say', note: 'big word' });
+      }
+      pushItem(lines, d.discover.check, 'science question');
+      d.numbers.problems.forEach(function (p, i) { pushItem(lines, p, 'math ' + (i + 1)); });
+      d.reading.words.forEach(function (w) {
+        lines.push({ text: w.w, kind: 'say', note: 'word' });
+        w.sounds.forEach(function (s) { lines.push({ text: s, kind: 'sound', note: 'sound in "' + w.w + '"' }); });
+      });
+      lines.push({ text: d.reading.sentence, kind: 'say', note: 'sentence' });
+      pushItem(lines, d.reading.comp, 'comprehension');
+      groups.push({
+        id: d.id, em: d.icon, name: 'Day ' + d.n + ': ' + d.title,
+        blurb: d.unitName + ' · ' + d.weekTitle, lines: lines, day: true
+      });
+    });
+    return groups;
+  }
+
+  function pushItem(lines, item, note) {
+    if (!item) return;
+    if (item.story) lines.push({ text: item.story, kind: 'say', note: note + ' story' });
+    lines.push({ text: item.q, kind: 'say', note: note + ' question' });
+    item.choices.forEach(function (c, i) {
+      lines.push({ text: (i + 1) + '. ' + c.t, kind: 'say', note: note + ' choice' });
+    });
+    if (item.hint) lines.push({ text: item.hint, kind: 'say', note: note + ' hint' });
+    if (item.show) lines.push({ text: item.show, kind: 'say', note: note + ' answer' });
+  }
+
+  function groupProgress(group) {
+    var done = group.lines.filter(function (l) { return has(l.text, l.kind); }).length;
+    return { done: done, total: group.lines.length, pct: Math.round(100 * done / (group.lines.length || 1)) };
+  }
+
+  init();
+
+  return {
+    isReady: function () { return ready; },
+    has: has, play: play, stop: stop, unlock: unlock,
+    save: save, remove: remove, clearAll: clearAll,
+    canRecord: canRecord, startRecording: startRecording, stopRecording: stopRecording,
+    isRecording: isRecording, cancelRecording: cancelRecording,
+    exportAll: exportAll, importAll: importAll, stats: stats,
+    inventory: inventory, groupProgress: groupProgress, keyFor: keyFor
+  };
+})();
+
+/* Every fixed phrase the app speaks, in one place, so the recording
+   studio can list exactly the strings the code will later look up.
+   If these two ever drift apart you record a line that never plays,
+   so they are defined here and referenced everywhere else. */
+window.Phrases = {
+  stationDone: 'Station complete. You earned a star.',
+  missionDone: 'Mission complete! Fantastic work today.',
+  tapTheAnswer: 'Here is the answer. Tap it with me, and say it out loud.',
+  micOff: "I didn't hear you. Hold the microphone button and say it out loud."
+};
+
+
 /* ===== js/voice.js ===== */
 /* ============================================================
    voice.js — Chance Academy speech layer
@@ -4670,7 +5058,8 @@ window.Voice = (function () {
   }
 
   function stop() {
-    if (!synth) return;
+    if (window.Recordings) Recordings.stop();
+    if (!synth) { queueTail = Promise.resolve(); return; }
     try { synth.cancel(); } catch (e) {}
     queueTail = Promise.resolve();
   }
@@ -4678,32 +5067,49 @@ window.Voice = (function () {
   /* say(text, opts) -> Promise that settles when the phrase finishes.
      opts.rate / opts.pitch override for one phrase (used to stretch
      single phonemes out). Calls queue rather than interrupt so a
-     three-sentence lesson reads in order. */
+     three-sentence lesson reads in order.
+
+     A real recorded voice always wins over the synthesizer. If
+     somebody has recorded this exact line in the studio, we play
+     their voice; otherwise we fall back to speech synthesis. That
+     is what lets a half-finished recording session still work. */
   function say(text, opts) {
     opts = opts || {};
     if (!text) return Promise.resolve();
-    if (muted || !synth) return Promise.resolve();
+    if (muted) return Promise.resolve();
     if (opts.interrupt) stop();
 
     queueTail = queueTail.then(function () {
-      return new Promise(function (done) {
-        if (!chosen) resolveVoice();
-        var u = new SpeechSynthesisUtterance(String(text));
-        if (chosen) { u.voice = chosen; u.lang = chosen.lang || 'en-US'; }
-        else u.lang = 'en-US';
-        u.rate = opts.rate != null ? opts.rate : settings.rate;
-        u.pitch = opts.pitch != null ? opts.pitch : settings.pitch;
-        u.volume = opts.volume != null ? opts.volume : settings.volume;
-        var finished = false;
-        function finish() { if (!finished) { finished = true; done(); } }
-        u.onend = finish;
-        u.onerror = finish;
-        // Safety net: if the engine silently drops an utterance we keep moving.
-        setTimeout(finish, Math.min(20000, 1400 + String(text).length * 95));
-        try { synth.speak(u); } catch (e) { finish(); }
-      });
+      var kind = opts.kind || 'say';
+      if (window.Recordings && Recordings.has(text, kind)) {
+        return Recordings.play(text, kind).then(function (played) {
+          if (!played) return speak(text, opts);
+        });
+      }
+      return speak(text, opts);
     });
     return queueTail;
+  }
+
+  /* the synthesized fallback */
+  function speak(text, opts) {
+    if (!synth) return Promise.resolve();
+    return new Promise(function (done) {
+      if (!chosen) resolveVoice();
+      var u = new SpeechSynthesisUtterance(String(text));
+      if (chosen) { u.voice = chosen; u.lang = chosen.lang || 'en-US'; }
+      else u.lang = 'en-US';
+      u.rate = opts.rate != null ? opts.rate : settings.rate;
+      u.pitch = opts.pitch != null ? opts.pitch : settings.pitch;
+      u.volume = opts.volume != null ? opts.volume : settings.volume;
+      var finished = false;
+      function finish() { if (!finished) { finished = true; done(); } }
+      u.onend = finish;
+      u.onerror = finish;
+      // Safety net: if the engine silently drops an utterance we keep moving.
+      setTimeout(finish, Math.min(20000, 1400 + String(text).length * 95));
+      try { synth.speak(u); } catch (e) { finish(); }
+    });
   }
 
   /* Read a list of lines with a beat between them, calling back
@@ -4722,9 +5128,11 @@ window.Voice = (function () {
   function pause(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
   /* Stretch one sound out: "sss", "ah", "or". Slow + slightly lower
-     so a single phoneme is hearable instead of a blip. */
+     so a single phoneme is hearable instead of a blip. Tagged as
+     kind 'sound' so a recorded "or" phoneme is stored separately
+     from a recording of the word "or". */
   function sayPhoneme(sound) {
-    return say(sound, { rate: 0.55, pitch: 1.05 });
+    return say(sound, { rate: 0.55, pitch: 1.05, kind: 'sound' });
   }
 
   /* Sound out a word the way a reading teacher does:
@@ -5144,7 +5552,7 @@ window.Evaluate = (function () {
       speak = 'Close! I heard something like that. Listen to the sounds again.';
       flags.push('letter-look');
     } else if (!o.heard) {
-      speak = "I didn't hear you. Hold the microphone button and say it out loud.";
+      speak = Phrases.micOff;
       tone = 'retry';
     } else {
       speak = 'I heard "' + o.heard + '". The word is ' + o.word + '. Let me break it up for you.';
@@ -5204,7 +5612,9 @@ window.Evaluate = (function () {
   return {
     startSession: startSession, currentSession: currentSession,
     judge: judge, judgeSpoken: judgeSpoken, sessionSummary: sessionSummary,
-    tagInfo: tagInfo, allTags: allTags, BEHAVIOR: BEHAVIOR
+    tagInfo: tagInfo, allTags: allTags, BEHAVIOR: BEHAVIOR,
+    // the recording studio lists these so they can be said in a real voice
+    praiseLines: function () { return PRAISE.concat(PRAISE_RECOVER); }
   };
 })();
 
@@ -5842,7 +6252,7 @@ window.Stations = (function () {
             right.b.classList.add('right');
             right.b.querySelector('.pick').textContent = '👉';
             buttons.forEach(function (o) { if (!o.ch.correct) { o.b.disabled = true; o.b.classList.add('faded'); } });
-            Voice.say('Here is the answer. Tap it with me, and say it out loud.');
+            Voice.say(Phrases.tapTheAnswer);
           }
         }
         t0 = Date.now();
@@ -6282,6 +6692,7 @@ window.Grownup = (function () {
 
     if (!log.length) {
       body.appendChild(el('p', null, 'No sessions yet. Once Chance finishes a mission, this page fills in with what his answers reveal about how he is thinking.'));
+      body.appendChild(voiceBlock());
       body.appendChild(settingsBlock());
       return;
     }
@@ -6388,6 +6799,7 @@ window.Grownup = (function () {
       lastDay ? lastDay.discover.check.q + '  (Answer: ' + correctText(lastDay.discover.check) + ')' : ''));
 
     body.appendChild(copyBlock(pct, tags, tagCounts, byDomain));
+    body.appendChild(voiceBlock());
     body.appendChild(settingsBlock());
   }
 
@@ -6466,6 +6878,24 @@ window.Grownup = (function () {
     return wrap;
   }
 
+  /* --------------------- record it in your own voice --------------- */
+  function voiceBlock() {
+    var s = Recordings.stats();
+    var wrap = el('div', 'report-item ' + (s.count ? 'good' : ''));
+    wrap.appendChild(el('b', null, '🎙️  Use your own voice instead of the computer'));
+    wrap.appendChild(el('span', null, s.count
+      ? s.count + (s.count === 1 ? ' line is' : ' lines are') + ' recorded in your voice (' +
+        s.mb + ' MB). Everything else still uses the computer voice.'
+      : 'Record the app\'s lines yourself and they replace the computer voice everywhere. ' +
+        'Start with the coach lines — about 20 minutes, and they repeat on every single day of the course.'));
+    var r = el('div', 'row');
+    r.appendChild(App.ui.btn('🎙️', s.count ? 'Record more lines' : 'Start recording', function () {
+      App.go('studio');
+    }));
+    wrap.appendChild(r);
+    return wrap;
+  }
+
   /* ---------------------------- settings -------------------------- */
   function settingsBlock() {
     var wrap = el('div', 'report-item');
@@ -6481,7 +6911,7 @@ window.Grownup = (function () {
     wrap.appendChild(nameField);
 
     // voice
-    var vField = el('label', 'field', 'Narration voice (a soft female voice is picked automatically)');
+    var vField = el('label', 'field', 'Computer voice — used only for lines you have not recorded yourself');
     var sel = el('select');
     var auto = el('option', null, 'Automatic — currently ' + Voice.currentVoiceName());
     auto.value = '';
@@ -6548,6 +6978,299 @@ window.Grownup = (function () {
 })();
 
 
+/* ===== js/studio.js ===== */
+/* ============================================================
+   studio.js — the recording booth
+
+   Where a grown-up records the app's lines in their own voice.
+   Designed around one honest fact: there are thousands of lines in
+   60 days, and nobody is recording all of them in one sitting. So:
+
+   - Lines are grouped by how often they are actually heard. The
+     coach lines come first because they repeat on every single day
+     across the whole course. Twenty minutes there changes the
+     entire feel of the app.
+   - The main flow is one line at a time, big text, tap to record,
+     tap to stop, auto-advance. No forms, no fiddling.
+   - Anything unrecorded still plays in the synthesized voice, so
+     you can stop whenever and nothing breaks.
+   ============================================================ */
+
+window.Studio = (function () {
+
+  function el(tag, cls, txt) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (txt != null) n.textContent = txt;
+    return n;
+  }
+
+  var state = { group: null, index: 0, lastBlob: null };
+
+  /* --------------------------- overview --------------------------- */
+  function render(body) {
+    body.innerHTML = '';
+    state.group = null;
+
+    if (!Recordings.canRecord()) {
+      body.appendChild(note('This browser cannot record audio. On an iPad use Safari (iOS 14.3 or newer). ' +
+        'You can still record on another device and bring the file over with Import.'));
+    }
+
+    var s = Recordings.stats();
+    var stats = el('div', 'stat-row');
+    [[s.count, 'lines recorded'], [s.mb + ' MB', 'stored on device']].forEach(function (x) {
+      var n = el('div', 'stat');
+      n.appendChild(el('b', null, String(x[0])));
+      n.appendChild(el('i', null, x[1]));
+      stats.appendChild(n);
+    });
+    body.appendChild(stats);
+
+    body.appendChild(note(
+      'Record any line in your own voice and it replaces the computer voice everywhere that line is spoken. ' +
+      'Anything you do not record keeps using the computer voice, so you can stop any time. ' +
+      'Start with the Coach lines — he hears those on every single day.'
+    ));
+
+    var groups = Recordings.inventory();
+
+    // the two high-value groups get big cards; the 60 days get a list
+    groups.filter(function (g) { return !g.day; }).forEach(function (g) {
+      body.appendChild(groupCard(body, g, true));
+    });
+
+    body.appendChild(el('div', 'week-title', 'LESSON LINES, DAY BY DAY'));
+    body.appendChild(note('About 45 lines per day — roughly 4 or 5 minutes of reading each. ' +
+      'Recording a week ahead on a Sunday keeps you in front of him.'));
+
+    var list = el('div', 'day-row');
+    groups.filter(function (g) { return g.day; }).forEach(function (g) {
+      var p = Recordings.groupProgress(g);
+      var chip = el('button', 'day-chip' + (p.done === p.total ? ' done' : (p.done ? ' today' : '')));
+      chip.appendChild(el('span', 'em', g.em));
+      chip.appendChild(el('span', 'n', g.name.split(':')[0]));
+      chip.appendChild(el('span', 't', p.done + '/' + p.total));
+      chip.addEventListener('click', function () { openGroup(body, g); });
+      list.appendChild(chip);
+    });
+    body.appendChild(list);
+
+    /* ------------------------ backup / move ---------------------- */
+    body.appendChild(el('div', 'week-title', 'BACKUP & MOVE TO ANOTHER DEVICE'));
+    var io = el('div', 'report-item');
+    io.appendChild(el('b', null, 'Your recordings live on this device only'));
+    io.appendChild(el('span', null,
+      'Export writes every clip to one file. Keep it somewhere safe, or open the app on another iPad and Import it there.'));
+    var r = el('div', 'row');
+    r.appendChild(App.ui.btn('📤', 'Export all', function () { doExport(); }));
+    r.appendChild(App.ui.btn('📥', 'Import a file', function () { doImport(body); }));
+    r.appendChild(App.ui.btn('🗑️', 'Delete all recordings', function () {
+      if (confirm('Delete every recording? The computer voice comes back. This cannot be undone.')) {
+        Recordings.clearAll().then(function () { render(body); });
+      }
+    }));
+    io.appendChild(r);
+    body.appendChild(io);
+  }
+
+  function groupCard(body, g, big) {
+    var p = Recordings.groupProgress(g);
+    var card = el('div', 'report-item ' + (p.done === p.total ? 'good' : ''));
+    card.appendChild(el('b', null, g.em + '  ' + g.name + ' — ' + p.done + ' of ' + p.total + ' recorded'));
+    if (g.blurb) card.appendChild(el('span', null, g.blurb));
+    var bar = el('div', 'bar');
+    bar.style.cssText = 'height:12px;background:var(--line);border-radius:99px;overflow:hidden;margin:8px 0;';
+    var fill = el('span');
+    fill.style.cssText = 'display:block;height:100%;width:' + p.pct + '%;background:linear-gradient(90deg,var(--leaf),var(--sun));';
+    bar.appendChild(fill);
+    card.appendChild(bar);
+    var r = el('div', 'row');
+    r.appendChild(App.ui.btn('🎙️', p.done ? 'Continue recording' : 'Start recording', function () { openGroup(body, g); }));
+    card.appendChild(r);
+    return card;
+  }
+
+  /* ------------------------ the booth itself ---------------------- */
+  function openGroup(body, g) {
+    state.group = g;
+    // resume at the first line that has no recording yet
+    state.index = 0;
+    for (var i = 0; i < g.lines.length; i++) {
+      if (!Recordings.has(g.lines[i].text, g.lines[i].kind)) { state.index = i; break; }
+    }
+    booth(body);
+  }
+
+  function booth(body) {
+    var g = state.group;
+    if (!g) return render(body);
+    if (state.index >= g.lines.length) return finished(body);
+
+    var line = g.lines[state.index];
+    var recorded = Recordings.has(line.text, line.kind);
+    body.innerHTML = '';
+
+    var head = el('div', 'bar-top');
+    var back = el('button', 'icon-btn', '⬅️');
+    back.addEventListener('click', function () { Recordings.cancelRecording(); render(body); });
+    head.appendChild(back);
+    var h = el('h2', null, g.em + ' ' + g.name);
+    head.appendChild(h);
+    body.appendChild(head);
+
+    var p = Recordings.groupProgress(g);
+    body.appendChild(note('Line ' + (state.index + 1) + ' of ' + g.lines.length +
+      ' · ' + p.done + ' recorded so far' + (line.note ? ' · ' + line.note : '')));
+
+    // the line, big enough to read off the screen at arm's length
+    var card = el('div', 'card');
+    var script = el('div', 'qtext', line.kind === 'sound'
+      ? 'Say this sound: “' + line.text + '”'
+      : line.text);
+    script.style.fontSize = 'clamp(20px, 5.2vw, 30px)';
+    card.appendChild(script);
+    if (line.kind === 'sound') {
+      card.appendChild(note('Stretch it out the way you would for him — “sss”, not “ess”.'));
+    }
+    var status = el('div', 'heard', recorded ? '✅ Already recorded in your voice.' : 'Not recorded yet — the computer voice reads this one.');
+    card.appendChild(status);
+    body.appendChild(card);
+
+    var recBtn = el('button', 'mic-btn', '⏺');
+    recBtn.setAttribute('aria-label', 'Record this line');
+    var micRow = el('div', 'mic-row');
+
+    var hearBtn = el('button', 'icon-btn', '🔊');
+    hearBtn.setAttribute('aria-label', 'Hear the current version');
+    hearBtn.addEventListener('click', function () {
+      Voice.stop();
+      if (line.kind === 'sound') Voice.sayPhoneme(line.text);
+      else Voice.say(line.text);
+    });
+
+    var skipBtn = el('button', 'icon-btn', '⏭️');
+    skipBtn.setAttribute('aria-label', 'Skip this line');
+    skipBtn.addEventListener('click', function () { state.index++; booth(body); });
+
+    micRow.appendChild(hearBtn);
+    micRow.appendChild(recBtn);
+    micRow.appendChild(skipBtn);
+    body.appendChild(micRow);
+
+    var busy = false;
+    recBtn.addEventListener('click', function () {
+      if (busy) return;
+      if (!Recordings.isRecording()) {
+        Voice.stop();
+        busy = true;
+        Recordings.startRecording().then(function () {
+          busy = false;
+          recBtn.textContent = '⏹';
+          recBtn.classList.add('live');
+          status.textContent = '🔴 Recording… tap the square when you finish.';
+        }).catch(function (e) {
+          busy = false;
+          status.textContent = 'Could not start the microphone. ' +
+            'Check Settings → Safari → Microphone, then try again.';
+        });
+      } else {
+        busy = true;
+        Recordings.stopRecording().then(function (blob) {
+          recBtn.textContent = '⏺';
+          recBtn.classList.remove('live');
+          state.lastBlob = blob;
+          return Recordings.save(line.text, line.kind, blob);
+        }).then(function () {
+          busy = false;
+          status.textContent = '✅ Saved. Playing it back…';
+          return Recordings.play(line.text, line.kind);
+        }).then(function () {
+          // straight on to the next line — that rhythm is what makes
+          // recording forty lines bearable
+          state.index++;
+          booth(body);
+        }).catch(function () {
+          busy = false;
+          status.textContent = 'That recording did not save. Try once more.';
+        });
+      }
+    });
+
+    var actions = [];
+    if (recorded) {
+      actions.push({
+        label: 'Re-record', em: '🔁', cls: 'ghost', fn: function () {
+          Recordings.remove(line.text, line.kind).then(function () { booth(body); });
+        }
+      });
+    }
+    actions.push({ label: 'Next line', em: '➡️', cls: 'sun', fn: function () { state.index++; booth(body); } });
+    App.setActions(actions);
+  }
+
+  function finished(body) {
+    var g = state.group;
+    App.setActions([]);
+    body.innerHTML = '';
+    var card = el('div', 'card');
+    card.appendChild(el('div', 'big-em', '🎙️'));
+    card.appendChild(el('h3', null, 'Finished ' + g.name));
+    var p = Recordings.groupProgress(g);
+    card.appendChild(note(p.done + ' of ' + p.total + ' lines are now in your voice.'));
+    var r = el('div', 'row');
+    r.appendChild(App.ui.btn('⬅️', 'Back to the list', function () { render(body); }));
+    card.appendChild(r);
+    body.appendChild(card);
+  }
+
+  /* -------------------------- export / import --------------------- */
+  function doExport() {
+    var s = Recordings.stats();
+    if (!s.count) { alert('Nothing recorded yet.'); return; }
+    Recordings.exportAll().then(function (data) {
+      var blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'chance-academy-voice.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    });
+  }
+
+  function doImport(body) {
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json,.json';
+    input.addEventListener('change', function () {
+      var f = input.files && input.files[0];
+      if (!f) return;
+      var r = new FileReader();
+      r.onload = function () {
+        var json;
+        try { json = JSON.parse(String(r.result)); }
+        catch (e) { alert('That file could not be read.'); return; }
+        Recordings.importAll(json).then(function (n) {
+          alert('Imported ' + n + ' recordings.');
+          render(body);
+        }).catch(function (e) { alert(e.message); });
+      };
+      r.readAsText(f);
+    });
+    input.click();
+  }
+
+  function note(t) {
+    var n = el('p', null, t);
+    n.style.cssText = 'font-size:15px;color:var(--ink-soft);margin:8px 0;';
+    return n;
+  }
+
+  return { render: render };
+})();
+
+
 /* ===== js/app.js ===== */
 /* ============================================================
    app.js — the shell: icons, routing, rewards, sharing
@@ -6582,6 +7305,7 @@ window.App = (function () {
     if (name === 'rewards') renderRewards();
     if (name === 'wordwall') renderWordWall();
     if (name === 'grownup') Grownup.render($('grownupBody'));
+    if (name === 'studio') Studio.render($('studioBody'));
     if (name === 'mission' && arg) Stations.run(arg.day, arg.station);
   }
 
@@ -6693,7 +7417,7 @@ window.App = (function () {
 
     if (!all) {
       burst(10);
-      Voice.say('Station complete. You earned a star.');
+      Voice.say(Phrases.stationDone);
       var remaining = ['discover', 'numbers', 'reading'].filter(function (s) { return done.indexOf(s) === -1; });
       sheet([
         big('⭐'),
@@ -6714,7 +7438,7 @@ window.App = (function () {
     // whole day finished
     var out = Progress.completeDay(day.id, summary);
     burst(26);
-    Voice.say('Mission complete! Fantastic work today.');
+    Voice.say(Phrases.missionDone);
     var stats = [
       { label: 'stars', value: Progress.data.totals.stars },
       { label: 'first try', value: (summary ? summary.firstTryPct : 0) + '%' },
@@ -6951,13 +7675,14 @@ window.App = (function () {
 
   /* ------------------------------ BOOT --------------------------- */
   function boot() {
-    ['home', 'mission', 'map', 'rewards', 'wordwall', 'grownup'].forEach(function (k) {
+    ['home', 'mission', 'map', 'rewards', 'wordwall', 'grownup', 'studio'].forEach(function (k) {
       screens[k] = $('screen-' + k);
     });
 
     // Any first tap unlocks iOS speech.
     var unlock = function () {
       Voice.unlock();
+      if (window.Recordings) Recordings.unlock();
       document.removeEventListener('touchstart', unlock);
       document.removeEventListener('click', unlock);
     };

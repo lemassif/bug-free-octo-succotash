@@ -4,7 +4,8 @@ A 60-day science, math and reading curriculum built for one specific
 seven-year-old: inquisitive, loves engineering, walks the woods looking for
 salamanders, fishes, and got hooked hard on the solar system during July
 summer school. It runs in the browser on his iPad, takes **5–10 minutes a
-day**, and reads every word out loud in a soft female voice.
+day**, and reads every word out loud — in your own recorded voice if you want,
+or a synthesized one until you do.
 
 Open [`chance/index.html`](chance/index.html), or tap **CHANCE ACADEMY** on the
 arcade menu.
@@ -108,6 +109,51 @@ clothes:
 
 ---
 
+## Use your own voice instead of the computer's
+
+The synthesized voice is a fallback, not the goal. For a kid this age the
+voice *is* the teacher, and a robot reading a lesson about salamanders is not
+the same as Grandpa reading it.
+
+**Grown-ups → 🎙️ Use your own voice** opens a recording booth. It shows one
+line at a time in large type; you tap ⏺, read it, tap ⏹, and it saves and
+jumps straight to the next line. From then on your voice plays instead of the
+computer's, everywhere that line is spoken.
+
+Lines are grouped by how often he actually hears them:
+
+| Group | Lines | Why first |
+|---|---|---|
+| 🦉 **Coach lines** | 21 | What the owl says when he picks a wrong answer. These repeat on *every day of the course* — about 20 minutes of recording changes the whole feel of the app |
+| ⭐ **Praise & app lines** | 12 | "That's it. Good, careful thinking." "Mission complete!" Also constant |
+| 📅 **Each mission day** | ~48 | The lesson itself — roughly 4-5 minutes of reading per day |
+
+That is 2,933 lines if you ever did all sixty days, which nobody is going to do
+in one sitting — and you don't have to. **Anything you haven't recorded keeps
+using the computer voice**, so a half-hour on the coach lines is a real
+improvement on its own, and recording a week ahead on a Sunday keeps you in
+front of him.
+
+Recordings are matched to the *text* of a line, so a line recorded once plays
+everywhere it appears. Phonics sounds are stored separately from words, so your
+stretched-out "sss" doesn't get confused with the word "sun."
+
+Clips live in IndexedDB on that device. **Export all** writes every clip to one
+file — back it up, or Import it on a second iPad so you only record once.
+
+Recording needs Safari on iOS 14.3 or newer, and iOS asks for microphone
+permission the first time.
+
+### If you don't want to record anything
+
+iOS ships better voices than the default. On the iPad: **Settings →
+Accessibility → Spoken Content → Voices → English**, and download a *Premium*
+or *Enhanced* voice (Ava, Allison, and Samantha are the warmest). They are a
+large improvement over the compact default, they're free, and the app will pick
+one up automatically — or you can choose it under Grown-Ups → Settings.
+
+---
+
 ## The reading is phonetic, and he says it out loud
 
 Each word is broken into the chunks he actually decodes, with a separate
@@ -193,8 +239,9 @@ sentences you can act on:
 - A **plain-text summary** with Copy / Email / Text buttons, for a parent or his
   teacher.
 
-Settings live here too: his name on the reward cards, the narration voice, the
-speaking speed, a microphone check, and a reset.
+Settings live here too: his name on the reward cards, the fallback computer
+voice, the speaking speed, a microphone check, and a reset. The recording booth
+opens from here as well.
 
 ---
 
@@ -259,7 +306,9 @@ kind.
 
 | File | Job |
 |---|---|
-| `chance/js/voice.js` | soft-female voice selection, slow narration, phoneme stretching, microphone listening, pronunciation matching |
+| `chance/js/voice.js` | voice selection, slow narration, phoneme stretching, microphone listening, pronunciation matching — plays a real recording when one exists, synthesizes when it doesn't |
+| `chance/js/recordings.js` | stores your recorded lines in IndexedDB, keyed by the text of the line; export/import |
+| `chance/js/studio.js` | the recording booth |
 | `chance/js/evaluate.js` | the thinking-error dictionary and the real-time judge |
 | `chance/js/progress.js` | stars, streaks, weekly/monthly goals, badges, the event log |
 | `chance/js/rewards.js` | draws the PNG reward card and gets it off the iPad |

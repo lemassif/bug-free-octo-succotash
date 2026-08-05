@@ -97,7 +97,8 @@ window.Voice = (function () {
   }
 
   function stop() {
-    if (!synth) return;
+    if (window.Recordings) Recordings.stop();
+    if (!synth) { queueTail = Promise.resolve(); return; }
     try { synth.cancel(); } catch (e) {}
     queueTail = Promise.resolve();
   }
@@ -105,32 +106,49 @@ window.Voice = (function () {
   /* say(text, opts) -> Promise that settles when the phrase finishes.
      opts.rate / opts.pitch override for one phrase (used to stretch
      single phonemes out). Calls queue rather than interrupt so a
-     three-sentence lesson reads in order. */
+     three-sentence lesson reads in order.
+
+     A real recorded voice always wins over the synthesizer. If
+     somebody has recorded this exact line in the studio, we play
+     their voice; otherwise we fall back to speech synthesis. That
+     is what lets a half-finished recording session still work. */
   function say(text, opts) {
     opts = opts || {};
     if (!text) return Promise.resolve();
-    if (muted || !synth) return Promise.resolve();
+    if (muted) return Promise.resolve();
     if (opts.interrupt) stop();
 
     queueTail = queueTail.then(function () {
-      return new Promise(function (done) {
-        if (!chosen) resolveVoice();
-        var u = new SpeechSynthesisUtterance(String(text));
-        if (chosen) { u.voice = chosen; u.lang = chosen.lang || 'en-US'; }
-        else u.lang = 'en-US';
-        u.rate = opts.rate != null ? opts.rate : settings.rate;
-        u.pitch = opts.pitch != null ? opts.pitch : settings.pitch;
-        u.volume = opts.volume != null ? opts.volume : settings.volume;
-        var finished = false;
-        function finish() { if (!finished) { finished = true; done(); } }
-        u.onend = finish;
-        u.onerror = finish;
-        // Safety net: if the engine silently drops an utterance we keep moving.
-        setTimeout(finish, Math.min(20000, 1400 + String(text).length * 95));
-        try { synth.speak(u); } catch (e) { finish(); }
-      });
+      var kind = opts.kind || 'say';
+      if (window.Recordings && Recordings.has(text, kind)) {
+        return Recordings.play(text, kind).then(function (played) {
+          if (!played) return speak(text, opts);
+        });
+      }
+      return speak(text, opts);
     });
     return queueTail;
+  }
+
+  /* the synthesized fallback */
+  function speak(text, opts) {
+    if (!synth) return Promise.resolve();
+    return new Promise(function (done) {
+      if (!chosen) resolveVoice();
+      var u = new SpeechSynthesisUtterance(String(text));
+      if (chosen) { u.voice = chosen; u.lang = chosen.lang || 'en-US'; }
+      else u.lang = 'en-US';
+      u.rate = opts.rate != null ? opts.rate : settings.rate;
+      u.pitch = opts.pitch != null ? opts.pitch : settings.pitch;
+      u.volume = opts.volume != null ? opts.volume : settings.volume;
+      var finished = false;
+      function finish() { if (!finished) { finished = true; done(); } }
+      u.onend = finish;
+      u.onerror = finish;
+      // Safety net: if the engine silently drops an utterance we keep moving.
+      setTimeout(finish, Math.min(20000, 1400 + String(text).length * 95));
+      try { synth.speak(u); } catch (e) { finish(); }
+    });
   }
 
   /* Read a list of lines with a beat between them, calling back
@@ -149,9 +167,11 @@ window.Voice = (function () {
   function pause(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
   /* Stretch one sound out: "sss", "ah", "or". Slow + slightly lower
-     so a single phoneme is hearable instead of a blip. */
+     so a single phoneme is hearable instead of a blip. Tagged as
+     kind 'sound' so a recorded "or" phoneme is stored separately
+     from a recording of the word "or". */
   function sayPhoneme(sound) {
-    return say(sound, { rate: 0.55, pitch: 1.05 });
+    return say(sound, { rate: 0.55, pitch: 1.05, kind: 'sound' });
   }
 
   /* Sound out a word the way a reading teacher does:

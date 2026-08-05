@@ -273,7 +273,7 @@ window.Evaluate = (function () {
       speak = 'Close! I heard something like that. Listen to the sounds again.';
       flags.push('letter-look');
     } else if (!o.heard) {
-      speak = "I didn't hear you. Hold the microphone button and say it out loud.";
+      speak = Phrases.micOff;
       tone = 'retry';
     } else {
       speak = 'I heard "' + o.heard + '". The word is ' + o.word + '. Let me break it up for you.';
@@ -333,6 +333,8 @@ window.Evaluate = (function () {
   return {
     startSession: startSession, currentSession: currentSession,
     judge: judge, judgeSpoken: judgeSpoken, sessionSummary: sessionSummary,
-    tagInfo: tagInfo, allTags: allTags, BEHAVIOR: BEHAVIOR
+    tagInfo: tagInfo, allTags: allTags, BEHAVIOR: BEHAVIOR,
+    // the recording studio lists these so they can be said in a real voice
+    praiseLines: function () { return PRAISE.concat(PRAISE_RECOVER); }
   };
 })();

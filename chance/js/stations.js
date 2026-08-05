@@ -131,7 +131,7 @@ window.Stations = (function () {
             right.b.classList.add('right');
             right.b.querySelector('.pick').textContent = '👉';
             buttons.forEach(function (o) { if (!o.ch.correct) { o.b.disabled = true; o.b.classList.add('faded'); } });
-            Voice.say('Here is the answer. Tap it with me, and say it out loud.');
+            Voice.say(Phrases.tapTheAnswer);
           }
         }
         t0 = Date.now();

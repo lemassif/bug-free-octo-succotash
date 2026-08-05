@@ -32,12 +32,14 @@ const SCRIPTS = [
   'data/unit1-space.js',
   'data/unit2-woods.js',
   'data/unit3-forces.js',
+  'js/recordings.js',
   'js/voice.js',
   'js/evaluate.js',
   'js/progress.js',
   'js/rewards.js',
   'js/stations.js',
   'js/grownup.js',
+  'js/studio.js',
   'js/app.js'
 ];
 

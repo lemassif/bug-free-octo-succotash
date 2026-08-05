@@ -134,6 +134,16 @@
   <div class="scroll" id="grownupBody"></div>
 </section>
 
+<!-- ============================ STUDIO ========================== -->
+<section class="screen" id="screen-studio" data-screen="studio" hidden>
+  <header class="bar-top">
+    <button class="icon-btn" data-go="grownup" aria-label="Back to grown-ups">⬅️</button>
+    <h2>Record in Your Own Voice</h2>
+    <span class="spacer"></span>
+  </header>
+  <div class="scroll" id="studioBody"></div>
+</section>
+
 <!-- ============================ OVERLAY ========================== -->
 <div class="overlay" id="overlay" hidden>
   <div class="sheet" id="sheet"></div>
@@ -145,12 +155,14 @@
 <script src="data/unit1-space.js"></script>
 <script src="data/unit2-woods.js"></script>
 <script src="data/unit3-forces.js"></script>
+<script src="js/recordings.js"></script>
 <script src="js/voice.js"></script>
 <script src="js/evaluate.js"></script>
 <script src="js/progress.js"></script>
 <script src="js/rewards.js"></script>
 <script src="js/stations.js"></script>
 <script src="js/grownup.js"></script>
+<script src="js/studio.js"></script>
 <script src="js/app.js"></script>
 <script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }</script>
 </body>

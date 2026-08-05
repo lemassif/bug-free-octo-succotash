@@ -31,6 +31,7 @@ window.App = (function () {
     if (name === 'rewards') renderRewards();
     if (name === 'wordwall') renderWordWall();
     if (name === 'grownup') Grownup.render($('grownupBody'));
+    if (name === 'studio') Studio.render($('studioBody'));
     if (name === 'mission' && arg) Stations.run(arg.day, arg.station);
   }
 
@@ -142,7 +143,7 @@ window.App = (function () {
 
     if (!all) {
       burst(10);
-      Voice.say('Station complete. You earned a star.');
+      Voice.say(Phrases.stationDone);
       var remaining = ['discover', 'numbers', 'reading'].filter(function (s) { return done.indexOf(s) === -1; });
       sheet([
         big('⭐'),
@@ -163,7 +164,7 @@ window.App = (function () {
     // whole day finished
     var out = Progress.completeDay(day.id, summary);
     burst(26);
-    Voice.say('Mission complete! Fantastic work today.');
+    Voice.say(Phrases.missionDone);
     var stats = [
       { label: 'stars', value: Progress.data.totals.stars },
       { label: 'first try', value: (summary ? summary.firstTryPct : 0) + '%' },
@@ -400,13 +401,14 @@ window.App = (function () {
 
   /* ------------------------------ BOOT --------------------------- */
   function boot() {
-    ['home', 'mission', 'map', 'rewards', 'wordwall', 'grownup'].forEach(function (k) {
+    ['home', 'mission', 'map', 'rewards', 'wordwall', 'grownup', 'studio'].forEach(function (k) {
       screens[k] = $('screen-' + k);
     });
 
     // Any first tap unlocks iOS speech.
     var unlock = function () {
       Voice.unlock();
+      if (window.Recordings) Recordings.unlock();
       document.removeEventListener('touchstart', unlock);
       document.removeEventListener('click', unlock);
     };

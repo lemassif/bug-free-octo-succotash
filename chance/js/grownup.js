@@ -61,6 +61,7 @@ window.Grownup = (function () {
 
     if (!log.length) {
       body.appendChild(el('p', null, 'No sessions yet. Once Chance finishes a mission, this page fills in with what his answers reveal about how he is thinking.'));
+      body.appendChild(voiceBlock());
       body.appendChild(settingsBlock());
       return;
     }
@@ -167,6 +168,7 @@ window.Grownup = (function () {
       lastDay ? lastDay.discover.check.q + '  (Answer: ' + correctText(lastDay.discover.check) + ')' : ''));
 
     body.appendChild(copyBlock(pct, tags, tagCounts, byDomain));
+    body.appendChild(voiceBlock());
     body.appendChild(settingsBlock());
   }
 
@@ -245,6 +247,24 @@ window.Grownup = (function () {
     return wrap;
   }
 
+  /* --------------------- record it in your own voice --------------- */
+  function voiceBlock() {
+    var s = Recordings.stats();
+    var wrap = el('div', 'report-item ' + (s.count ? 'good' : ''));
+    wrap.appendChild(el('b', null, '🎙️  Use your own voice instead of the computer'));
+    wrap.appendChild(el('span', null, s.count
+      ? s.count + (s.count === 1 ? ' line is' : ' lines are') + ' recorded in your voice (' +
+        s.mb + ' MB). Everything else still uses the computer voice.'
+      : 'Record the app\'s lines yourself and they replace the computer voice everywhere. ' +
+        'Start with the coach lines — about 20 minutes, and they repeat on every single day of the course.'));
+    var r = el('div', 'row');
+    r.appendChild(App.ui.btn('🎙️', s.count ? 'Record more lines' : 'Start recording', function () {
+      App.go('studio');
+    }));
+    wrap.appendChild(r);
+    return wrap;
+  }
+
   /* ---------------------------- settings -------------------------- */
   function settingsBlock() {
     var wrap = el('div', 'report-item');
@@ -260,7 +280,7 @@ window.Grownup = (function () {
     wrap.appendChild(nameField);
 
     // voice
-    var vField = el('label', 'field', 'Narration voice (a soft female voice is picked automatically)');
+    var vField = el('label', 'field', 'Computer voice — used only for lines you have not recorded yourself');
     var sel = el('select');
     var auto = el('option', null, 'Automatic — currently ' + Voice.currentVoiceName());
     auto.value = '';
