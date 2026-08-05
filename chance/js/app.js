@@ -436,7 +436,10 @@ window.App = (function () {
     go('home');
   }
 
-  document.addEventListener('DOMContentLoaded', boot);
+  // If the scripts are inlined at the end of the document (single-file
+  // builds), DOMContentLoaded may already have fired by now.
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 
   return {
     go: go, setActions: setActions, showCoach: showCoach, hideCoach: hideCoach,
