@@ -18,6 +18,7 @@ const ASSETS = [
   './data/unit1-space.js',
   './data/unit2-woods.js',
   './data/unit3-forces.js',
+  './js/phonics.js',
   './js/recordings.js',
   './js/voice.js',
   './js/evaluate.js',

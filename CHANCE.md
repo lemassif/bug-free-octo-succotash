@@ -135,8 +135,11 @@ improvement on its own, and recording a week ahead on a Sunday keeps you in
 front of him.
 
 Recordings are matched to the *text* of a line, so a line recorded once plays
-everywhere it appears. Phonics sounds are stored separately from words, so your
-stretched-out "sss" doesn't get confused with the word "sun."
+everywhere it appears. The 🔤 **Letter sounds** group is the highest-value
+recording in the whole app: a synthesizer physically cannot say an isolated
+/f/, but you can. Record the 175 letter chunks once and every word in all 60
+days that uses them is fixed — and phonics sounds are stored separately from
+words, so your stretched-out "sss" never gets confused with the word "sun."
 
 Clips live in IndexedDB on that device. **Export all** writes every clip to one
 file — back it up, or Import it on a second iPad so you only record once.
@@ -156,10 +159,52 @@ one up automatically — or you can choose it under Grown-Ups → Settings.
 
 ## The reading is phonetic, and he says it out loud
 
-Each word is broken into the chunks he actually decodes, with a separate
-pronunciation for each chunk. He can tap any chunk to hear just that sound
-stretched out slowly, tap 🐢 to hear the whole word sounded out and blended,
-then hold 🎤 and **say it himself**.
+Each word is broken into the chunks he actually decodes. He can tap any chunk to
+hear just that piece, tap 🐢 to hear the whole word sounded out and blended, then
+hold 🎤 and **say it himself**.
+
+### How a chunk gets said (and why the first version was wrong)
+
+Speech synthesis reads *words*. It cannot say an isolated phoneme. The first
+version of this app invented spellings like `fff` and `rrr` and handed them to
+the synthesizer, so **far** came out as two disconnected noises instead of a
+blend. Thirteen words were worse than that — they had a silent chunk and said
+nothing at all.
+
+It now works the way a reading teacher works, anchoring each chunk in a real
+word the engine is guaranteed to pronounce:
+
+```
+far  ->  "far"                          (whole word first)
+         "f, like in fan."              [f highlighted]
+         "a-r says ar, like in car."    [ar highlighted]
+         "Now blend it."
+         "far"
+```
+
+Every token in that script is a real English word, so no engine on any device
+can mangle it — and it is the same language he already hears at school.
+
+The rules that keep it honest, all enforced by `Phonics.audit()` in the test
+suite:
+
+- **Every chunk that the synthesizer can't be trusted with** — any single
+  letter, any chunk with no vowel — must have an anchor word.
+- **The anchor is never the word being decoded.** "s-p, like in *spin*" teaches
+  nothing while he is reading *spin*, so each entry carries a spare anchor.
+- **No invented phonemes anywhere**, checked by pattern.
+- **Short vowels always say "short a"**, because the letter name *a* is the long
+  sound and would teach the opposite.
+- **Ambiguous graphemes are listed per word.** The *oo* in "brook" is not the
+  *oo* in "moon"; the *ow* in "down" is not the *ow* in "slow".
+
+Pronunciation lives in `chance/js/phonics.js`, keyed by the spelling chunk — so
+"ar" is right in *far*, *star* and *Mars* at once, and only has to be fixed in
+one place. The word data holds only the spelling chunks, never a pronunciation.
+
+**If you record the 🔤 Letter sounds group in your own voice, he hears a real
+human /f/ instead of the anchor phrase** — which is the correct way to teach
+this, and the one thing no synthesizer can do.
 
 The app listens, compares what it heard against the target, and responds:
 
@@ -307,6 +352,7 @@ kind.
 | File | Job |
 |---|---|
 | `chance/js/voice.js` | voice selection, slow narration, phoneme stretching, microphone listening, pronunciation matching — plays a real recording when one exists, synthesizes when it doesn't |
+| `chance/js/phonics.js` | the grapheme table: how every letter chunk gets said out loud, plus the audit that keeps it correct |
 | `chance/js/recordings.js` | stores your recorded lines in IndexedDB, keyed by the text of the line; export/import |
 | `chance/js/studio.js` | the recording booth |
 | `chance/js/evaluate.js` | the thinking-error dictionary and the real-time judge |

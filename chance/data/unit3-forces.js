@@ -61,9 +61,9 @@
     },
     reading: {
       words: [
-        W('strong', ['str', 'o', 'ng'], ['str', 'aw', 'ng'], 'powerful'),
-        W('string', ['str', 'i', 'ng'], ['str', 'ih', 'ng'], 'thin cord'),
-        W('stretch', ['str', 'e', 'tch'], ['str', 'eh', 'ch'], 'to pull longer')
+        W('strong', ['str', 'o', 'ng'], 'powerful'),
+        W('string', ['str', 'i', 'ng'], 'thin cord'),
+        W('stretch', ['str', 'e', 'tch'], 'to pull longer')
       ],
       sentence: 'A strong pull will stretch the string until it is straight.',
       comp: {
@@ -125,9 +125,9 @@
     },
     reading: {
       words: [
-        W('scrape', ['scr', 'ape'], ['skr', 'ayp'], 'to rub roughly'),
-        W('scratch', ['scr', 'a', 'tch'], ['skr', 'a', 'ch'], 'to scrape a line into something'),
-        W('splash', ['spl', 'a', 'sh'], ['spl', 'a', 'sh'], 'water thrown up')
+        W('scrape', ['scr', 'ape'], 'to rub roughly'),
+        W('scratch', ['scr', 'a', 'tch'], 'to scrape a line into something'),
+        W('splash', ['spl', 'a', 'sh'], 'water thrown up')
       ],
       sentence: 'The sled will scrape and scratch the dirt, then stop with a splash.',
       comp: {
@@ -191,9 +191,9 @@
     },
     reading: {
       words: [
-        W('straight', ['str', 'aigh', 't'], ['str', 'ay', 't'], 'not bent or curved'),
-        W('screw', ['scr', 'ew'], ['skr', 'ooo'], 'a spiral fastener'),
-        W('spring', ['spr', 'i', 'ng'], ['spr', 'ih', 'ng'], 'a coil that pushes back')
+        W('straight', ['str', 'aigh', 't'], 'not bent or curved'),
+        W('screw', ['scr', 'ew'], 'a spiral fastener'),
+        W('spring', ['spr', 'i', 'ng'], 'a coil that pushes back')
       ],
       sentence: 'Push the screw in straight, and the spring will hold the ramp up.',
       comp: {
@@ -255,9 +255,9 @@
     },
     reading: {
       words: [
-        W('strap', ['str', 'a', 'p'], ['str', 'a', 'p'], 'a band that holds things'),
-        W('street', ['str', 'ee', 't'], ['str', 'eee', 't'], 'a road in town'),
-        W('spread', ['spr', 'ea', 'd'], ['spr', 'eh', 'd'], 'to open out wide')
+        W('strap', ['str', 'a', 'p'], 'a band that holds things'),
+        W('street', ['str', 'ee', 't'], 'a road in town'),
+        W('spread', ['spr', 'ea', 'd'], 'to open out wide')
       ],
       sentence: 'The strap kept him in his seat when the truck stopped in the street.',
       comp: {
@@ -319,9 +319,9 @@
     },
     reading: {
       words: [
-        W('stack', ['st', 'a', 'ck'], ['st', 'a', 'k'], 'a pile'),
-        W('splint', ['spl', 'i', 'nt'], ['spl', 'ih', 'nt'], 'a stiff strip that supports something'),
-        W('strap', ['str', 'a', 'p'], ['str', 'a', 'p'], 'a holding band')
+        W('stack', ['st', 'a', 'ck'], 'a pile'),
+        W('splint', ['spl', 'i', 'nt'], 'a stiff strip that supports something'),
+        W('strap', ['str', 'a', 'p'], 'a holding band')
       ],
       sentence: 'He put a splint and a strap on the tall stack so it would not tip.',
       comp: {
@@ -384,9 +384,9 @@
     },
     reading: {
       words: [
-        W('lever', ['le', 'ver'], ['lee', 'ver'], 'a bar that lifts on a pivot'),
-        W('handle', ['han', 'dle'], ['han', 'dul'], 'the part you hold'),
-        W('little', ['lit', 'tle'], ['lit', 'ul'], 'small')
+        W('lever', ['le', 'ver'], 'a bar that lifts on a pivot'),
+        W('handle', ['han', 'dle'], 'the part you hold'),
+        W('little', ['lit', 'tle'], 'small')
       ],
       sentence: 'A little pull on the handle of the lever can lift a heavy load.',
       comp: {
@@ -447,9 +447,9 @@
     },
     reading: {
       words: [
-        W('rudder', ['rud', 'der'], ['rud', 'er'], 'the flap that steers a boat'),
-        W('circle', ['cir', 'cle'], ['sur', 'kul'], 'a round shape'),
-        W('middle', ['mid', 'dle'], ['mid', 'ul'], 'the center')
+        W('rudder', ['rud', 'der'], 'the flap that steers a boat'),
+        W('circle', ['cir', 'cle'], 'a round shape'),
+        W('middle', ['mid', 'dle'], 'the center')
       ],
       sentence: 'The gear turns in a circle around a pin in the middle.',
       comp: {
@@ -511,9 +511,9 @@
     },
     reading: {
       words: [
-        W('pulley', ['pul', 'ley'], ['pul', 'ee'], 'a rope wheel'),
-        W('paddle', ['pad', 'dle'], ['pad', 'ul'], 'a flat blade for rowing'),
-        W('over', ['o', 'ver'], ['oh', 'ver'], 'above or across')
+        W('pulley', ['pul', 'ley'], 'a rope wheel'),
+        W('paddle', ['pad', 'dle'], 'a flat blade for rowing'),
+        W('over', ['o', 'ver'], 'above or across')
       ],
       sentence: 'Run the rope over the pulley, then pull it down with a steady grip.',
       comp: {
@@ -574,9 +574,9 @@
     },
     reading: {
       words: [
-        W('wedge', ['we', 'dge'], ['weh', 'j'], 'a splitting blade'),
-        W('metal', ['me', 'tal'], ['meh', 'tul'], 'hard shiny material like iron'),
-        W('sharper', ['sharp', 'er'], ['sharp', 'er'], 'more able to cut')
+        W('wedge', ['we', 'dge'], 'a splitting blade'),
+        W('metal', ['me', 'tal'], 'hard shiny material like iron'),
+        W('sharper', ['sharp', 'er'], 'more able to cut')
       ],
       sentence: 'A sharper metal wedge will split the log with a smaller push.',
       comp: {
@@ -638,9 +638,9 @@
     },
     reading: {
       words: [
-        W('pedal', ['pe', 'dal'], ['ped', 'ul'], 'the part your foot pushes'),
-        W('handlebar', ['han', 'dle', 'bar'], ['han', 'dul', 'bar'], 'the steering bar'),
-        W('faster', ['fast', 'er'], ['fast', 'er'], 'more quickly')
+        W('pedal', ['pe', 'dal'], 'the part your foot pushes'),
+        W('handlebar', ['han', 'dle', 'bar'], 'the steering bar'),
+        W('faster', ['fast', 'er'], 'more quickly')
       ],
       sentence: 'Hold the handlebar and push the pedal harder to go faster.',
       comp: {
@@ -701,9 +701,9 @@
     },
     reading: {
       words: [
-        W('knot', ['kn', 'o', 't'], ['nnn', 'o', 't'], 'a tied lump in rope'),
-        W('knee', ['kn', 'ee'], ['nnn', 'eee'], 'the joint in the middle of your leg'),
-        W('wrench', ['wr', 'e', 'nch'], ['rrr', 'eh', 'nch'], 'a tool for turning bolts')
+        W('knot', ['kn', 'o', 't'], 'a tied lump in rope'),
+        W('knee', ['kn', 'ee'], 'the joint in the middle of your leg'),
+        W('wrench', ['wr', 'e', 'nch'], 'a tool for turning bolts')
       ],
       sentence: 'He put the wrench on his knee and pulled the knot loose.',
       comp: {
@@ -764,9 +764,9 @@
     },
     reading: {
       words: [
-        W('wrap', ['wr', 'a', 'p'], ['rrr', 'a', 'p'], 'to wind around'),
-        W('know', ['kn', 'ow'], ['nnn', 'oh'], 'to have something in your mind'),
-        W('phone', ['ph', 'one'], ['fff', 'ohn'], 'a thing you talk into')
+        W('wrap', ['wr', 'a', 'p'], 'to wind around'),
+        W('know', ['kn', 'ow'], 'to have something in your mind'),
+        W('phone', ['ph', 'one'], 'a thing you talk into')
       ],
       sentence: 'Wrap the wire and you will know why the phone lights up.',
       comp: {
@@ -827,9 +827,9 @@
     },
     reading: {
       words: [
-        W('knock', ['kn', 'o', 'ck'], ['nnn', 'o', 'k'], 'to hit and make a sound'),
-        W('write', ['wr', 'ite'], ['rrr', 'ite'], 'to make letters'),
-        W('graph', ['gr', 'a', 'ph'], ['gr', 'a', 'fff'], 'a picture that shows numbers')
+        W('knock', ['kn', 'o', 'ck'], 'to hit and make a sound'),
+        W('write', ['wr', 'ite'], 'to make letters'),
+        W('graph', ['gr', 'a', 'ph'], 'a picture that shows numbers')
       ],
       sentence: 'Write what you see on the graph, then knock on the door when you finish.',
       comp: {
@@ -891,9 +891,9 @@
     },
     reading: {
       words: [
-        W('knew', ['kn', 'ew'], ['nnn', 'ooo'], 'understood in the past'),
-        W('wrong', ['wr', 'o', 'ng'], ['rrr', 'aw', 'ng'], 'not correct'),
-        W('photo', ['pho', 'to'], ['foh', 'toh'], 'a picture from a camera')
+        W('knew', ['kn', 'ew'], 'understood in the past'),
+        W('wrong', ['wr', 'o', 'ng'], 'not correct'),
+        W('photo', ['pho', 'to'], 'a picture from a camera')
       ],
       sentence: 'He knew the photo was wrong when he heard the sound again.',
       comp: {
@@ -954,9 +954,9 @@
     },
     reading: {
       words: [
-        W('knife', ['kn', 'ife'], ['nnn', 'ife'], 'a cutting tool'),
-        W('wrist', ['wr', 'i', 'st'], ['rrr', 'ih', 'st'], 'the joint at your hand'),
-        W('phase', ['ph', 'ase'], ['fff', 'ayz'], 'a stage of change')
+        W('knife', ['kn', 'ife'], 'a cutting tool'),
+        W('wrist', ['wr', 'i', 'st'], 'the joint at your hand'),
+        W('phase', ['ph', 'ase'], 'a stage of change')
       ],
       sentence: 'He turned his wrist and the knife caught the light in a bright phase.',
       comp: {
@@ -1018,9 +1018,9 @@
     },
     reading: {
       words: [
-        W('footbridge', ['foot', 'bridge'], ['foot', 'brij'], 'a small bridge for walking'),
-        W('sunlight', ['sun', 'light'], ['sun', 'lite'], 'light from the sun'),
-        W('riverbank', ['ri', 'ver', 'bank'], ['riv', 'er', 'bank'], 'the edge of a river')
+        W('footbridge', ['foot', 'bridge'], 'a small bridge for walking'),
+        W('sunlight', ['sun', 'light'], 'light from the sun'),
+        W('riverbank', ['ri', 'ver', 'bank'], 'the edge of a river')
       ],
       sentence: 'The footbridge across the riverbank shines in the sunlight.',
       comp: {
@@ -1082,9 +1082,9 @@
     },
     reading: {
       words: [
-        W('sailboat', ['sail', 'boat'], ['sayl', 'boht'], 'a boat pushed by wind'),
-        W('driftwood', ['drift', 'wood'], ['drift', 'wood'], 'wood floating in water'),
-        W('downstream', ['down', 'stream'], ['down', 'streem'], 'the way the water flows')
+        W('sailboat', ['sail', 'boat'], 'a boat pushed by wind'),
+        W('driftwood', ['drift', 'wood'], 'wood floating in water'),
+        W('downstream', ['down', 'stream'], 'the way the water flows')
       ],
       sentence: 'The sailboat and the driftwood both moved downstream in the wind.',
       comp: {
@@ -1146,9 +1146,9 @@
     },
     reading: {
       words: [
-        W('slingshot', ['sling', 'shot'], ['sling', 'shot'], 'a Y-shaped thrower with rubber'),
-        W('pullback', ['pull', 'back'], ['pull', 'bak'], 'how far you draw something back'),
-        W('backyard', ['back', 'yard'], ['bak', 'yard'], 'the yard behind a house')
+        W('slingshot', ['sling', 'shot'], 'a Y-shaped thrower with rubber'),
+        W('pullback', ['pull', 'back'], 'how far you draw something back'),
+        W('backyard', ['back', 'yard'], 'the yard behind a house')
       ],
       sentence: 'A longer pullback on the slingshot sends it across the backyard.',
       comp: {
@@ -1209,9 +1209,9 @@
     },
     reading: {
       words: [
-        W('notebook', ['note', 'book'], ['noht', 'book'], 'a book you write your data in'),
-        W('workbench', ['work', 'bench'], ['wurk', 'bench'], 'a table for building'),
-        W('setback', ['set', 'back'], ['set', 'bak'], 'something that slows your progress')
+        W('notebook', ['note', 'book'], 'a book you write your data in'),
+        W('workbench', ['work', 'bench'], 'a table for building'),
+        W('setback', ['set', 'back'], 'something that slows your progress')
       ],
       sentence: 'He wrote every setback in his notebook and went back to the workbench.',
       comp: {
@@ -1286,9 +1286,9 @@
     },
     reading: {
       words: [
-        W('sunrise', ['sun', 'rise'], ['sun', 'rize'], 'when the sun comes up'),
-        W('waterfall', ['wa', 'ter', 'fall'], ['waw', 'ter', 'fall'], 'water dropping over a ledge'),
-        W('flashlight', ['flash', 'light'], ['flash', 'lite'], 'a light you carry')
+        W('sunrise', ['sun', 'rise'], 'when the sun comes up'),
+        W('waterfall', ['wa', 'ter', 'fall'], 'water dropping over a ledge'),
+        W('flashlight', ['flash', 'light'], 'a light you carry')
       ],
       sentence: 'Before sunrise he took a flashlight down to the waterfall to measure the flow.',
       comp: {

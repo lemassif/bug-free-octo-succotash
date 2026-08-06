@@ -270,7 +270,8 @@ window.Stations = (function () {
         c.addEventListener('click', function () {
           Voice.stop();
           light(idx);
-          Voice.sayPhoneme(word.sounds[idx] || p).then(function () { light(-1); });
+          // "f, like in fan" — or Grandpa's recorded /f/ if it exists
+          Voice.sayChunk(p, word.w, idx).then(function () { light(-1); });
         });
         wordRow.appendChild(c);
         return c;
@@ -302,14 +303,7 @@ window.Stations = (function () {
       function sayWord() { Voice.stop(); return Voice.say(word.w, { rate: 0.72 }); }
       function soundOut() {
         Voice.stop();
-        var p = Promise.resolve();
-        word.parts.forEach(function (_, idx) {
-          p = p.then(function () {
-            light(idx);
-            return Voice.sayPhoneme(word.sounds[idx] || word.parts[idx]);
-          }).then(function () { return Voice.pause(140); });
-        });
-        return p.then(function () { light(-1); return Voice.say(word.w, { rate: 0.7 }); });
+        return Voice.soundOut(word.w, word.parts, light);
       }
       hearBtn.addEventListener('click', sayWord);
       slowBtn.addEventListener('click', soundOut);
@@ -339,7 +333,7 @@ window.Stations = (function () {
           }
           var conf = Voice.match(word.w, res.transcript, res.alternatives);
           var v = Evaluate.judgeSpoken({
-            word: word.w, parts: word.sounds, confidence: conf, attempt: attempt,
+            word: word.w, parts: word.parts, confidence: conf, attempt: attempt,
             heard: res.transcript, ms: Date.now() - t0, itemId: day.id + '-w' + wi
           });
           App.setThinkMeter(v.focus);

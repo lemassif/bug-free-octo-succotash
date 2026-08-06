@@ -330,7 +330,7 @@ window.App = (function () {
         n.appendChild(el('span', 'dt', w.parts.join(' · ')));
         n.addEventListener('click', function () {
           Voice.stop();
-          Voice.soundOut(w.w, w.sounds);
+          Voice.soundOut(w.w, w.parts);
         });
         grid.appendChild(n);
       });

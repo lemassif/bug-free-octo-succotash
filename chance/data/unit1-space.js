@@ -61,9 +61,9 @@
     },
     reading: {
       words: [
-        W('spin', ['sp', 'in'], ['sp', 'in'], 'to turn around fast'),
-        W('sun', ['s', 'un'], ['sss', 'un'], 'the star that lights our sky'),
-        W('rock', ['r', 'o', 'ck'], ['rrr', 'o', 'k'], 'hard stone')
+        W('spin', ['sp', 'in'], 'to turn around fast'),
+        W('sun', ['s', 'un'], 'the star that lights our sky'),
+        W('rock', ['r', 'o', 'ck'], 'hard stone')
       ],
       sentence: 'Earth is a big rock that spins in the light of the sun.',
       comp: {
@@ -127,9 +127,9 @@
     },
     reading: {
       words: [
-        W('star', ['st', 'ar'], ['st', 'ar'], 'a huge ball of burning gas'),
-        W('hot', ['h', 'o', 't'], ['h', 'o', 't'], 'very warm'),
-        W('gas', ['g', 'a', 's'], ['g', 'a', 'sss'], 'not solid and not liquid — like air')
+        W('star', ['st', 'ar'], 'a huge ball of burning gas'),
+        W('hot', ['h', 'o', 't'], 'very warm'),
+        W('gas', ['g', 'a', 's'], 'not solid and not liquid — like air')
       ],
       sentence: 'The sun is a hot ball of gas, and it is the star that is closest to us.',
       comp: {
@@ -194,9 +194,9 @@
     },
     reading: {
       words: [
-        W('shadow', ['sha', 'dow'], ['shah', 'doh'], 'dark shape made by blocked light'),
-        W('block', ['bl', 'o', 'ck'], ['bl', 'o', 'k'], 'to stop something from passing'),
-        W('long', ['l', 'o', 'ng'], ['lll', 'o', 'ng'], 'stretched out far')
+        W('shadow', ['sha', 'dow'], 'dark shape made by blocked light'),
+        W('block', ['bl', 'o', 'ck'], 'to stop something from passing'),
+        W('long', ['l', 'o', 'ng'], 'stretched out far')
       ],
       sentence: 'When you block the sun, you make a long dark shadow on the grass.',
       comp: {
@@ -261,9 +261,9 @@
     },
     reading: {
       words: [
-        W('tilt', ['t', 'il', 't'], ['t', 'il', 't'], 'to lean over'),
-        W('warm', ['w', 'ar', 'm'], ['w', 'ar', 'm'], 'a little bit hot'),
-        W('sun-light', ['sun', 'light'], ['sun', 'lite'], 'light that comes from the sun')
+        W('tilt', ['t', 'il', 't'], 'to lean over'),
+        W('warm', ['w', 'ar', 'm'], 'a little bit hot'),
+        W('sun-light', ['sun', 'light'], 'light that comes from the sun')
       ],
       sentence: 'When our half of Earth has a tilt toward the sun, the sunlight feels warm.',
       comp: {
@@ -328,9 +328,9 @@
     },
     reading: {
       words: [
-        W('east', ['ea', 'st'], ['ee', 'st'], 'the sunrise direction'),
-        W('west', ['w', 'e', 'st'], ['w', 'eh', 'st'], 'the sunset direction'),
-        W('map', ['m', 'a', 'p'], ['mmm', 'a', 'p'], 'a picture of a place from above')
+        W('east', ['ea', 'st'], 'the sunrise direction'),
+        W('west', ['w', 'e', 'st'], 'the sunset direction'),
+        W('map', ['m', 'a', 'p'], 'a picture of a place from above')
       ],
       sentence: 'The sun comes up in the east and goes down in the west, just like the map shows.',
       comp: {
@@ -392,9 +392,9 @@
     },
     reading: {
       words: [
-        W('shape', ['sh', 'ape'], ['sh', 'ayp'], 'the outline of a thing'),
-        W('side', ['s', 'ide'], ['sss', 'ide'], 'one face or edge of something'),
-        W('globe', ['gl', 'obe'], ['gl', 'ohb'], 'a ball, often a model of a world')
+        W('shape', ['sh', 'ape'], 'the outline of a thing'),
+        W('side', ['s', 'ide'], 'one face or edge of something'),
+        W('globe', ['gl', 'obe'], 'a ball, often a model of a world')
       ],
       sentence: 'The moon is a globe, and we see one side of its bright shape each night.',
       comp: {
@@ -455,9 +455,9 @@
     },
     reading: {
       words: [
-        W('face', ['f', 'ace'], ['fff', 'ayss'], 'the front side of something'),
-        W('same', ['s', 'ame'], ['sss', 'aym'], 'not different'),
-        W('side', ['s', 'ide'], ['sss', 'ide'], 'one surface of a thing')
+        W('face', ['f', 'ace'], 'the front side of something'),
+        W('same', ['s', 'ame'], 'not different'),
+        W('side', ['s', 'ide'], 'one surface of a thing')
       ],
       sentence: 'We always see the same face of the moon, and the far side stays hidden.',
       comp: {
@@ -521,9 +521,9 @@
     },
     reading: {
       words: [
-        W('pull', ['p', 'ull'], ['p', 'ull'], 'to drag toward you'),
-        W('drop', ['dr', 'o', 'p'], ['dr', 'o', 'p'], 'to let something fall'),
-        W('weight', ['wei', 'ght'], ['way', 't'], 'how heavy something is')
+        W('pull', ['p', 'ull'], 'to drag toward you'),
+        W('drop', ['dr', 'o', 'p'], 'to let something fall'),
+        W('weight', ['wei', 'ght'], 'how heavy something is')
       ],
       sentence: 'Gravity is a pull, so when you drop a stone its weight brings it down fast.',
       comp: {
@@ -584,9 +584,9 @@
     },
     reading: {
       words: [
-        W('tide', ['t', 'ide'], ['t', 'ide'], 'rising and falling ocean water'),
-        W('wave', ['w', 'ave'], ['w', 'ayv'], 'water that rolls and lifts'),
-        W('rise', ['r', 'ise'], ['rrr', 'ize'], 'to go up')
+        W('tide', ['t', 'ide'], 'rising and falling ocean water'),
+        W('wave', ['w', 'ave'], 'water that rolls and lifts'),
+        W('rise', ['r', 'ise'], 'to go up')
       ],
       sentence: 'The tide makes the waves rise up the sand twice in one day.',
       comp: {
@@ -647,9 +647,9 @@
     },
     reading: {
       words: [
-        W('jump', ['j', 'u', 'mp'], ['j', 'uh', 'mp'], 'to push off the ground'),
-        W('space', ['sp', 'ace'], ['sp', 'ayss'], 'the huge empty place beyond our air'),
-        W('bounce', ['b', 'ounce'], ['b', 'ownss'], 'to spring up after landing')
+        W('jump', ['j', 'u', 'mp'], 'to push off the ground'),
+        W('space', ['sp', 'ace'], 'the huge empty place beyond our air'),
+        W('bounce', ['b', 'ounce'], 'to spring up after landing')
       ],
       sentence: 'In space on the moon you can jump high and bounce with every step.',
       comp: {
@@ -711,9 +711,9 @@
     },
     reading: {
       words: [
-        W('planet', ['plan', 'et'], ['plan', 'it'], 'a world orbiting a star'),
-        W('Mars', ['M', 'ar', 's'], ['mmm', 'ar', 'zzz'], 'the red planet next door'),
-        W('order', ['or', 'der'], ['or', 'der'], 'the arrangement, first to last')
+        W('planet', ['plan', 'et'], 'a world orbiting a star'),
+        W('Mars', ['M', 'ar', 's'], 'the red planet next door'),
+        W('order', ['or', 'der'], 'the arrangement, first to last')
       ],
       sentence: 'Mars is the fourth planet in order, and it is the next one out from Earth.',
       comp: {
@@ -774,9 +774,9 @@
     },
     reading: {
       words: [
-        W('orbit', ['or', 'bit'], ['or', 'bit'], 'the curved path around something'),
-        W('circle', ['cir', 'cle'], ['sur', 'kul'], 'a perfectly round shape'),
-        W('curve', ['c', 'ur', 've'], ['k', 'ur', 'v'], 'a bend with no corners')
+        W('orbit', ['or', 'bit'], 'the curved path around something'),
+        W('circle', ['cir', 'cle'], 'a perfectly round shape'),
+        W('curve', ['c', 'ur', 've'], 'a bend with no corners')
       ],
       sentence: 'Earth follows a curve, so its orbit is almost a perfect circle.',
       comp: {
@@ -837,9 +837,9 @@
     },
     reading: {
       words: [
-        W('faster', ['fast', 'er'], ['fast', 'er'], 'moving more quickly'),
-        W('far', ['f', 'ar'], ['fff', 'ar'], 'a long way off'),
-        W('year', ['y', 'ear'], ['y', 'eer'], 'one lap around the Sun')
+        W('faster', ['fast', 'er'], 'moving more quickly'),
+        W('far', ['f', 'ar'], 'a long way off'),
+        W('year', ['y', 'ear'], 'one lap around the Sun')
       ],
       sentence: 'A planet that is far from the sun moves slower, so its year is long.',
       comp: {
@@ -900,9 +900,9 @@
     },
     reading: {
       words: [
-        W('far', ['f', 'ar'], ['fff', 'ar'], 'a long way away'),
-        W('start', ['st', 'ar', 't'], ['st', 'ar', 't'], 'the beginning'),
-        W('apart', ['a', 'par', 't'], ['uh', 'par', 't'], 'separated, not touching')
+        W('far', ['f', 'ar'], 'a long way away'),
+        W('start', ['st', 'ar', 't'], 'the beginning'),
+        W('apart', ['a', 'par', 't'], 'separated, not touching')
       ],
       sentence: 'The planets are so far apart that the start of the walk feels long.',
       comp: {
@@ -963,9 +963,9 @@
     },
     reading: {
       words: [
-        W('Mars', ['M', 'ar', 's'], ['mmm', 'ar', 'zzz'], 'the fourth planet'),
-        W('hard', ['h', 'ar', 'd'], ['h', 'ar', 'd'], 'not soft'),
-        W('dark', ['d', 'ar', 'k'], ['d', 'ar', 'k'], 'without light')
+        W('Mars', ['M', 'ar', 's'], 'the fourth planet'),
+        W('hard', ['h', 'ar', 'd'], 'not soft'),
+        W('dark', ['d', 'ar', 'k'], 'without light')
       ],
       sentence: 'The hard red dirt on Mars looks dark when the sun goes down.',
       comp: {
@@ -1027,9 +1027,9 @@
     },
     reading: {
       words: [
-        W('speed', ['sp', 'ee', 'd'], ['sp', 'eee', 'd'], 'how fast something moves'),
-        W('need', ['n', 'ee', 'd'], ['nnn', 'eee', 'd'], 'must have'),
-        W('seat', ['s', 'ea', 't'], ['sss', 'eee', 't'], 'a place to sit')
+        W('speed', ['sp', 'ee', 'd'], 'how fast something moves'),
+        W('need', ['n', 'ee', 'd'], 'must have'),
+        W('seat', ['s', 'ea', 't'], 'a place to sit')
       ],
       sentence: 'You need to stay in your seat when the rocket picks up speed.',
       comp: {
@@ -1094,9 +1094,9 @@
     },
     reading: {
       words: [
-        W('heat', ['h', 'ea', 't'], ['h', 'eee', 't'], 'hotness'),
-        W('leak', ['l', 'ea', 'k'], ['lll', 'eee', 'k'], 'to let liquid escape'),
-        W('clean', ['cl', 'ea', 'n'], ['cl', 'eee', 'n'], 'not dirty')
+        W('heat', ['h', 'ea', 't'], 'hotness'),
+        W('leak', ['l', 'ea', 'k'], 'to let liquid escape'),
+        W('clean', ['cl', 'ea', 'n'], 'not dirty')
       ],
       sentence: 'The team keeps the fuel tank clean so it will not leak in the heat.',
       comp: {
@@ -1157,9 +1157,9 @@
     },
     reading: {
       words: [
-        W('see', ['s', 'ee'], ['sss', 'eee'], 'to look at with your eyes'),
-        W('deep', ['d', 'ee', 'p'], ['d', 'eee', 'p'], 'going far in'),
-        W('beam', ['b', 'ea', 'm'], ['b', 'eee', 'm'], 'a narrow line of light')
+        W('see', ['s', 'ee'], 'to look at with your eyes'),
+        W('deep', ['d', 'ee', 'p'], 'going far in'),
+        W('beam', ['b', 'ea', 'm'], 'a narrow line of light')
       ],
       sentence: 'With a telescope you can see a beam of light from deep in space.',
       comp: {
@@ -1220,9 +1220,9 @@
     },
     reading: {
       words: [
-        W('reach', ['r', 'ea', 'ch'], ['rrr', 'eee', 'ch'], 'to arrive at'),
-        W('team', ['t', 'ea', 'm'], ['t', 'eee', 'm'], 'a group working together'),
-        W('week', ['w', 'ee', 'k'], ['w', 'eee', 'k'], 'seven days')
+        W('reach', ['r', 'ea', 'ch'], 'to arrive at'),
+        W('team', ['t', 'ea', 'm'], 'a group working together'),
+        W('week', ['w', 'ee', 'k'], 'seven days')
       ],
       sentence: 'It can take a week for the team to reach the far side of the desert.',
       comp: {
@@ -1284,9 +1284,9 @@
     },
     reading: {
       words: [
-        W('sleep', ['sl', 'ee', 'p'], ['sl', 'eee', 'p'], 'to rest with your eyes closed'),
-        W('meal', ['m', 'ea', 'l'], ['mmm', 'eee', 'l'], 'food you sit down to eat'),
-        W('sea', ['s', 'ea'], ['sss', 'eee'], 'a big body of salt water')
+        W('sleep', ['sl', 'ee', 'p'], 'to rest with your eyes closed'),
+        W('meal', ['m', 'ea', 'l'], 'food you sit down to eat'),
+        W('sea', ['s', 'ea'], 'a big body of salt water')
       ],
       sentence: 'The crew eat a meal and then sleep while they float high over the sea.',
       comp: {

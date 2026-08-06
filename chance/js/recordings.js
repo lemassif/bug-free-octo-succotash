@@ -311,7 +311,19 @@ window.Recordings = (function () {
       lines: praise
     });
 
-    // 3. one group per mission day
+    // 3. the letter sounds. A synthesizer physically cannot say an
+    //    isolated /f/; a person can. Recording each chunk once fixes
+    //    the sound-out for every word in the course that uses it.
+    groups.push({
+      id: 'sounds', em: '🔤', name: 'Letter sounds',
+      blurb: 'Say each one as a pure sound — "ffff", not "eff". Recorded once, each of these works in every word ' +
+             'across all 60 days, and it is the one thing the computer voice genuinely cannot do.',
+      lines: Phonics.allChunks().map(function (c) {
+        return { text: c.chunk, kind: 'sound', note: 'as in "' + (c.anchor || c.example) + '"' };
+      })
+    });
+
+    // 4. one group per mission day
     Curriculum.allDays().forEach(function (d) {
       var lines = [];
       d.discover.intro.forEach(function (t) { lines.push({ text: t, kind: 'say', note: 'science' }); });
@@ -322,7 +334,6 @@ window.Recordings = (function () {
       d.numbers.problems.forEach(function (p, i) { pushItem(lines, p, 'math ' + (i + 1)); });
       d.reading.words.forEach(function (w) {
         lines.push({ text: w.w, kind: 'say', note: 'word' });
-        w.sounds.forEach(function (s) { lines.push({ text: s, kind: 'sound', note: 'sound in "' + w.w + '"' }); });
       });
       lines.push({ text: d.reading.sentence, kind: 'say', note: 'sentence' });
       pushItem(lines, d.reading.comp, 'comprehension');

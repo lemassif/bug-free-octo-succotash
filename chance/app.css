@@ -233,6 +233,10 @@ button { font-family: inherit; font-size: inherit; border: 0; background: none; 
 .btn-big.ghost { background: #fff; border: 2px solid var(--line); box-shadow: var(--shadow); color: var(--ink); }
 
 /* ------------------------------- COACH ------------------------------ */
+/* An author `display` beats the UA stylesheet's [hidden] rule, so the
+   hidden state has to be declared explicitly or the empty bubble sits
+   on screen for the whole mission. */
+.coach[hidden] { display: none; }
 .coach {
   position: fixed; left: 50%; transform: translateX(-50%); bottom: 96px; z-index: 45;
   width: min(860px, calc(100% - 28px));

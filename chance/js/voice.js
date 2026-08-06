@@ -166,26 +166,47 @@ window.Voice = (function () {
 
   function pause(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
-  /* Stretch one sound out: "sss", "ah", "or". Slow + slightly lower
-     so a single phoneme is hearable instead of a blip. Tagged as
-     kind 'sound' so a recorded "or" phoneme is stored separately
-     from a recording of the word "or". */
-  function sayPhoneme(sound) {
-    return say(sound, { rate: 0.55, pitch: 1.05, kind: 'sound' });
+  /* Say one letter chunk.
+
+     If somebody has recorded this chunk in the booth, play their
+     voice — a human can say a true isolated /f/ and no synthesizer
+     can. Otherwise fall back to the anchor-word phrase from
+     phonics.js ("f, like in fan"), which is built entirely out of
+     real words so no engine can garble it.
+
+     Note there is no rate stretching here any more. Slowing the
+     synthesizer down to 0.55 was part of what made the old fake
+     phonemes sound like noise. */
+  function sayChunk(chunk, word, index) {
+    if (window.Recordings && Recordings.has(chunk, 'sound')) {
+      return say(chunk, { kind: 'sound' });
+    }
+    var phrase = window.Phonics ? Phonics.chunkPhrase(chunk, word, index) : String(chunk);
+    return say(phrase, { rate: 0.8 });
   }
 
-  /* Sound out a word the way a reading teacher does:
-     each part slowly, then the parts a little faster, then the word. */
-  function soundOut(word, parts) {
+  /* Kept for the recording booth, which needs to preview the clip
+     for one chunk on its own. */
+  function sayPhoneme(sound) {
+    return say(sound, { kind: 'sound' });
+  }
+
+  /* Sound out a word the way a reading teacher does: the whole word,
+     each chunk anchored in a real word, then the blend.
+     onStep(highlightIndex) lets the UI light the chunk being said. */
+  function soundOut(word, parts, onStep) {
+    var steps = window.Phonics
+      ? Phonics.script(word, parts)
+      : [{ phrase: word, highlight: -1 }];
     var p = Promise.resolve();
-    (parts || []).forEach(function (s) {
-      p = p.then(function () { return sayPhoneme(s); }).then(function () { return pause(180); });
+    steps.forEach(function (st) {
+      p = p.then(function () {
+        if (onStep) onStep(st.highlight);
+        if (st.chunk != null) return sayChunk(st.chunk, word, st.index);
+        return say(st.phrase, { rate: st.whole ? 0.75 : 0.85 });
+      }).then(function () { return pause(180); });
     });
-    return p
-      .then(function () { return pause(200); })
-      .then(function () { return say(parts.join(' '), { rate: 0.7 }); })
-      .then(function () { return pause(200); })
-      .then(function () { return say(word, { rate: 0.75 }); });
+    return p.then(function () { if (onStep) onStep(-1); });
   }
 
   /* --------------------------- LISTENING --------------------------- */
@@ -301,7 +322,7 @@ window.Voice = (function () {
   }
 
   return {
-    say: say, sayLines: sayLines, sayPhoneme: sayPhoneme, soundOut: soundOut,
+    say: say, sayLines: sayLines, sayPhoneme: sayPhoneme, sayChunk: sayChunk, soundOut: soundOut,
     stop: stop, unlock: unlock, pause: pause,
     listen: listen, abortListen: abortListen, canListen: canListen, match: match, norm: norm,
     get settings() { return settings; },

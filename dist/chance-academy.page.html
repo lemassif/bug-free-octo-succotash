@@ -235,6 +235,10 @@ button { font-family: inherit; font-size: inherit; border: 0; background: none; 
 .btn-big.ghost { background: #fff; border: 2px solid var(--line); box-shadow: var(--shadow); color: var(--ink); }
 
 /* ------------------------------- COACH ------------------------------ */
+/* An author `display` beats the UA stylesheet's [hidden] rule, so the
+   hidden state has to be declared explicitly or the empty bubble sits
+   on screen for the whole mission. */
+.coach[hidden] { display: none; }
 .coach {
   position: fixed; left: 50%; transform: translateX(-50%); bottom: 96px; z-index: 45;
   width: min(860px, calc(100% - 28px));
@@ -552,10 +556,16 @@ window.Curriculum = (function () {
     return x === 1 ? { t: t, correct: true } : { t: t, tag: x };
   }
 
-  /* W('orbit', ['or','bit'], ['or','bit']) — spelling chunks he taps,
-     and how each chunk should be pronounced when read back to him. */
-  function W(word, parts, sounds, mean) {
-    return { w: word, parts: parts, sounds: sounds || parts, mean: mean || '' };
+  /* W('orbit', ['or','bit'], 'the path around something')
+
+     `parts` are the SPELLING chunks he taps and decodes. How each
+     chunk gets said out loud is not stored here — js/phonics.js
+     owns that, keyed by the chunk itself, so "ar" is pronounced the
+     same way in "far", "star" and "Mars" and only has to be right
+     in one place. Do not invent phonetic spellings like 'fff' here;
+     that is exactly what used to make the sound-out wrong. */
+  function W(word, parts, mean) {
+    return { w: word, parts: parts, mean: mean || '' };
   }
 
   function addDays(unitNo, list) {
@@ -703,9 +713,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('spin', ['sp', 'in'], ['sp', 'in'], 'to turn around fast'),
-        W('sun', ['s', 'un'], ['sss', 'un'], 'the star that lights our sky'),
-        W('rock', ['r', 'o', 'ck'], ['rrr', 'o', 'k'], 'hard stone')
+        W('spin', ['sp', 'in'], 'to turn around fast'),
+        W('sun', ['s', 'un'], 'the star that lights our sky'),
+        W('rock', ['r', 'o', 'ck'], 'hard stone')
       ],
       sentence: 'Earth is a big rock that spins in the light of the sun.',
       comp: {
@@ -769,9 +779,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('star', ['st', 'ar'], ['st', 'ar'], 'a huge ball of burning gas'),
-        W('hot', ['h', 'o', 't'], ['h', 'o', 't'], 'very warm'),
-        W('gas', ['g', 'a', 's'], ['g', 'a', 'sss'], 'not solid and not liquid — like air')
+        W('star', ['st', 'ar'], 'a huge ball of burning gas'),
+        W('hot', ['h', 'o', 't'], 'very warm'),
+        W('gas', ['g', 'a', 's'], 'not solid and not liquid — like air')
       ],
       sentence: 'The sun is a hot ball of gas, and it is the star that is closest to us.',
       comp: {
@@ -836,9 +846,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('shadow', ['sha', 'dow'], ['shah', 'doh'], 'dark shape made by blocked light'),
-        W('block', ['bl', 'o', 'ck'], ['bl', 'o', 'k'], 'to stop something from passing'),
-        W('long', ['l', 'o', 'ng'], ['lll', 'o', 'ng'], 'stretched out far')
+        W('shadow', ['sha', 'dow'], 'dark shape made by blocked light'),
+        W('block', ['bl', 'o', 'ck'], 'to stop something from passing'),
+        W('long', ['l', 'o', 'ng'], 'stretched out far')
       ],
       sentence: 'When you block the sun, you make a long dark shadow on the grass.',
       comp: {
@@ -903,9 +913,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('tilt', ['t', 'il', 't'], ['t', 'il', 't'], 'to lean over'),
-        W('warm', ['w', 'ar', 'm'], ['w', 'ar', 'm'], 'a little bit hot'),
-        W('sun-light', ['sun', 'light'], ['sun', 'lite'], 'light that comes from the sun')
+        W('tilt', ['t', 'il', 't'], 'to lean over'),
+        W('warm', ['w', 'ar', 'm'], 'a little bit hot'),
+        W('sun-light', ['sun', 'light'], 'light that comes from the sun')
       ],
       sentence: 'When our half of Earth has a tilt toward the sun, the sunlight feels warm.',
       comp: {
@@ -970,9 +980,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('east', ['ea', 'st'], ['ee', 'st'], 'the sunrise direction'),
-        W('west', ['w', 'e', 'st'], ['w', 'eh', 'st'], 'the sunset direction'),
-        W('map', ['m', 'a', 'p'], ['mmm', 'a', 'p'], 'a picture of a place from above')
+        W('east', ['ea', 'st'], 'the sunrise direction'),
+        W('west', ['w', 'e', 'st'], 'the sunset direction'),
+        W('map', ['m', 'a', 'p'], 'a picture of a place from above')
       ],
       sentence: 'The sun comes up in the east and goes down in the west, just like the map shows.',
       comp: {
@@ -1034,9 +1044,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('shape', ['sh', 'ape'], ['sh', 'ayp'], 'the outline of a thing'),
-        W('side', ['s', 'ide'], ['sss', 'ide'], 'one face or edge of something'),
-        W('globe', ['gl', 'obe'], ['gl', 'ohb'], 'a ball, often a model of a world')
+        W('shape', ['sh', 'ape'], 'the outline of a thing'),
+        W('side', ['s', 'ide'], 'one face or edge of something'),
+        W('globe', ['gl', 'obe'], 'a ball, often a model of a world')
       ],
       sentence: 'The moon is a globe, and we see one side of its bright shape each night.',
       comp: {
@@ -1097,9 +1107,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('face', ['f', 'ace'], ['fff', 'ayss'], 'the front side of something'),
-        W('same', ['s', 'ame'], ['sss', 'aym'], 'not different'),
-        W('side', ['s', 'ide'], ['sss', 'ide'], 'one surface of a thing')
+        W('face', ['f', 'ace'], 'the front side of something'),
+        W('same', ['s', 'ame'], 'not different'),
+        W('side', ['s', 'ide'], 'one surface of a thing')
       ],
       sentence: 'We always see the same face of the moon, and the far side stays hidden.',
       comp: {
@@ -1163,9 +1173,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('pull', ['p', 'ull'], ['p', 'ull'], 'to drag toward you'),
-        W('drop', ['dr', 'o', 'p'], ['dr', 'o', 'p'], 'to let something fall'),
-        W('weight', ['wei', 'ght'], ['way', 't'], 'how heavy something is')
+        W('pull', ['p', 'ull'], 'to drag toward you'),
+        W('drop', ['dr', 'o', 'p'], 'to let something fall'),
+        W('weight', ['wei', 'ght'], 'how heavy something is')
       ],
       sentence: 'Gravity is a pull, so when you drop a stone its weight brings it down fast.',
       comp: {
@@ -1226,9 +1236,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('tide', ['t', 'ide'], ['t', 'ide'], 'rising and falling ocean water'),
-        W('wave', ['w', 'ave'], ['w', 'ayv'], 'water that rolls and lifts'),
-        W('rise', ['r', 'ise'], ['rrr', 'ize'], 'to go up')
+        W('tide', ['t', 'ide'], 'rising and falling ocean water'),
+        W('wave', ['w', 'ave'], 'water that rolls and lifts'),
+        W('rise', ['r', 'ise'], 'to go up')
       ],
       sentence: 'The tide makes the waves rise up the sand twice in one day.',
       comp: {
@@ -1289,9 +1299,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('jump', ['j', 'u', 'mp'], ['j', 'uh', 'mp'], 'to push off the ground'),
-        W('space', ['sp', 'ace'], ['sp', 'ayss'], 'the huge empty place beyond our air'),
-        W('bounce', ['b', 'ounce'], ['b', 'ownss'], 'to spring up after landing')
+        W('jump', ['j', 'u', 'mp'], 'to push off the ground'),
+        W('space', ['sp', 'ace'], 'the huge empty place beyond our air'),
+        W('bounce', ['b', 'ounce'], 'to spring up after landing')
       ],
       sentence: 'In space on the moon you can jump high and bounce with every step.',
       comp: {
@@ -1353,9 +1363,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('planet', ['plan', 'et'], ['plan', 'it'], 'a world orbiting a star'),
-        W('Mars', ['M', 'ar', 's'], ['mmm', 'ar', 'zzz'], 'the red planet next door'),
-        W('order', ['or', 'der'], ['or', 'der'], 'the arrangement, first to last')
+        W('planet', ['plan', 'et'], 'a world orbiting a star'),
+        W('Mars', ['M', 'ar', 's'], 'the red planet next door'),
+        W('order', ['or', 'der'], 'the arrangement, first to last')
       ],
       sentence: 'Mars is the fourth planet in order, and it is the next one out from Earth.',
       comp: {
@@ -1416,9 +1426,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('orbit', ['or', 'bit'], ['or', 'bit'], 'the curved path around something'),
-        W('circle', ['cir', 'cle'], ['sur', 'kul'], 'a perfectly round shape'),
-        W('curve', ['c', 'ur', 've'], ['k', 'ur', 'v'], 'a bend with no corners')
+        W('orbit', ['or', 'bit'], 'the curved path around something'),
+        W('circle', ['cir', 'cle'], 'a perfectly round shape'),
+        W('curve', ['c', 'ur', 've'], 'a bend with no corners')
       ],
       sentence: 'Earth follows a curve, so its orbit is almost a perfect circle.',
       comp: {
@@ -1479,9 +1489,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('faster', ['fast', 'er'], ['fast', 'er'], 'moving more quickly'),
-        W('far', ['f', 'ar'], ['fff', 'ar'], 'a long way off'),
-        W('year', ['y', 'ear'], ['y', 'eer'], 'one lap around the Sun')
+        W('faster', ['fast', 'er'], 'moving more quickly'),
+        W('far', ['f', 'ar'], 'a long way off'),
+        W('year', ['y', 'ear'], 'one lap around the Sun')
       ],
       sentence: 'A planet that is far from the sun moves slower, so its year is long.',
       comp: {
@@ -1542,9 +1552,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('far', ['f', 'ar'], ['fff', 'ar'], 'a long way away'),
-        W('start', ['st', 'ar', 't'], ['st', 'ar', 't'], 'the beginning'),
-        W('apart', ['a', 'par', 't'], ['uh', 'par', 't'], 'separated, not touching')
+        W('far', ['f', 'ar'], 'a long way away'),
+        W('start', ['st', 'ar', 't'], 'the beginning'),
+        W('apart', ['a', 'par', 't'], 'separated, not touching')
       ],
       sentence: 'The planets are so far apart that the start of the walk feels long.',
       comp: {
@@ -1605,9 +1615,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('Mars', ['M', 'ar', 's'], ['mmm', 'ar', 'zzz'], 'the fourth planet'),
-        W('hard', ['h', 'ar', 'd'], ['h', 'ar', 'd'], 'not soft'),
-        W('dark', ['d', 'ar', 'k'], ['d', 'ar', 'k'], 'without light')
+        W('Mars', ['M', 'ar', 's'], 'the fourth planet'),
+        W('hard', ['h', 'ar', 'd'], 'not soft'),
+        W('dark', ['d', 'ar', 'k'], 'without light')
       ],
       sentence: 'The hard red dirt on Mars looks dark when the sun goes down.',
       comp: {
@@ -1669,9 +1679,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('speed', ['sp', 'ee', 'd'], ['sp', 'eee', 'd'], 'how fast something moves'),
-        W('need', ['n', 'ee', 'd'], ['nnn', 'eee', 'd'], 'must have'),
-        W('seat', ['s', 'ea', 't'], ['sss', 'eee', 't'], 'a place to sit')
+        W('speed', ['sp', 'ee', 'd'], 'how fast something moves'),
+        W('need', ['n', 'ee', 'd'], 'must have'),
+        W('seat', ['s', 'ea', 't'], 'a place to sit')
       ],
       sentence: 'You need to stay in your seat when the rocket picks up speed.',
       comp: {
@@ -1736,9 +1746,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('heat', ['h', 'ea', 't'], ['h', 'eee', 't'], 'hotness'),
-        W('leak', ['l', 'ea', 'k'], ['lll', 'eee', 'k'], 'to let liquid escape'),
-        W('clean', ['cl', 'ea', 'n'], ['cl', 'eee', 'n'], 'not dirty')
+        W('heat', ['h', 'ea', 't'], 'hotness'),
+        W('leak', ['l', 'ea', 'k'], 'to let liquid escape'),
+        W('clean', ['cl', 'ea', 'n'], 'not dirty')
       ],
       sentence: 'The team keeps the fuel tank clean so it will not leak in the heat.',
       comp: {
@@ -1799,9 +1809,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('see', ['s', 'ee'], ['sss', 'eee'], 'to look at with your eyes'),
-        W('deep', ['d', 'ee', 'p'], ['d', 'eee', 'p'], 'going far in'),
-        W('beam', ['b', 'ea', 'm'], ['b', 'eee', 'm'], 'a narrow line of light')
+        W('see', ['s', 'ee'], 'to look at with your eyes'),
+        W('deep', ['d', 'ee', 'p'], 'going far in'),
+        W('beam', ['b', 'ea', 'm'], 'a narrow line of light')
       ],
       sentence: 'With a telescope you can see a beam of light from deep in space.',
       comp: {
@@ -1862,9 +1872,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('reach', ['r', 'ea', 'ch'], ['rrr', 'eee', 'ch'], 'to arrive at'),
-        W('team', ['t', 'ea', 'm'], ['t', 'eee', 'm'], 'a group working together'),
-        W('week', ['w', 'ee', 'k'], ['w', 'eee', 'k'], 'seven days')
+        W('reach', ['r', 'ea', 'ch'], 'to arrive at'),
+        W('team', ['t', 'ea', 'm'], 'a group working together'),
+        W('week', ['w', 'ee', 'k'], 'seven days')
       ],
       sentence: 'It can take a week for the team to reach the far side of the desert.',
       comp: {
@@ -1926,9 +1936,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('sleep', ['sl', 'ee', 'p'], ['sl', 'eee', 'p'], 'to rest with your eyes closed'),
-        W('meal', ['m', 'ea', 'l'], ['mmm', 'eee', 'l'], 'food you sit down to eat'),
-        W('sea', ['s', 'ea'], ['sss', 'eee'], 'a big body of salt water')
+        W('sleep', ['sl', 'ee', 'p'], 'to rest with your eyes closed'),
+        W('meal', ['m', 'ea', 'l'], 'food you sit down to eat'),
+        W('sea', ['s', 'ea'], 'a big body of salt water')
       ],
       sentence: 'The crew eat a meal and then sleep while they float high over the sea.',
       comp: {
@@ -2009,9 +2019,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('shed', ['sh', 'e', 'd'], ['sh', 'eh', 'd'], 'to drop off an old covering'),
-        W('damp', ['d', 'a', 'mp'], ['d', 'a', 'mp'], 'a little bit wet'),
-        W('thin', ['th', 'in'], ['th', 'in'], 'not thick')
+        W('shed', ['sh', 'e', 'd'], 'to drop off an old covering'),
+        W('damp', ['d', 'a', 'mp'], 'a little bit wet'),
+        W('thin', ['th', 'in'], 'not thick')
       ],
       sentence: 'A salamander has thin damp skin, and it can shed the old skin as it grows.',
       comp: {
@@ -2072,9 +2082,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('hatch', ['h', 'a', 'tch'], ['h', 'a', 'ch'], 'to break out of an egg'),
-        W('chin', ['ch', 'in'], ['ch', 'in'], 'the part below your mouth'),
-        W('shell', ['sh', 'e', 'll'], ['sh', 'eh', 'l'], 'a hard outer cover')
+        W('hatch', ['h', 'a', 'tch'], 'to break out of an egg'),
+        W('chin', ['ch', 'in'], 'the part below your mouth'),
+        W('shell', ['sh', 'e', 'll'], 'a hard outer cover')
       ],
       sentence: 'The eggs hatch in the pond, and each shell splits as the larva swims out.',
       comp: {
@@ -2138,9 +2148,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('moth', ['m', 'o', 'th'], ['mmm', 'o', 'th'], 'a night-flying insect'),
-        W('chip', ['ch', 'i', 'p'], ['ch', 'i', 'p'], 'a small broken piece'),
-        W('shade', ['sh', 'ade'], ['sh', 'ayd'], 'a spot out of the sun')
+        W('moth', ['m', 'o', 'th'], 'a night-flying insect'),
+        W('chip', ['ch', 'i', 'p'], 'a small broken piece'),
+        W('shade', ['sh', 'ade'], 'a spot out of the sun')
       ],
       sentence: 'In the cool shade under the log, a moth and a wood chip lay in the damp dirt.',
       comp: {
@@ -2202,9 +2212,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('chunk', ['ch', 'u', 'nk'], ['ch', 'uh', 'nk'], 'a thick piece'),
-        W('path', ['p', 'a', 'th'], ['p', 'a', 'th'], 'a track to walk on'),
-        W('brush', ['br', 'u', 'sh'], ['br', 'uh', 'sh'], 'thick low bushes')
+        W('chunk', ['ch', 'u', 'nk'], 'a thick piece'),
+        W('path', ['p', 'a', 'th'], 'a track to walk on'),
+        W('brush', ['br', 'u', 'sh'], 'thick low bushes')
       ],
       sentence: 'A chunk of bark fell on the path beside the thick brush.',
       comp: {
@@ -2266,9 +2276,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('splash', ['spl', 'a', 'sh'], ['spl', 'a', 'sh'], 'the sound water makes when hit'),
-        W('chase', ['ch', 'ase'], ['ch', 'ayss'], 'to run after'),
-        W('thick', ['th', 'i', 'ck'], ['th', 'i', 'k'], 'not thin')
+        W('splash', ['spl', 'a', 'sh'], 'the sound water makes when hit'),
+        W('chase', ['ch', 'ase'], 'to run after'),
+        W('thick', ['th', 'i', 'ck'], 'not thin')
       ],
       sentence: 'The frog made a splash in the thick weeds, and the fish did not chase it.',
       comp: {
@@ -2330,9 +2340,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('soaking', ['soak', 'ing'], ['sohk', 'ing'], 'getting very wet'),
-        W('floated', ['float', 'ed'], ['floht', 'id'], 'stayed on top of water'),
-        W('dripping', ['drip', 'ping'], ['drip', 'ing'], 'falling in drops')
+        W('soaking', ['soak', 'ing'], 'getting very wet'),
+        W('floated', ['float', 'ed'], 'stayed on top of water'),
+        W('dripping', ['drip', 'ping'], 'falling in drops')
       ],
       sentence: 'The soaking leaf floated by while rain was dripping off the branch.',
       comp: {
@@ -2393,9 +2403,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('rushing', ['rush', 'ing'], ['rush', 'ing'], 'moving fast'),
-        W('slipped', ['slip', 'ped'], ['slip', 't'], 'slid by accident'),
-        W('running', ['run', 'ning'], ['run', 'ing'], 'moving quickly')
+        W('rushing', ['rush', 'ing'], 'moving fast'),
+        W('slipped', ['slip', 'ped'], 'slid by accident'),
+        W('running', ['run', 'ning'], 'moving quickly')
       ],
       sentence: 'The rushing creek was running fast when Chance slipped on a wet rock.',
       comp: {
@@ -2456,9 +2466,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('tumbled', ['tum', 'bled'], ['tum', 'bld'], 'rolled over and over'),
-        W('cracking', ['crack', 'ing'], ['krak', 'ing'], 'breaking apart'),
-        W('washed', ['wash', 'ed'], ['wosh', 't'], 'carried away by water')
+        W('tumbled', ['tum', 'bled'], 'rolled over and over'),
+        W('cracking', ['crack', 'ing'], 'breaking apart'),
+        W('washed', ['wash', 'ed'], 'carried away by water')
       ],
       sentence: 'The stone tumbled and washed downstream while the ice was cracking above.',
       comp: {
@@ -2519,9 +2529,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('freezing', ['freez', 'ing'], ['freez', 'ing'], 'turning to ice'),
-        W('cracked', ['crack', 'ed'], ['krak', 't'], 'split open'),
-        W('floating', ['float', 'ing'], ['floht', 'ing'], 'resting on top of water')
+        W('freezing', ['freez', 'ing'], 'turning to ice'),
+        W('cracked', ['crack', 'ed'], 'split open'),
+        W('floating', ['float', 'ing'], 'resting on top of water')
       ],
       sentence: 'The freezing pond had cracked ice floating on the still water.',
       comp: {
@@ -2582,9 +2592,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('filling', ['fill', 'ing'], ['fil', 'ing'], 'putting in until full'),
-        W('measured', ['meas', 'ured'], ['mezh', 'urd'], 'found the exact amount'),
-        W('marked', ['mark', 'ed'], ['mark', 't'], 'made a sign to remember a spot')
+        W('filling', ['fill', 'ing'], 'putting in until full'),
+        W('measured', ['meas', 'ured'], 'found the exact amount'),
+        W('marked', ['mark', 'ed'], 'made a sign to remember a spot')
       ],
       sentence: 'Chance measured the creek and marked the rock while filling his notebook.',
       comp: {
@@ -2650,9 +2660,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('brook', ['br', 'oo', 'k'], ['br', 'ook', ''], 'a small creek'),
-        W('trout', ['tr', 'ou', 't'], ['tr', 'owt', ''], 'a cold-water fish'),
-        W('cool', ['c', 'oo', 'l'], ['k', 'oool', ''], 'a little bit cold')
+        W('brook', ['br', 'oo', 'k'], 'a small creek'),
+        W('trout', ['tr', 'ou', 't'], 'a cold-water fish'),
+        W('cool', ['c', 'oo', 'l'], 'a little bit cold')
       ],
       sentence: 'A trout will hold still in the cool brook where the water runs fast.',
       comp: {
@@ -2720,9 +2730,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('down', ['d', 'ow', 'n'], ['d', 'own', ''], 'toward the ground'),
-        W('float', ['fl', 'oa', 't'], ['fl', 'oht', ''], 'to rest on top of water'),
-        W('hook', ['h', 'oo', 'k'], ['h', 'ook', ''], 'a bent piece of metal for fishing')
+        W('down', ['d', 'ow', 'n'], 'toward the ground'),
+        W('float', ['fl', 'oa', 't'], 'to rest on top of water'),
+        W('hook', ['h', 'oo', 'k'], 'a bent piece of metal for fishing')
       ],
       sentence: 'The hook went down deep, but the float stayed up on top.',
       comp: {
@@ -2784,9 +2794,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('mouth', ['m', 'ou', 'th'], ['mmm', 'owth', ''], 'the opening you eat with'),
-        W('food', ['f', 'oo', 'd'], ['fff', 'oood', ''], 'what living things eat'),
-        W('crowd', ['cr', 'ow', 'd'], ['kr', 'owd', ''], 'a lot of them in one place')
+        W('mouth', ['m', 'ou', 'th'], 'the opening you eat with'),
+        W('food', ['f', 'oo', 'd'], 'what living things eat'),
+        W('crowd', ['cr', 'ow', 'd'], 'a lot of them in one place')
       ],
       sentence: 'A crowd of small fish took food into each mouth down in the shade.',
       comp: {
@@ -2847,9 +2857,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('slow', ['sl', 'ow'], ['sl', 'oh'], 'not fast'),
-        W('cool', ['c', 'oo', 'l'], ['k', 'oool', ''], 'a bit cold'),
-        W('south', ['s', 'ou', 'th'], ['sss', 'owth', ''], 'the warm direction, away from north')
+        W('slow', ['sl', 'ow'], 'not fast'),
+        W('cool', ['c', 'oo', 'l'], 'a bit cold'),
+        W('south', ['s', 'ou', 'th'], 'the warm direction, away from north')
       ],
       sentence: 'When the cool days come, the slow fish move to the deep south end of the pond.',
       comp: {
@@ -2915,9 +2925,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('throw', ['thr', 'ow'], ['thr', 'oh'], 'to send through the air'),
-        W('loop', ['l', 'oo', 'p'], ['lll', 'oooop', ''], 'a circle of line'),
-        W('out', ['ou', 't'], ['owt', ''], 'away from where you are')
+        W('throw', ['thr', 'ow'], 'to send through the air'),
+        W('loop', ['l', 'oo', 'p'], 'a circle of line'),
+        W('out', ['ou', 't'], 'away from where you are')
       ],
       sentence: 'He let the loop of line throw the lure out over the deep pool.',
       comp: {
@@ -2980,9 +2990,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('cell', ['c', 'e', 'll'], ['sss', 'eh', 'l'], 'the tiny building block of living things'),
-        W('juice', ['j', 'ui', 'ce'], ['j', 'ooo', 'ss'], 'liquid from a plant'),
-        W('center', ['cen', 'ter'], ['sen', 'ter'], 'the middle')
+        W('cell', ['c', 'e', 'll'], 'the tiny building block of living things'),
+        W('juice', ['j', 'ui', 'ce'], 'liquid from a plant'),
+        W('center', ['cen', 'ter'], 'the middle')
       ],
       sentence: 'Each cell in the center of the trunk can hold juice and water.',
       comp: {
@@ -3044,9 +3054,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('edge', ['e', 'dge'], ['eh', 'j'], 'the outside line of something'),
-        W('gentle', ['gen', 'tle'], ['jen', 'tul'], 'soft and careful'),
-        W('space', ['sp', 'ace'], ['sp', 'ayss'], 'an empty place')
+        W('edge', ['e', 'dge'], 'the outside line of something'),
+        W('gentle', ['gen', 'tle'], 'soft and careful'),
+        W('space', ['sp', 'ace'], 'an empty place')
       ],
       sentence: 'A gentle wind moved the edge of the leaf into the open space.',
       comp: {
@@ -3107,9 +3117,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('ridge', ['ri', 'dge'], ['rih', 'j'], 'a long raised line, like a hilltop'),
-        W('city', ['ci', 'ty'], ['sih', 'tee'], 'a big town'),
-        W('change', ['ch', 'ange'], ['ch', 'aynj'], 'to become different')
+        W('ridge', ['ri', 'dge'], 'a long raised line, like a hilltop'),
+        W('city', ['ci', 'ty'], 'a big town'),
+        W('change', ['ch', 'ange'], 'to become different')
       ],
       sentence: 'On the ridge above the city, the leaves change color first.',
       comp: {
@@ -3170,9 +3180,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('juicy', ['jui', 'cy'], ['joo', 'see'], 'full of liquid'),
-        W('bridge', ['bri', 'dge'], ['brih', 'j'], 'something you cross over water on'),
-        W('circle', ['cir', 'cle'], ['sur', 'kul'], 'a round shape')
+        W('juicy', ['jui', 'cy'], 'full of liquid'),
+        W('bridge', ['bri', 'dge'], 'something you cross over water on'),
+        W('circle', ['cir', 'cle'], 'a round shape')
       ],
       sentence: 'Under the bridge a circle of juicy mushrooms grew in the wet dirt.',
       comp: {
@@ -3237,9 +3247,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('dig', ['d', 'i', 'g'], ['d', 'i', 'g'], 'to make a hole'),
-        W('gently', ['gen', 'tly'], ['jent', 'lee'], 'in a soft careful way'),
-        W('space', ['sp', 'ace'], ['sp', 'ayss'], 'room between things')
+        W('dig', ['d', 'i', 'g'], 'to make a hole'),
+        W('gently', ['gen', 'tly'], 'in a soft careful way'),
+        W('space', ['sp', 'ace'], 'room between things')
       ],
       sentence: 'Dig gently and give each seed some space in the rich soil.',
       comp: {
@@ -3323,9 +3333,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('strong', ['str', 'o', 'ng'], ['str', 'aw', 'ng'], 'powerful'),
-        W('string', ['str', 'i', 'ng'], ['str', 'ih', 'ng'], 'thin cord'),
-        W('stretch', ['str', 'e', 'tch'], ['str', 'eh', 'ch'], 'to pull longer')
+        W('strong', ['str', 'o', 'ng'], 'powerful'),
+        W('string', ['str', 'i', 'ng'], 'thin cord'),
+        W('stretch', ['str', 'e', 'tch'], 'to pull longer')
       ],
       sentence: 'A strong pull will stretch the string until it is straight.',
       comp: {
@@ -3387,9 +3397,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('scrape', ['scr', 'ape'], ['skr', 'ayp'], 'to rub roughly'),
-        W('scratch', ['scr', 'a', 'tch'], ['skr', 'a', 'ch'], 'to scrape a line into something'),
-        W('splash', ['spl', 'a', 'sh'], ['spl', 'a', 'sh'], 'water thrown up')
+        W('scrape', ['scr', 'ape'], 'to rub roughly'),
+        W('scratch', ['scr', 'a', 'tch'], 'to scrape a line into something'),
+        W('splash', ['spl', 'a', 'sh'], 'water thrown up')
       ],
       sentence: 'The sled will scrape and scratch the dirt, then stop with a splash.',
       comp: {
@@ -3453,9 +3463,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('straight', ['str', 'aigh', 't'], ['str', 'ay', 't'], 'not bent or curved'),
-        W('screw', ['scr', 'ew'], ['skr', 'ooo'], 'a spiral fastener'),
-        W('spring', ['spr', 'i', 'ng'], ['spr', 'ih', 'ng'], 'a coil that pushes back')
+        W('straight', ['str', 'aigh', 't'], 'not bent or curved'),
+        W('screw', ['scr', 'ew'], 'a spiral fastener'),
+        W('spring', ['spr', 'i', 'ng'], 'a coil that pushes back')
       ],
       sentence: 'Push the screw in straight, and the spring will hold the ramp up.',
       comp: {
@@ -3517,9 +3527,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('strap', ['str', 'a', 'p'], ['str', 'a', 'p'], 'a band that holds things'),
-        W('street', ['str', 'ee', 't'], ['str', 'eee', 't'], 'a road in town'),
-        W('spread', ['spr', 'ea', 'd'], ['spr', 'eh', 'd'], 'to open out wide')
+        W('strap', ['str', 'a', 'p'], 'a band that holds things'),
+        W('street', ['str', 'ee', 't'], 'a road in town'),
+        W('spread', ['spr', 'ea', 'd'], 'to open out wide')
       ],
       sentence: 'The strap kept him in his seat when the truck stopped in the street.',
       comp: {
@@ -3581,9 +3591,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('stack', ['st', 'a', 'ck'], ['st', 'a', 'k'], 'a pile'),
-        W('splint', ['spl', 'i', 'nt'], ['spl', 'ih', 'nt'], 'a stiff strip that supports something'),
-        W('strap', ['str', 'a', 'p'], ['str', 'a', 'p'], 'a holding band')
+        W('stack', ['st', 'a', 'ck'], 'a pile'),
+        W('splint', ['spl', 'i', 'nt'], 'a stiff strip that supports something'),
+        W('strap', ['str', 'a', 'p'], 'a holding band')
       ],
       sentence: 'He put a splint and a strap on the tall stack so it would not tip.',
       comp: {
@@ -3646,9 +3656,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('lever', ['le', 'ver'], ['lee', 'ver'], 'a bar that lifts on a pivot'),
-        W('handle', ['han', 'dle'], ['han', 'dul'], 'the part you hold'),
-        W('little', ['lit', 'tle'], ['lit', 'ul'], 'small')
+        W('lever', ['le', 'ver'], 'a bar that lifts on a pivot'),
+        W('handle', ['han', 'dle'], 'the part you hold'),
+        W('little', ['lit', 'tle'], 'small')
       ],
       sentence: 'A little pull on the handle of the lever can lift a heavy load.',
       comp: {
@@ -3709,9 +3719,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('rudder', ['rud', 'der'], ['rud', 'er'], 'the flap that steers a boat'),
-        W('circle', ['cir', 'cle'], ['sur', 'kul'], 'a round shape'),
-        W('middle', ['mid', 'dle'], ['mid', 'ul'], 'the center')
+        W('rudder', ['rud', 'der'], 'the flap that steers a boat'),
+        W('circle', ['cir', 'cle'], 'a round shape'),
+        W('middle', ['mid', 'dle'], 'the center')
       ],
       sentence: 'The gear turns in a circle around a pin in the middle.',
       comp: {
@@ -3773,9 +3783,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('pulley', ['pul', 'ley'], ['pul', 'ee'], 'a rope wheel'),
-        W('paddle', ['pad', 'dle'], ['pad', 'ul'], 'a flat blade for rowing'),
-        W('over', ['o', 'ver'], ['oh', 'ver'], 'above or across')
+        W('pulley', ['pul', 'ley'], 'a rope wheel'),
+        W('paddle', ['pad', 'dle'], 'a flat blade for rowing'),
+        W('over', ['o', 'ver'], 'above or across')
       ],
       sentence: 'Run the rope over the pulley, then pull it down with a steady grip.',
       comp: {
@@ -3836,9 +3846,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('wedge', ['we', 'dge'], ['weh', 'j'], 'a splitting blade'),
-        W('metal', ['me', 'tal'], ['meh', 'tul'], 'hard shiny material like iron'),
-        W('sharper', ['sharp', 'er'], ['sharp', 'er'], 'more able to cut')
+        W('wedge', ['we', 'dge'], 'a splitting blade'),
+        W('metal', ['me', 'tal'], 'hard shiny material like iron'),
+        W('sharper', ['sharp', 'er'], 'more able to cut')
       ],
       sentence: 'A sharper metal wedge will split the log with a smaller push.',
       comp: {
@@ -3900,9 +3910,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('pedal', ['pe', 'dal'], ['ped', 'ul'], 'the part your foot pushes'),
-        W('handlebar', ['han', 'dle', 'bar'], ['han', 'dul', 'bar'], 'the steering bar'),
-        W('faster', ['fast', 'er'], ['fast', 'er'], 'more quickly')
+        W('pedal', ['pe', 'dal'], 'the part your foot pushes'),
+        W('handlebar', ['han', 'dle', 'bar'], 'the steering bar'),
+        W('faster', ['fast', 'er'], 'more quickly')
       ],
       sentence: 'Hold the handlebar and push the pedal harder to go faster.',
       comp: {
@@ -3963,9 +3973,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('knot', ['kn', 'o', 't'], ['nnn', 'o', 't'], 'a tied lump in rope'),
-        W('knee', ['kn', 'ee'], ['nnn', 'eee'], 'the joint in the middle of your leg'),
-        W('wrench', ['wr', 'e', 'nch'], ['rrr', 'eh', 'nch'], 'a tool for turning bolts')
+        W('knot', ['kn', 'o', 't'], 'a tied lump in rope'),
+        W('knee', ['kn', 'ee'], 'the joint in the middle of your leg'),
+        W('wrench', ['wr', 'e', 'nch'], 'a tool for turning bolts')
       ],
       sentence: 'He put the wrench on his knee and pulled the knot loose.',
       comp: {
@@ -4026,9 +4036,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('wrap', ['wr', 'a', 'p'], ['rrr', 'a', 'p'], 'to wind around'),
-        W('know', ['kn', 'ow'], ['nnn', 'oh'], 'to have something in your mind'),
-        W('phone', ['ph', 'one'], ['fff', 'ohn'], 'a thing you talk into')
+        W('wrap', ['wr', 'a', 'p'], 'to wind around'),
+        W('know', ['kn', 'ow'], 'to have something in your mind'),
+        W('phone', ['ph', 'one'], 'a thing you talk into')
       ],
       sentence: 'Wrap the wire and you will know why the phone lights up.',
       comp: {
@@ -4089,9 +4099,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('knock', ['kn', 'o', 'ck'], ['nnn', 'o', 'k'], 'to hit and make a sound'),
-        W('write', ['wr', 'ite'], ['rrr', 'ite'], 'to make letters'),
-        W('graph', ['gr', 'a', 'ph'], ['gr', 'a', 'fff'], 'a picture that shows numbers')
+        W('knock', ['kn', 'o', 'ck'], 'to hit and make a sound'),
+        W('write', ['wr', 'ite'], 'to make letters'),
+        W('graph', ['gr', 'a', 'ph'], 'a picture that shows numbers')
       ],
       sentence: 'Write what you see on the graph, then knock on the door when you finish.',
       comp: {
@@ -4153,9 +4163,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('knew', ['kn', 'ew'], ['nnn', 'ooo'], 'understood in the past'),
-        W('wrong', ['wr', 'o', 'ng'], ['rrr', 'aw', 'ng'], 'not correct'),
-        W('photo', ['pho', 'to'], ['foh', 'toh'], 'a picture from a camera')
+        W('knew', ['kn', 'ew'], 'understood in the past'),
+        W('wrong', ['wr', 'o', 'ng'], 'not correct'),
+        W('photo', ['pho', 'to'], 'a picture from a camera')
       ],
       sentence: 'He knew the photo was wrong when he heard the sound again.',
       comp: {
@@ -4216,9 +4226,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('knife', ['kn', 'ife'], ['nnn', 'ife'], 'a cutting tool'),
-        W('wrist', ['wr', 'i', 'st'], ['rrr', 'ih', 'st'], 'the joint at your hand'),
-        W('phase', ['ph', 'ase'], ['fff', 'ayz'], 'a stage of change')
+        W('knife', ['kn', 'ife'], 'a cutting tool'),
+        W('wrist', ['wr', 'i', 'st'], 'the joint at your hand'),
+        W('phase', ['ph', 'ase'], 'a stage of change')
       ],
       sentence: 'He turned his wrist and the knife caught the light in a bright phase.',
       comp: {
@@ -4280,9 +4290,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('footbridge', ['foot', 'bridge'], ['foot', 'brij'], 'a small bridge for walking'),
-        W('sunlight', ['sun', 'light'], ['sun', 'lite'], 'light from the sun'),
-        W('riverbank', ['ri', 'ver', 'bank'], ['riv', 'er', 'bank'], 'the edge of a river')
+        W('footbridge', ['foot', 'bridge'], 'a small bridge for walking'),
+        W('sunlight', ['sun', 'light'], 'light from the sun'),
+        W('riverbank', ['ri', 'ver', 'bank'], 'the edge of a river')
       ],
       sentence: 'The footbridge across the riverbank shines in the sunlight.',
       comp: {
@@ -4344,9 +4354,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('sailboat', ['sail', 'boat'], ['sayl', 'boht'], 'a boat pushed by wind'),
-        W('driftwood', ['drift', 'wood'], ['drift', 'wood'], 'wood floating in water'),
-        W('downstream', ['down', 'stream'], ['down', 'streem'], 'the way the water flows')
+        W('sailboat', ['sail', 'boat'], 'a boat pushed by wind'),
+        W('driftwood', ['drift', 'wood'], 'wood floating in water'),
+        W('downstream', ['down', 'stream'], 'the way the water flows')
       ],
       sentence: 'The sailboat and the driftwood both moved downstream in the wind.',
       comp: {
@@ -4408,9 +4418,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('slingshot', ['sling', 'shot'], ['sling', 'shot'], 'a Y-shaped thrower with rubber'),
-        W('pullback', ['pull', 'back'], ['pull', 'bak'], 'how far you draw something back'),
-        W('backyard', ['back', 'yard'], ['bak', 'yard'], 'the yard behind a house')
+        W('slingshot', ['sling', 'shot'], 'a Y-shaped thrower with rubber'),
+        W('pullback', ['pull', 'back'], 'how far you draw something back'),
+        W('backyard', ['back', 'yard'], 'the yard behind a house')
       ],
       sentence: 'A longer pullback on the slingshot sends it across the backyard.',
       comp: {
@@ -4471,9 +4481,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('notebook', ['note', 'book'], ['noht', 'book'], 'a book you write your data in'),
-        W('workbench', ['work', 'bench'], ['wurk', 'bench'], 'a table for building'),
-        W('setback', ['set', 'back'], ['set', 'bak'], 'something that slows your progress')
+        W('notebook', ['note', 'book'], 'a book you write your data in'),
+        W('workbench', ['work', 'bench'], 'a table for building'),
+        W('setback', ['set', 'back'], 'something that slows your progress')
       ],
       sentence: 'He wrote every setback in his notebook and went back to the workbench.',
       comp: {
@@ -4548,9 +4558,9 @@ window.Curriculum = (function () {
     },
     reading: {
       words: [
-        W('sunrise', ['sun', 'rise'], ['sun', 'rize'], 'when the sun comes up'),
-        W('waterfall', ['wa', 'ter', 'fall'], ['waw', 'ter', 'fall'], 'water dropping over a ledge'),
-        W('flashlight', ['flash', 'light'], ['flash', 'lite'], 'a light you carry')
+        W('sunrise', ['sun', 'rise'], 'when the sun comes up'),
+        W('waterfall', ['wa', 'ter', 'fall'], 'water dropping over a ledge'),
+        W('flashlight', ['flash', 'light'], 'a light you carry')
       ],
       sentence: 'Before sunrise he took a flashlight down to the waterfall to measure the flow.',
       comp: {
@@ -4567,6 +4577,303 @@ window.Curriculum = (function () {
   }
 
   ]);
+})();
+
+
+/* ===== js/phonics.js ===== */
+/* ============================================================
+   phonics.js — how a letter chunk gets said out loud
+
+   THE PROBLEM THIS FIXES
+   Speech synthesis reads *words*. It cannot say an isolated
+   phoneme. Feed it "fff" and you get a mess; feed it "f" and you
+   get the letter name "eff"; feed it "str" and you get noise. The
+   first version of this app invented spellings like "fff" and
+   "rrr" and handed them to the synthesizer, so "far" came out as
+   two disconnected noises instead of a blend. That was wrong.
+
+   THE FIX
+   Say it the way a reading teacher says it: name the letter, then
+   anchor it in a real word the synthesizer can definitely
+   pronounce.
+
+       far  ->  "far"
+                "f, like in fan"      [f highlighted]
+                "ar, like in car"     [ar highlighted]
+                "Now blend it: far"
+
+   Every token in that script is a real English word, so no engine
+   on any device can mangle it. It is also exactly the language he
+   already hears at school.
+
+   THE UPGRADE PATH
+   A recorded human voice CAN say a true isolated phoneme, and the
+   recording booth stores clips against these same chunk keys. So
+   when Grandpa has recorded /f/, his /f/ plays instead of the "f,
+   like in fan" script — and because the key is the letter chunk
+   and not the word, recording the ~90 letter sounds once covers
+   all 180 words in the course.
+
+   Keys are the SPELLING chunks from the curriculum ("f", "ar",
+   "sh", "str", "ee"), not invented phonetic spellings. Real
+   syllables and whole-word chunks ("han", "bridge", "light") need
+   no entry — the synthesizer already says those correctly, so
+   anything not in this table is simply spoken as it is written.
+   ============================================================ */
+
+window.Phonics = (function () {
+
+  /* a    : the anchor word — a real word the engine will pronounce
+     a2   : a spare anchor, used when `a` IS the word being decoded
+            ("s p, like in spin" teaches nothing while reading "spin")
+     lead : what to say before ", like in ___". Defaults to the chunk
+            spelled out letter by letter, which is how it is taught.
+            Overridden where the letter names would mislead — every
+            vowel, and any grapheme whose letters lie about its sound. */
+  var CHUNKS = {
+    /* ---- single consonants ---- */
+    b: { a: 'bat', a2: 'bed' }, c: { a: 'cat', a2: 'cup' }, d: { a: 'dog', a2: 'dad' },
+    f: { a: 'fan', a2: 'fun' }, g: { a: 'goat', a2: 'gum' }, h: { a: 'hat', a2: 'hop' },
+    j: { a: 'jam', a2: 'jet' }, k: { a: 'kite', a2: 'key' }, l: { a: 'leaf', a2: 'lamp' },
+    m: { a: 'map', a2: 'mom' }, n: { a: 'net', a2: 'nap' }, p: { a: 'pig', a2: 'pot' },
+    r: { a: 'run', a2: 'red' }, s: { a: 'sun', a2: 'sit' }, t: { a: 'top', a2: 'ten' },
+    v: { a: 'van', a2: 'vet' }, w: { a: 'win', a2: 'wet' }, y: { a: 'yes', a2: 'yard' },
+    z: { a: 'zip', a2: 'zoo' },
+
+    /* ---- consonant digraphs ---- */
+    sh: { a: 'ship', a2: 'shop' }, ch: { a: 'chip', a2: 'chin' },
+    th: { a: 'thin', a2: 'thumb' }, ng: { a: 'ring', a2: 'song' },
+    ck: { a: 'duck', a2: 'sock', lead: 'c k says k' },
+    ph: { a: 'phone', a2: 'graph', lead: 'p h says f' },
+    kn: { a: 'knot', a2: 'knife', lead: 'k n, with a silent k, says n' },
+    wr: { a: 'wrap', a2: 'write', lead: 'w r, with a silent w, says r' },
+    tch: { a: 'catch', a2: 'match', lead: 't c h says ch' },
+    dge: { a: 'bridge', a2: 'edge', lead: 'd g e says j' },
+    ge: { a: 'edge', a2: 'cage', lead: 'g e says j' },
+    ce: { a: 'ice', a2: 'race', lead: 'c e says s' },
+    ci: { a: 'city', a2: 'circle', lead: 'c i says s' },
+    cy: { a: 'icy', a2: 'juicy', lead: 'c y says s' },
+    ght: { a: 'night', a2: 'light', lead: 'g h t says t' },
+    ve: { a: 'give', a2: 'have' }, ll: { a: 'bell', a2: 'hill' }, ss: { a: 'grass', a2: 'miss' },
+    mp: { a: 'lamp', a2: 'camp' }, nk: { a: 'sink', a2: 'bank' },
+    nt: { a: 'tent', a2: 'hunt' }, nch: { a: 'lunch', a2: 'branch' },
+    st: { a: 'stop', a2: 'stem' }, sp: { a: 'spot', a2: 'speak' },
+
+    /* ---- consonant blends ---- */
+    bl: { a: 'black', a2: 'blue' }, br: { a: 'brick', a2: 'bring' },
+    cl: { a: 'clap', a2: 'clock' }, cr: { a: 'crab', a2: 'cross' },
+    dr: { a: 'drum', a2: 'dress' }, fl: { a: 'flag', a2: 'floor' },
+    gl: { a: 'glad', a2: 'glue' }, gr: { a: 'grab', a2: 'green' },
+    pl: { a: 'plan', a2: 'plus' }, sl: { a: 'sled', a2: 'slid' },
+    sw: { a: 'swim', a2: 'sweet' }, tr: { a: 'tree', a2: 'truck' },
+    scr: { a: 'scrap', a2: 'scrub' }, spl: { a: 'split', a2: 'splint' },
+    spr: { a: 'sprint', a2: 'spray' }, str: { a: 'street', a2: 'string' },
+    thr: { a: 'three', a2: 'throw' },
+
+    /* ---- short vowels. The letter NAME is the long sound, so
+            saying "a" here would teach the wrong thing outright. ---- */
+    a: { a: 'cat', a2: 'hat', lead: 'short a' },
+    e: { a: 'bed', a2: 'red', lead: 'short e' },
+    i: { a: 'pig', a2: 'sit', lead: 'short i' },
+    o: { a: 'hot', a2: 'pot', lead: 'short o' },
+    u: { a: 'cup', a2: 'bug', lead: 'short u' },
+
+    /* ---- vowel teams ---- */
+    ee: { a: 'feet', a2: 'green', lead: 'e e says ee' },
+    ea: { a: 'eat', a2: 'beach', lead: 'e a says ee' },
+    oa: { a: 'boat', a2: 'road', lead: 'o a says oh' },
+    ai: { a: 'rain', a2: 'train', lead: 'a i says ay' },
+    ay: { a: 'day', a2: 'play', lead: 'a y says ay' },
+    ew: { a: 'new', a2: 'flew', lead: 'e w says oo' },
+    ui: { a: 'fruit', a2: 'suit', lead: 'u i says oo' },
+    oo: { a: 'moon', a2: 'soon', lead: 'o o says oo' },
+    ou: { a: 'cloud', a2: 'shout', lead: 'o u says ow' },
+    ow: { a: 'snow', a2: 'yellow', lead: 'o w says oh' },
+    aigh: { a: 'rain', a2: 'eight', lead: 'a i g h says ay' },
+    igh: { a: 'night', a2: 'high', lead: 'i g h says long i' },
+
+    /* ---- r-controlled ---- */
+    ar: { a: 'car', a2: 'barn', lead: 'a r says ar' },
+    or: { a: 'fork', a2: 'storm', lead: 'o r says or' },
+    er: { a: 'her', a2: 'water', lead: 'e r says er' },
+    ur: { a: 'fur', a2: 'turn', lead: 'u r says er' },
+    ir: { a: 'bird', a2: 'shirt', lead: 'i r says er' },
+    ear: { a: 'hear', a2: 'near', lead: 'e a r says eer' },
+
+    /* ---- magic-e rimes: the e on the end makes the vowel long ---- */
+    ace: { a: 'race', a2: 'place' }, ade: { a: 'made', a2: 'shade' },
+    ame: { a: 'game', a2: 'name' }, ape: { a: 'tape', a2: 'grape' },
+    ase: { a: 'chase', a2: 'base' }, ave: { a: 'cave', a2: 'gave' },
+    ide: { a: 'ride', a2: 'slide' }, ife: { a: 'life', a2: 'wife' },
+    ise: { a: 'wise', a2: 'noise' }, ite: { a: 'kite', a2: 'white' },
+    obe: { a: 'robe', a2: 'globe' }, one: { a: 'bone', a2: 'stone' },
+    ounce: { a: 'bounce', a2: 'ounce' }, ange: { a: 'change', a2: 'orange' },
+
+    /* ---- syllable endings that garble on their own ---- */
+    le: { a: 'candle', a2: 'apple', lead: 'l e says ul' },
+    tle: { a: 'little', a2: 'turtle', lead: 't l e says ul' },
+    dle: { a: 'handle', a2: 'candle', lead: 'd l e says dul' },
+    cle: { a: 'circle', a2: 'uncle', lead: 'c l e says kul' },
+    ley: { a: 'valley', a2: 'pulley', lead: 'l e y says lee' },
+    ty: { a: 'city', a2: 'party', lead: 't y says tee' },
+    tly: { a: 'softly', a2: 'gently', lead: 't l y says tlee' },
+    ed: { a: 'landed', a2: 'floated', lead: 'the ending e d' },
+    ing: { a: 'going', a2: 'jumping' },
+
+    /* ---- odd fragments this curriculum happens to need ---- */
+    wei: { a: 'way', a2: 'weigh', lead: 'w e i says way' },
+    jui: { a: 'juice', a2: 'juicy', lead: 'j u i says joo' },
+    pho: { a: 'photo', a2: 'phone', lead: 'p h o says foh' },
+    meas: { a: 'measure', a2: 'treasure', lead: 'm e a s says mezh' },
+    ured: { a: 'measured', a2: 'treasured', lead: 'u r e d says urd' },
+    ure: { a: 'sure', a2: 'pure' }
+  };
+
+  /* A grapheme can say two different things depending on the word:
+     the oo in "moon" is not the oo in "brook". Rather than pick one
+     anchor and be wrong half the time, the exceptions are listed
+     per word. Key is "word:chunkIndex". */
+  var OVERRIDES = {
+    // oo: the book sound, not the moon sound
+    'brook:1': { a: 'book', a2: 'look', lead: 'o o says oo' },
+    'hook:1': { a: 'book', a2: 'look', lead: 'o o says oo' },
+    'wood:1': { a: 'book', a2: 'good', lead: 'o o says oo' },
+    // ow: the cow sound, not the snow sound
+    'down:1': { a: 'cow', a2: 'now', lead: 'o w says ow' },
+    'crowd:1': { a: 'cow', a2: 'now', lead: 'o w says ow' },
+    // ou: already the ow sound, but anchor away from the word itself
+    'mouth:1': { a: 'cloud', a2: 'shout', lead: 'o u says ow' },
+    'south:1': { a: 'cloud', a2: 'shout', lead: 'o u says ow' },
+    'trout:1': { a: 'cloud', a2: 'shout', lead: 'o u says ow' },
+    // ea: the bread sound, not the eat sound
+    'spread:1': { a: 'bread', a2: 'head', lead: 'e a says short e' },
+    // unstressed a at the start of a word
+    'apart:0': { a: 'about', a2: 'ago', lead: 'a says uh' }
+  };
+
+  function key(chunk) { return String(chunk || '').toLowerCase(); }
+
+  function entryFor(chunk, word, index) {
+    var o = OVERRIDES[String(word || '').toLowerCase() + ':' + index];
+    if (o) return o;
+    return CHUNKS[key(chunk)] || null;
+  }
+
+  /* Pick the anchor, avoiding the word we are currently decoding.
+     "s p, like in spin" is worthless while he is reading "spin". */
+  function anchorFor(e, word) {
+    var w = String(word || '').toLowerCase();
+    if (e.a && e.a.toLowerCase() !== w) return e.a;
+    if (e.a2 && e.a2.toLowerCase() !== w) return e.a2;
+    return e.a || e.a2 || '';
+  }
+
+  /* What to say for one chunk: a string made only of real words, so
+     no speech engine on any device can mangle it. Chunks that are
+     already pronounceable syllables are simply spoken as written. */
+  function chunkPhrase(chunk, word, index) {
+    var e = entryFor(chunk, word, index);
+    if (!e) return String(chunk);                  // real syllable: say it
+    var lead = e.lead || spellOut(chunk);
+    var anchor = anchorFor(e, word);
+    return anchor ? lead + ', like in ' + anchor + '.' : lead + '.';
+  }
+
+  /* Multi-letter graphemes are taught letter by letter: "a-r says ar".
+     Single letters are just themselves. */
+  function spellOut(chunk) {
+    var c = String(chunk);
+    return c.length === 1 ? c : c.split('').join(' ');
+  }
+
+  /* The full sound-out script for a word, as an ordered list of
+     steps. Each step is either a recorded-clip lookup (a chunk) or
+     a phrase to speak, plus which chunk to highlight.
+
+       { chunk, index, phrase, highlight }
+       { phrase, highlight: -1 }                */
+  function script(word, parts) {
+    var steps = [];
+    steps.push({ phrase: String(word), highlight: -1, whole: true });
+    (parts || []).forEach(function (p, i) {
+      steps.push({
+        chunk: p, index: i, highlight: i,
+        phrase: chunkPhrase(p, word, i)
+      });
+    });
+    if ((parts || []).length > 1) {
+      steps.push({ phrase: 'Now blend it.', highlight: -1 });
+      steps.push({ phrase: String(word), highlight: -1, whole: true });
+    }
+    return steps;
+  }
+
+  /* Every distinct chunk in the whole course, for the recording
+     booth: record these ~90 once and every word benefits. */
+  function allChunks() {
+    var seen = Object.create(null), out = [];
+    Curriculum.allDays().forEach(function (d) {
+      d.reading.words.forEach(function (w) {
+        w.parts.forEach(function (p, i) {
+          var k = key(p);
+          if (seen[k]) return;
+          seen[k] = true;
+          out.push({
+            chunk: p,
+            phrase: chunkPhrase(p, w.w, i),
+            anchor: (entryFor(p, w.w, i) || {}).a || '',
+            example: w.w
+          });
+        });
+      });
+    });
+    return out.sort(function (a, b) {
+      return a.chunk.length - b.chunk.length || a.chunk.localeCompare(b.chunk);
+    });
+  }
+
+  /* Audit hook, used by the test suite. A chunk is "risky" if the
+     synthesizer cannot be trusted to say it: a single letter, or
+     any chunk with no vowel in it. Every risky chunk must have an
+     anchor word, or somebody will hear "eff eff eff" again. */
+  function audit() {
+    var problems = [];
+    Curriculum.allDays().forEach(function (d) {
+      d.reading.words.forEach(function (w) {
+        if (w.parts.join('').toLowerCase().replace(/-/g, '') !== w.w.toLowerCase().replace(/-/g, '')) {
+          problems.push(w.w + ': chunks spell "' + w.parts.join('') + '"');
+        }
+        w.parts.forEach(function (p, i) {
+          if (!p || !String(p).trim()) {
+            problems.push(w.w + ': empty chunk at ' + i);
+            return;
+          }
+          var e = entryFor(p, w.w, i);
+          var risky = p.length === 1 || !/[aeiouy]/i.test(p);
+          if (risky && !e) {
+            problems.push(w.w + ': chunk "' + p + '" has no anchor word');
+            return;
+          }
+          if (!e) return;
+          // an anchor that IS the word being decoded teaches nothing
+          if (anchorFor(e, w.w).toLowerCase() === w.w.toLowerCase()) {
+            problems.push(w.w + ': chunk "' + p + '" anchors to the word itself — needs an a2');
+          }
+          // and the phrase must not contain the answer either
+          var phrase = chunkPhrase(p, w.w, i).toLowerCase();
+          if (p.length < w.w.length && new RegExp('\\b' + w.w.toLowerCase() + '\\b').test(phrase)) {
+            problems.push(w.w + ': chunk "' + p + '" phrase gives the word away: "' + phrase + '"');
+          }
+        });
+      });
+    });
+    return problems;
+  }
+
+  return {
+    script: script, chunkPhrase: chunkPhrase, allChunks: allChunks,
+    audit: audit, entryFor: entryFor
+  };
 })();
 
 
@@ -4884,7 +5191,19 @@ window.Recordings = (function () {
       lines: praise
     });
 
-    // 3. one group per mission day
+    // 3. the letter sounds. A synthesizer physically cannot say an
+    //    isolated /f/; a person can. Recording each chunk once fixes
+    //    the sound-out for every word in the course that uses it.
+    groups.push({
+      id: 'sounds', em: '🔤', name: 'Letter sounds',
+      blurb: 'Say each one as a pure sound — "ffff", not "eff". Recorded once, each of these works in every word ' +
+             'across all 60 days, and it is the one thing the computer voice genuinely cannot do.',
+      lines: Phonics.allChunks().map(function (c) {
+        return { text: c.chunk, kind: 'sound', note: 'as in "' + (c.anchor || c.example) + '"' };
+      })
+    });
+
+    // 4. one group per mission day
     Curriculum.allDays().forEach(function (d) {
       var lines = [];
       d.discover.intro.forEach(function (t) { lines.push({ text: t, kind: 'say', note: 'science' }); });
@@ -4895,7 +5214,6 @@ window.Recordings = (function () {
       d.numbers.problems.forEach(function (p, i) { pushItem(lines, p, 'math ' + (i + 1)); });
       d.reading.words.forEach(function (w) {
         lines.push({ text: w.w, kind: 'say', note: 'word' });
-        w.sounds.forEach(function (s) { lines.push({ text: s, kind: 'sound', note: 'sound in "' + w.w + '"' }); });
       });
       lines.push({ text: d.reading.sentence, kind: 'say', note: 'sentence' });
       pushItem(lines, d.reading.comp, 'comprehension');
@@ -5117,26 +5435,47 @@ window.Voice = (function () {
 
   function pause(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
-  /* Stretch one sound out: "sss", "ah", "or". Slow + slightly lower
-     so a single phoneme is hearable instead of a blip. Tagged as
-     kind 'sound' so a recorded "or" phoneme is stored separately
-     from a recording of the word "or". */
-  function sayPhoneme(sound) {
-    return say(sound, { rate: 0.55, pitch: 1.05, kind: 'sound' });
+  /* Say one letter chunk.
+
+     If somebody has recorded this chunk in the booth, play their
+     voice — a human can say a true isolated /f/ and no synthesizer
+     can. Otherwise fall back to the anchor-word phrase from
+     phonics.js ("f, like in fan"), which is built entirely out of
+     real words so no engine can garble it.
+
+     Note there is no rate stretching here any more. Slowing the
+     synthesizer down to 0.55 was part of what made the old fake
+     phonemes sound like noise. */
+  function sayChunk(chunk, word, index) {
+    if (window.Recordings && Recordings.has(chunk, 'sound')) {
+      return say(chunk, { kind: 'sound' });
+    }
+    var phrase = window.Phonics ? Phonics.chunkPhrase(chunk, word, index) : String(chunk);
+    return say(phrase, { rate: 0.8 });
   }
 
-  /* Sound out a word the way a reading teacher does:
-     each part slowly, then the parts a little faster, then the word. */
-  function soundOut(word, parts) {
+  /* Kept for the recording booth, which needs to preview the clip
+     for one chunk on its own. */
+  function sayPhoneme(sound) {
+    return say(sound, { kind: 'sound' });
+  }
+
+  /* Sound out a word the way a reading teacher does: the whole word,
+     each chunk anchored in a real word, then the blend.
+     onStep(highlightIndex) lets the UI light the chunk being said. */
+  function soundOut(word, parts, onStep) {
+    var steps = window.Phonics
+      ? Phonics.script(word, parts)
+      : [{ phrase: word, highlight: -1 }];
     var p = Promise.resolve();
-    (parts || []).forEach(function (s) {
-      p = p.then(function () { return sayPhoneme(s); }).then(function () { return pause(180); });
+    steps.forEach(function (st) {
+      p = p.then(function () {
+        if (onStep) onStep(st.highlight);
+        if (st.chunk != null) return sayChunk(st.chunk, word, st.index);
+        return say(st.phrase, { rate: st.whole ? 0.75 : 0.85 });
+      }).then(function () { return pause(180); });
     });
-    return p
-      .then(function () { return pause(200); })
-      .then(function () { return say(parts.join(' '), { rate: 0.7 }); })
-      .then(function () { return pause(200); })
-      .then(function () { return say(word, { rate: 0.75 }); });
+    return p.then(function () { if (onStep) onStep(-1); });
   }
 
   /* --------------------------- LISTENING --------------------------- */
@@ -5252,7 +5591,7 @@ window.Voice = (function () {
   }
 
   return {
-    say: say, sayLines: sayLines, sayPhoneme: sayPhoneme, soundOut: soundOut,
+    say: say, sayLines: sayLines, sayPhoneme: sayPhoneme, sayChunk: sayChunk, soundOut: soundOut,
     stop: stop, unlock: unlock, pause: pause,
     listen: listen, abortListen: abortListen, canListen: canListen, match: match, norm: norm,
     get settings() { return settings; },
@@ -6381,7 +6720,8 @@ window.Stations = (function () {
         c.addEventListener('click', function () {
           Voice.stop();
           light(idx);
-          Voice.sayPhoneme(word.sounds[idx] || p).then(function () { light(-1); });
+          // "f, like in fan" — or Grandpa's recorded /f/ if it exists
+          Voice.sayChunk(p, word.w, idx).then(function () { light(-1); });
         });
         wordRow.appendChild(c);
         return c;
@@ -6413,14 +6753,7 @@ window.Stations = (function () {
       function sayWord() { Voice.stop(); return Voice.say(word.w, { rate: 0.72 }); }
       function soundOut() {
         Voice.stop();
-        var p = Promise.resolve();
-        word.parts.forEach(function (_, idx) {
-          p = p.then(function () {
-            light(idx);
-            return Voice.sayPhoneme(word.sounds[idx] || word.parts[idx]);
-          }).then(function () { return Voice.pause(140); });
-        });
-        return p.then(function () { light(-1); return Voice.say(word.w, { rate: 0.7 }); });
+        return Voice.soundOut(word.w, word.parts, light);
       }
       hearBtn.addEventListener('click', sayWord);
       slowBtn.addEventListener('click', soundOut);
@@ -6450,7 +6783,7 @@ window.Stations = (function () {
           }
           var conf = Voice.match(word.w, res.transcript, res.alternatives);
           var v = Evaluate.judgeSpoken({
-            word: word.w, parts: word.sounds, confidence: conf, attempt: attempt,
+            word: word.w, parts: word.parts, confidence: conf, attempt: attempt,
             heard: res.transcript, ms: Date.now() - t0, itemId: day.id + '-w' + wi
           });
           App.setThinkMeter(v.focus);
@@ -7594,7 +7927,7 @@ window.App = (function () {
         n.appendChild(el('span', 'dt', w.parts.join(' · ')));
         n.addEventListener('click', function () {
           Voice.stop();
-          Voice.soundOut(w.w, w.sounds);
+          Voice.soundOut(w.w, w.parts);
         });
         grid.appendChild(n);
       });

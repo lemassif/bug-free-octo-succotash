@@ -81,10 +81,16 @@ window.Curriculum = (function () {
     return x === 1 ? { t: t, correct: true } : { t: t, tag: x };
   }
 
-  /* W('orbit', ['or','bit'], ['or','bit']) — spelling chunks he taps,
-     and how each chunk should be pronounced when read back to him. */
-  function W(word, parts, sounds, mean) {
-    return { w: word, parts: parts, sounds: sounds || parts, mean: mean || '' };
+  /* W('orbit', ['or','bit'], 'the path around something')
+
+     `parts` are the SPELLING chunks he taps and decodes. How each
+     chunk gets said out loud is not stored here — js/phonics.js
+     owns that, keyed by the chunk itself, so "ar" is pronounced the
+     same way in "far", "star" and "Mars" and only has to be right
+     in one place. Do not invent phonetic spellings like 'fff' here;
+     that is exactly what used to make the sound-out wrong. */
+  function W(word, parts, mean) {
+    return { w: word, parts: parts, mean: mean || '' };
   }
 
   function addDays(unitNo, list) {

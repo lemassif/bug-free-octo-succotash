@@ -62,9 +62,9 @@
     },
     reading: {
       words: [
-        W('shed', ['sh', 'e', 'd'], ['sh', 'eh', 'd'], 'to drop off an old covering'),
-        W('damp', ['d', 'a', 'mp'], ['d', 'a', 'mp'], 'a little bit wet'),
-        W('thin', ['th', 'in'], ['th', 'in'], 'not thick')
+        W('shed', ['sh', 'e', 'd'], 'to drop off an old covering'),
+        W('damp', ['d', 'a', 'mp'], 'a little bit wet'),
+        W('thin', ['th', 'in'], 'not thick')
       ],
       sentence: 'A salamander has thin damp skin, and it can shed the old skin as it grows.',
       comp: {
@@ -125,9 +125,9 @@
     },
     reading: {
       words: [
-        W('hatch', ['h', 'a', 'tch'], ['h', 'a', 'ch'], 'to break out of an egg'),
-        W('chin', ['ch', 'in'], ['ch', 'in'], 'the part below your mouth'),
-        W('shell', ['sh', 'e', 'll'], ['sh', 'eh', 'l'], 'a hard outer cover')
+        W('hatch', ['h', 'a', 'tch'], 'to break out of an egg'),
+        W('chin', ['ch', 'in'], 'the part below your mouth'),
+        W('shell', ['sh', 'e', 'll'], 'a hard outer cover')
       ],
       sentence: 'The eggs hatch in the pond, and each shell splits as the larva swims out.',
       comp: {
@@ -191,9 +191,9 @@
     },
     reading: {
       words: [
-        W('moth', ['m', 'o', 'th'], ['mmm', 'o', 'th'], 'a night-flying insect'),
-        W('chip', ['ch', 'i', 'p'], ['ch', 'i', 'p'], 'a small broken piece'),
-        W('shade', ['sh', 'ade'], ['sh', 'ayd'], 'a spot out of the sun')
+        W('moth', ['m', 'o', 'th'], 'a night-flying insect'),
+        W('chip', ['ch', 'i', 'p'], 'a small broken piece'),
+        W('shade', ['sh', 'ade'], 'a spot out of the sun')
       ],
       sentence: 'In the cool shade under the log, a moth and a wood chip lay in the damp dirt.',
       comp: {
@@ -255,9 +255,9 @@
     },
     reading: {
       words: [
-        W('chunk', ['ch', 'u', 'nk'], ['ch', 'uh', 'nk'], 'a thick piece'),
-        W('path', ['p', 'a', 'th'], ['p', 'a', 'th'], 'a track to walk on'),
-        W('brush', ['br', 'u', 'sh'], ['br', 'uh', 'sh'], 'thick low bushes')
+        W('chunk', ['ch', 'u', 'nk'], 'a thick piece'),
+        W('path', ['p', 'a', 'th'], 'a track to walk on'),
+        W('brush', ['br', 'u', 'sh'], 'thick low bushes')
       ],
       sentence: 'A chunk of bark fell on the path beside the thick brush.',
       comp: {
@@ -319,9 +319,9 @@
     },
     reading: {
       words: [
-        W('splash', ['spl', 'a', 'sh'], ['spl', 'a', 'sh'], 'the sound water makes when hit'),
-        W('chase', ['ch', 'ase'], ['ch', 'ayss'], 'to run after'),
-        W('thick', ['th', 'i', 'ck'], ['th', 'i', 'k'], 'not thin')
+        W('splash', ['spl', 'a', 'sh'], 'the sound water makes when hit'),
+        W('chase', ['ch', 'ase'], 'to run after'),
+        W('thick', ['th', 'i', 'ck'], 'not thin')
       ],
       sentence: 'The frog made a splash in the thick weeds, and the fish did not chase it.',
       comp: {
@@ -383,9 +383,9 @@
     },
     reading: {
       words: [
-        W('soaking', ['soak', 'ing'], ['sohk', 'ing'], 'getting very wet'),
-        W('floated', ['float', 'ed'], ['floht', 'id'], 'stayed on top of water'),
-        W('dripping', ['drip', 'ping'], ['drip', 'ing'], 'falling in drops')
+        W('soaking', ['soak', 'ing'], 'getting very wet'),
+        W('floated', ['float', 'ed'], 'stayed on top of water'),
+        W('dripping', ['drip', 'ping'], 'falling in drops')
       ],
       sentence: 'The soaking leaf floated by while rain was dripping off the branch.',
       comp: {
@@ -446,9 +446,9 @@
     },
     reading: {
       words: [
-        W('rushing', ['rush', 'ing'], ['rush', 'ing'], 'moving fast'),
-        W('slipped', ['slip', 'ped'], ['slip', 't'], 'slid by accident'),
-        W('running', ['run', 'ning'], ['run', 'ing'], 'moving quickly')
+        W('rushing', ['rush', 'ing'], 'moving fast'),
+        W('slipped', ['slip', 'ped'], 'slid by accident'),
+        W('running', ['run', 'ning'], 'moving quickly')
       ],
       sentence: 'The rushing creek was running fast when Chance slipped on a wet rock.',
       comp: {
@@ -509,9 +509,9 @@
     },
     reading: {
       words: [
-        W('tumbled', ['tum', 'bled'], ['tum', 'bld'], 'rolled over and over'),
-        W('cracking', ['crack', 'ing'], ['krak', 'ing'], 'breaking apart'),
-        W('washed', ['wash', 'ed'], ['wosh', 't'], 'carried away by water')
+        W('tumbled', ['tum', 'bled'], 'rolled over and over'),
+        W('cracking', ['crack', 'ing'], 'breaking apart'),
+        W('washed', ['wash', 'ed'], 'carried away by water')
       ],
       sentence: 'The stone tumbled and washed downstream while the ice was cracking above.',
       comp: {
@@ -572,9 +572,9 @@
     },
     reading: {
       words: [
-        W('freezing', ['freez', 'ing'], ['freez', 'ing'], 'turning to ice'),
-        W('cracked', ['crack', 'ed'], ['krak', 't'], 'split open'),
-        W('floating', ['float', 'ing'], ['floht', 'ing'], 'resting on top of water')
+        W('freezing', ['freez', 'ing'], 'turning to ice'),
+        W('cracked', ['crack', 'ed'], 'split open'),
+        W('floating', ['float', 'ing'], 'resting on top of water')
       ],
       sentence: 'The freezing pond had cracked ice floating on the still water.',
       comp: {
@@ -635,9 +635,9 @@
     },
     reading: {
       words: [
-        W('filling', ['fill', 'ing'], ['fil', 'ing'], 'putting in until full'),
-        W('measured', ['meas', 'ured'], ['mezh', 'urd'], 'found the exact amount'),
-        W('marked', ['mark', 'ed'], ['mark', 't'], 'made a sign to remember a spot')
+        W('filling', ['fill', 'ing'], 'putting in until full'),
+        W('measured', ['meas', 'ured'], 'found the exact amount'),
+        W('marked', ['mark', 'ed'], 'made a sign to remember a spot')
       ],
       sentence: 'Chance measured the creek and marked the rock while filling his notebook.',
       comp: {
@@ -703,9 +703,9 @@
     },
     reading: {
       words: [
-        W('brook', ['br', 'oo', 'k'], ['br', 'ook', ''], 'a small creek'),
-        W('trout', ['tr', 'ou', 't'], ['tr', 'owt', ''], 'a cold-water fish'),
-        W('cool', ['c', 'oo', 'l'], ['k', 'oool', ''], 'a little bit cold')
+        W('brook', ['br', 'oo', 'k'], 'a small creek'),
+        W('trout', ['tr', 'ou', 't'], 'a cold-water fish'),
+        W('cool', ['c', 'oo', 'l'], 'a little bit cold')
       ],
       sentence: 'A trout will hold still in the cool brook where the water runs fast.',
       comp: {
@@ -773,9 +773,9 @@
     },
     reading: {
       words: [
-        W('down', ['d', 'ow', 'n'], ['d', 'own', ''], 'toward the ground'),
-        W('float', ['fl', 'oa', 't'], ['fl', 'oht', ''], 'to rest on top of water'),
-        W('hook', ['h', 'oo', 'k'], ['h', 'ook', ''], 'a bent piece of metal for fishing')
+        W('down', ['d', 'ow', 'n'], 'toward the ground'),
+        W('float', ['fl', 'oa', 't'], 'to rest on top of water'),
+        W('hook', ['h', 'oo', 'k'], 'a bent piece of metal for fishing')
       ],
       sentence: 'The hook went down deep, but the float stayed up on top.',
       comp: {
@@ -837,9 +837,9 @@
     },
     reading: {
       words: [
-        W('mouth', ['m', 'ou', 'th'], ['mmm', 'owth', ''], 'the opening you eat with'),
-        W('food', ['f', 'oo', 'd'], ['fff', 'oood', ''], 'what living things eat'),
-        W('crowd', ['cr', 'ow', 'd'], ['kr', 'owd', ''], 'a lot of them in one place')
+        W('mouth', ['m', 'ou', 'th'], 'the opening you eat with'),
+        W('food', ['f', 'oo', 'd'], 'what living things eat'),
+        W('crowd', ['cr', 'ow', 'd'], 'a lot of them in one place')
       ],
       sentence: 'A crowd of small fish took food into each mouth down in the shade.',
       comp: {
@@ -900,9 +900,9 @@
     },
     reading: {
       words: [
-        W('slow', ['sl', 'ow'], ['sl', 'oh'], 'not fast'),
-        W('cool', ['c', 'oo', 'l'], ['k', 'oool', ''], 'a bit cold'),
-        W('south', ['s', 'ou', 'th'], ['sss', 'owth', ''], 'the warm direction, away from north')
+        W('slow', ['sl', 'ow'], 'not fast'),
+        W('cool', ['c', 'oo', 'l'], 'a bit cold'),
+        W('south', ['s', 'ou', 'th'], 'the warm direction, away from north')
       ],
       sentence: 'When the cool days come, the slow fish move to the deep south end of the pond.',
       comp: {
@@ -968,9 +968,9 @@
     },
     reading: {
       words: [
-        W('throw', ['thr', 'ow'], ['thr', 'oh'], 'to send through the air'),
-        W('loop', ['l', 'oo', 'p'], ['lll', 'oooop', ''], 'a circle of line'),
-        W('out', ['ou', 't'], ['owt', ''], 'away from where you are')
+        W('throw', ['thr', 'ow'], 'to send through the air'),
+        W('loop', ['l', 'oo', 'p'], 'a circle of line'),
+        W('out', ['ou', 't'], 'away from where you are')
       ],
       sentence: 'He let the loop of line throw the lure out over the deep pool.',
       comp: {
@@ -1033,9 +1033,9 @@
     },
     reading: {
       words: [
-        W('cell', ['c', 'e', 'll'], ['sss', 'eh', 'l'], 'the tiny building block of living things'),
-        W('juice', ['j', 'ui', 'ce'], ['j', 'ooo', 'ss'], 'liquid from a plant'),
-        W('center', ['cen', 'ter'], ['sen', 'ter'], 'the middle')
+        W('cell', ['c', 'e', 'll'], 'the tiny building block of living things'),
+        W('juice', ['j', 'ui', 'ce'], 'liquid from a plant'),
+        W('center', ['cen', 'ter'], 'the middle')
       ],
       sentence: 'Each cell in the center of the trunk can hold juice and water.',
       comp: {
@@ -1097,9 +1097,9 @@
     },
     reading: {
       words: [
-        W('edge', ['e', 'dge'], ['eh', 'j'], 'the outside line of something'),
-        W('gentle', ['gen', 'tle'], ['jen', 'tul'], 'soft and careful'),
-        W('space', ['sp', 'ace'], ['sp', 'ayss'], 'an empty place')
+        W('edge', ['e', 'dge'], 'the outside line of something'),
+        W('gentle', ['gen', 'tle'], 'soft and careful'),
+        W('space', ['sp', 'ace'], 'an empty place')
       ],
       sentence: 'A gentle wind moved the edge of the leaf into the open space.',
       comp: {
@@ -1160,9 +1160,9 @@
     },
     reading: {
       words: [
-        W('ridge', ['ri', 'dge'], ['rih', 'j'], 'a long raised line, like a hilltop'),
-        W('city', ['ci', 'ty'], ['sih', 'tee'], 'a big town'),
-        W('change', ['ch', 'ange'], ['ch', 'aynj'], 'to become different')
+        W('ridge', ['ri', 'dge'], 'a long raised line, like a hilltop'),
+        W('city', ['ci', 'ty'], 'a big town'),
+        W('change', ['ch', 'ange'], 'to become different')
       ],
       sentence: 'On the ridge above the city, the leaves change color first.',
       comp: {
@@ -1223,9 +1223,9 @@
     },
     reading: {
       words: [
-        W('juicy', ['jui', 'cy'], ['joo', 'see'], 'full of liquid'),
-        W('bridge', ['bri', 'dge'], ['brih', 'j'], 'something you cross over water on'),
-        W('circle', ['cir', 'cle'], ['sur', 'kul'], 'a round shape')
+        W('juicy', ['jui', 'cy'], 'full of liquid'),
+        W('bridge', ['bri', 'dge'], 'something you cross over water on'),
+        W('circle', ['cir', 'cle'], 'a round shape')
       ],
       sentence: 'Under the bridge a circle of juicy mushrooms grew in the wet dirt.',
       comp: {
@@ -1290,9 +1290,9 @@
     },
     reading: {
       words: [
-        W('dig', ['d', 'i', 'g'], ['d', 'i', 'g'], 'to make a hole'),
-        W('gently', ['gen', 'tly'], ['jent', 'lee'], 'in a soft careful way'),
-        W('space', ['sp', 'ace'], ['sp', 'ayss'], 'room between things')
+        W('dig', ['d', 'i', 'g'], 'to make a hole'),
+        W('gently', ['gen', 'tly'], 'in a soft careful way'),
+        W('space', ['sp', 'ace'], 'room between things')
       ],
       sentence: 'Dig gently and give each seed some space in the rich soil.',
       comp: {
