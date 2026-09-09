@@ -20,7 +20,10 @@ window.App = (function () {
   }
 
   /* ---------------------------- routing --------------------------- */
+  var currentScreen = null;
+
   function go(name, arg) {
+    currentScreen = name;
     Voice.stop();
     hideCoach();
     setActions([]);
@@ -35,22 +38,78 @@ window.App = (function () {
     if (name === 'mission' && arg) Stations.run(arg.day, arg.station);
   }
 
-  /* -------------------------- action bar -------------------------- */
-  function setActions(list) {
+  /* -------------------------- action bar --------------------------
+
+     Inside a mission, Stop and Home ride along on EVERY action bar —
+     before a question, while he is answering it, and after. They are
+     added here rather than at each call site so a station can never
+     forget them and leave him stuck with only "Next".
+
+       ⏹ Stop  hushes the narration instantly and stays put
+       🏠 Home  leaves the lesson for the picture menu
+
+     Both are deliberately small next to the wide primary button, so
+     the thing to do next is still the obvious one.
+     ---------------------------------------------------------------- */
+  function setActions(list, opts) {
     if (!actionsBar) {
       actionsBar = el('div', 'actions');
       document.body.appendChild(actionsBar);
     }
     actionsBar.innerHTML = '';
-    if (!list || !list.length) { actionsBar.style.display = 'none'; return; }
+
+    var items = (list || []).slice();
+    if (currentScreen === 'mission' && !(opts && opts.bare)) {
+      items = missionExits().concat(items);
+    }
+    if (!items.length) { actionsBar.style.display = 'none'; return; }
+
     actionsBar.style.display = 'flex';
-    list.forEach(function (a) {
+    items.forEach(function (a) {
       var b = el('button', 'btn-big ' + (a.cls || ''));
       if (a.em) b.appendChild(el('span', null, a.em));
       b.appendChild(el('span', null, a.label));
-      b.addEventListener('click', a.fn);
+      b.addEventListener('click', function () { a.fn(b); });
       actionsBar.appendChild(b);
     });
+  }
+
+  function missionExits() {
+    return [
+      {
+        /* 🔇 rather than ⏹ — the crossed-out speaker reads as "no more
+           talking" to a 7-year-old, and it mirrors the 🔊 read-it-again
+           button in the top bar. ⏹ renders as a tiny grey square. */
+        label: 'Stop', em: '🔇', cls: 'ghost compact', fn: function (btn) {
+          Voice.stop();
+          hideCoach();
+          // silent by itself, so show that the tap landed
+          btn.classList.add('hushed');
+          setTimeout(function () { btn.classList.remove('hushed'); }, 900);
+        }
+      },
+      {
+        label: 'Home', em: '🏠', cls: 'ghost compact', fn: function () { confirmHome(); }
+      }
+    ];
+  }
+
+  /* Leaving mid-station means that station's star is not earned yet,
+     and a 7-year-old's thumb finds buttons by accident. One picture-
+     clear tap to confirm, no reading required. */
+  function confirmHome() {
+    Voice.stop();
+    var day = Stations.current() && Stations.current().day;
+    sheet([
+      big('🏠'),
+      h3('Stop for now?'),
+      p(day ? 'Your stars are saved. You can pick up Day ' + day.n + ' again any time.'
+            : 'Your stars are saved.'),
+      row([
+        btn('▶️', 'Keep going', function () { closeSheet(); }),
+        btn('🏠', 'Yes, go home', function () { closeSheet(); go('home'); })
+      ])
+    ]);
   }
 
   /* ---------------------------- the owl --------------------------- */
@@ -137,7 +196,7 @@ window.App = (function () {
 
   /* --------------------- end of a station / day ------------------- */
   function stationFinished(day, station, res, done, summary) {
-    setActions([]);
+    setActions([], { bare: true });   // the reward sheet carries its own buttons
     var all = done.length >= 3;
     var names = { discover: 'Science', numbers: 'Numbers', reading: 'Read & Say' };
 
@@ -422,6 +481,8 @@ window.App = (function () {
       if (v.indexOf('station:') === 0) {
         var day = Progress.nextDay();
         go('mission', { day: day, station: v.split(':')[1] });
+      } else if (v === 'home' && currentScreen === 'mission') {
+        confirmHome();          // same check as the bottom Home button
       } else {
         go(v);
       }

@@ -46,6 +46,19 @@ predictable and his attention goes to the content:
 Finish a stop, earn a ⭐. Finish all three, the day is stamped on the map. Get
 every answer right on the first try and you earn a 💎 Clear Thinker gem.
 
+**He is never trapped in a lesson.** Two buttons sit at the bottom of every
+screen inside a mission — while the lesson reads, while a question is on screen,
+and after he answers it:
+
+| | | |
+|---|---|---|
+| 🔇 | **Stop** | Hushes the talking instantly and stays where it is. For when the owl is mid-sentence and he is ready to move on |
+| 🏠 | **Home** | Leaves for the picture menu. Asks "Stop for now?" first, so a stray thumb doesn't wipe out a half-finished station |
+
+They are deliberately small next to the wide green button, so what to do *next*
+is still the obvious thing to tap. The little 🏠 in the top corner asks the same
+question.
+
 The other tiles: **Mission Map** (all 60 days, jump to any one), **My Rewards**
 (badges, goals, and the share button), **Word Wall** (all 180 phonics words,
 tap any one to hear it sounded out).

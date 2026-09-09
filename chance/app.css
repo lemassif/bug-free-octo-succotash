@@ -219,7 +219,7 @@ button { font-family: inherit; font-size: inherit; border: 0; background: none; 
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
   padding: 12px 14px max(14px, env(safe-area-inset-bottom));
   background: linear-gradient(180deg, rgba(244,247,251,0), var(--paper) 40%);
-  display: flex; gap: 10px; justify-content: center;
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
 }
 .btn-big {
   flex: 1; max-width: 420px; min-height: 68px; border-radius: 22px;
@@ -231,6 +231,16 @@ button { font-family: inherit; font-size: inherit; border: 0; background: none; 
 .btn-big:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--leaf-deep); }
 .btn-big.sun { background: linear-gradient(180deg, #ffd978, var(--sun)); box-shadow: 0 6px 0 var(--sun-deep); color: #4a3200; }
 .btn-big.ghost { background: #fff; border: 2px solid var(--line); box-shadow: var(--shadow); color: var(--ink); }
+
+/* Stop and Home: always reachable inside a mission, but sized so the
+   wide primary button is still obviously the thing to tap next. */
+.btn-big.compact {
+  flex: 0 1 auto; min-width: 104px; max-width: 150px;
+  font-size: 17px; min-height: 64px; gap: 7px; padding: 0 14px;
+}
+.btn-big.compact.hushed {
+  background: var(--sun); border-color: var(--sun-deep); color: #4a3200;
+}
 
 /* ------------------------------- COACH ------------------------------ */
 /* An author `display` beats the UA stylesheet's [hidden] rule, so the
