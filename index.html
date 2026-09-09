@@ -59,6 +59,10 @@
   .name.cubert { color: #ff9a4d; }
   .name.miner { color: #ffd34d; }
   .name.ferrow { color: #f0b763; letter-spacing: 3px; }
+  .name.chance { color: #7ee0a8; letter-spacing: 2px; }
+  a.card.learn { background: linear-gradient(160deg, rgba(24,58,96,.7), rgba(10,26,47,.85)); border-color: rgba(126,224,168,.35); }
+  @media (hover: hover) { a.card.learn:hover { border-color: rgba(126,224,168,.75); } }
+  .play.learn { background: linear-gradient(180deg, #a8f0c8, #4fc98a); }
   .desc { font-size: 13px; opacity: .78; line-height: 1.45; }
   .play {
     margin-top: 6px; font-weight: 800; letter-spacing: 1px; font-size: 15px;
@@ -70,9 +74,42 @@
 </head>
 <body>
   <h1>RETRO ARCADE</h1>
-  <p class="sub">Three hand-built games · works on desktop &amp; iPhone</p>
+  <p class="sub">Three hand-built games &amp; one learning academy · works on desktop, iPhone &amp; iPad</p>
 
   <div class="games">
+    <a class="card learn" href="chance/">
+      <!-- Chance Academy: ringed planet over a green hill -->
+      <svg class="art" viewBox="0 0 300 132" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs>
+          <linearGradient id="csky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#132f54"/><stop offset="1" stop-color="#091a2f"/>
+          </linearGradient>
+          <linearGradient id="cplanet" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#c98a1c"/>
+          </linearGradient>
+          <linearGradient id="chill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2fae6a"/><stop offset="1" stop-color="#166b3f"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="132" rx="12" fill="url(#csky)"/>
+        <g fill="#fff">
+          <circle cx="24" cy="20" r="1.6" opacity=".8"/><circle cx="62" cy="38" r="1.2" opacity=".6"/>
+          <circle cx="106" cy="16" r="1.5" opacity=".75"/><circle cx="196" cy="24" r="1.3" opacity=".65"/>
+          <circle cx="240" cy="44" r="1.7" opacity=".85"/><circle cx="276" cy="18" r="1.2" opacity=".6"/>
+          <circle cx="44" cy="66" r="1.3" opacity=".55"/><circle cx="262" cy="74" r="1.4" opacity=".6"/>
+        </g>
+        <!-- ring back, planet, ring front -->
+        <ellipse cx="150" cy="56" rx="54" ry="15" fill="none" stroke="#ffe27a" stroke-width="4" opacity=".85"/>
+        <circle cx="150" cy="56" r="29" fill="url(#cplanet)"/>
+        <path d="M96 56 a54 15 0 0 0 108 0" fill="none" stroke="#ffe27a" stroke-width="4" opacity=".95"/>
+        <path d="M0 104 Q 75 78 150 92 T 300 88 L300 132 L0 132 Z" fill="url(#chill)"/>
+        <text x="150" y="126" text-anchor="middle" font-family="Trebuchet MS, system-ui, sans-serif" font-size="11" font-weight="800" fill="#0a2a1c">SCIENCE · NUMBERS · READING</text>
+      </svg>
+      <span class="name chance">CHANCE ACADEMY</span>
+      <span class="desc">A 60-day science, math &amp; phonics course for a curious second-grader. Five to ten minutes a day, every lesson read aloud, real-time coaching on <em>how</em> he's thinking.</span>
+      <span class="play learn">START ▶</span>
+    </a>
+
     <a class="card" href="cubert.html">
       <!-- Cubert: isometric pyramid -->
       <svg class="art" viewBox="0 0 300 132" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
@@ -184,7 +221,7 @@
     </a>
   </div>
 
-  <footer>Tip: on iPhone, open a game then Share → Add to Home Screen to play fullscreen &amp; offline.</footer>
+  <footer>Tip: on iPhone or iPad, open one of these then Share → Add to Home Screen for a fullscreen icon that works offline.<br>Chance Academy wants Safari — it reads lessons aloud and listens to him read back.</footer>
 <script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }</script>
 </body>
 </html>
