@@ -59,6 +59,7 @@
   .name.cubert { color: #ff9a4d; }
   .name.miner { color: #ffd34d; }
   .name.ferrow { color: #f0b763; letter-spacing: 3px; }
+  .name.golf { color: #8ee86b; letter-spacing: 2px; }
   .desc { font-size: 13px; opacity: .78; line-height: 1.45; }
   .play {
     margin-top: 6px; font-weight: 800; letter-spacing: 1px; font-size: 15px;
@@ -70,7 +71,7 @@
 </head>
 <body>
   <h1>RETRO ARCADE</h1>
-  <p class="sub">Three hand-built games · works on desktop &amp; iPhone</p>
+  <p class="sub">Four hand-built games · works on desktop &amp; iPhone</p>
 
   <div class="games">
     <a class="card" href="cubert.html">
@@ -181,6 +182,46 @@
       <span class="name ferrow">FERROW LIGHT</span>
       <span class="desc">A four-chapter text adventure. Relight the tower, rescue the keeper, put out the wreckers' false light — before dawn.</span>
       <span class="play">PLAY ▶</span>
+    </a>
+
+    <a class="card" href="golf.html">
+      <!-- Mulligan Cup: behind-the-ball view of a fairway, flag and ball arc -->
+      <svg class="art" viewBox="0 0 300 132" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs>
+          <linearGradient id="gsky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#3fa2ee"/><stop offset="1" stop-color="#d9f2ff"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="132" rx="12" fill="url(#gsky)"/>
+        <ellipse cx="70" cy="26" rx="30" ry="9" fill="#fff" opacity=".92"/><ellipse cx="92" cy="30" rx="20" ry="7" fill="#fff" opacity=".92"/>
+        <ellipse cx="236" cy="20" rx="24" ry="7" fill="#fff" opacity=".92"/>
+        <path d="M0 62 Q40 44 90 58 T190 54 T300 58 L300 132 L0 132Z" fill="#4d9f5a"/>
+        <path d="M0 70 L300 70 L300 132 L0 132Z" fill="#55b244"/>
+        <!-- fairway in perspective -->
+        <polygon points="132,70 168,70 250,132 50,132" fill="#88dc57"/>
+        <ellipse cx="150" cy="72" rx="26" ry="4.5" fill="#b4f47d"/>
+        <ellipse cx="200" cy="80" rx="13" ry="3" fill="#f3dfa2"/>
+        <!-- trees -->
+        <g><rect x="34" y="52" width="4" height="14" fill="#7a4f2a"/><circle cx="36" cy="48" r="12" fill="#2f9e44"/><circle cx="32" cy="45" r="5" fill="#43b85a"/>
+           <rect x="262" y="54" width="4" height="12" fill="#7a4f2a"/><circle cx="264" cy="50" r="11" fill="#3aa64a"/><circle cx="260" cy="47" r="4.5" fill="#57c46a"/></g>
+        <!-- flag -->
+        <line x1="150" y1="72" x2="150" y2="46" stroke="#fff" stroke-width="1.6"/>
+        <polygon points="150,46 164,51 150,56" fill="#ff4d5e"/>
+        <!-- ball flight -->
+        <path d="M150 118 Q 176 26 152 68" fill="none" stroke="#fff" stroke-width="1.6" stroke-dasharray="3 4" stroke-linecap="round"/>
+        <circle cx="162" cy="38" r="3.4" fill="#fff" stroke="#0d1b3a" stroke-width="1"/>
+        <!-- golfer, from behind -->
+        <g transform="translate(112,124)" stroke="#0d1b3a" stroke-width="1.5" stroke-linejoin="round">
+          <rect x="-7" y="-16" width="6" height="15" rx="3" fill="#1e3a8a"/><rect x="1" y="-16" width="6" height="15" rx="3" fill="#1e3a8a"/>
+          <ellipse cx="-4.5" cy="-1.4" rx="5" ry="2.6" fill="#fff"/><ellipse cx="4.5" cy="-1.4" rx="5" ry="2.6" fill="#fff"/>
+          <rect x="-10" y="-37" width="20" height="23" rx="8" fill="#3b82f6"/>
+          <circle cx="0" cy="-46" r="8.7" fill="#ffd6a8"/><path d="M-8.8 -46.5 A8.9 8.9 0 0 1 8.8 -46.5Z" fill="#ff4d5e"/>
+          <line x1="0" y1="-31" x2="22" y2="-6" stroke="#0d1b3a" stroke-width="3.4" stroke-linecap="round"/><line x1="0" y1="-31" x2="22" y2="-6" stroke="#e8eef7" stroke-width="1.4" stroke-linecap="round"/>
+        </g>
+      </svg>
+      <span class="name golf">MULLIGAN CUP</span>
+      <span class="desc">Nine holes of golf with wind, water and sloped greens. Aim, tap three times, and sink it.</span>
+      <span class="play">PLAY &#9654;</span>
     </a>
   </div>
 

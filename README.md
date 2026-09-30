@@ -1,4 +1,4 @@
-> This repo is a small **retro arcade** with three self-contained browser games.
+> This repo is a small **retro arcade** with four self-contained browser games.
 > Open [`index.html`](index.html) for the **menu**, then pick a game:
 >
 > | Game | File | Description |
@@ -6,18 +6,39 @@
 > | **Cubert** | [`cubert.html`](cubert.html) | cube-hopping isometric arcade — see [`CUBERT.md`](CUBERT.md) |
 > | **Miner 2049er** | [`miner.html`](miner.html) | platformer (documented below) |
 > | **Ferrow Light** | [`ferrow-light.html`](ferrow-light.html) | a four-chapter Zork-style text adventure |
+> | **Mulligan Cup** | [`golf.html`](golf.html) | nine-hole golf from behind the ball — see below |
 >
 > Every page cross-links, so you can hop between the menu and any game.
 >
 > **Play anywhere, online or offline.** The arcade is an installable PWA: it
-> ships a web app manifest and a service worker (`sw.js`) that caches all three
-> games on first visit. Add it to your phone's Home Screen (Share → *Add to
+> ships a web app manifest and a service worker (`sw.js`) that caches every
+> game on first visit. Add it to your phone's Home Screen (Share → *Add to
 > Home Screen*) and it launches fullscreen and works with no connection.
 >
 > Hosted with GitHub Pages, so it's shareable with a single link — just send
 > friends and family the Pages URL for this repo.
 >
 > The rest of this file documents Miner 2049er.
+
+---
+
+# Mulligan Cup
+
+A nine-hole golf game in the spirit of the console classics, drawn from behind
+the ball in real perspective (a small 3D projection engine on Canvas 2D — no
+libraries). Original characters and courses.
+
+- **Swing** with three taps: start the meter, lock in power, then hit the green
+  impact mark on the way back. Early slices right, late hooks left.
+- **Read the hole**: wind arrow, distance to the pin, a live minimap (tap it for
+  the full course map with the green's slope arrows), and a BREAK dial on the
+  green.
+- **Six clubs** from Driver to Putter. The lie matters: rough and bunkers cost
+  distance and accuracy, water and out-of-bounds cost a stroke.
+- **Three swingers**: Pip (balanced), Boulder (long but hard to time), Zippy
+  (short but forgiving).
+- Best score is saved in your browser. Playable with touch, mouse or keyboard
+  (`←` `→` aim, `↑` `↓` club, `Space` swing, `M` map, `Esc` cancel).
 
 ---
 
