@@ -37,6 +37,7 @@
   .btn.ghost{background:rgba(255,255,255,.1);color:var(--paper);box-shadow:none;border:2px solid rgba(255,255,255,.3)}
   .btn.ghost:active{transform:translateY(2px)}
   .btn.big{font-size:20px;padding:16px 38px}
+  .btn.sm{font-size:14px;padding:11px 20px}
 
   /* ---------- HUD ---------- */
   #hud{position:fixed;inset:0;pointer-events:none}
@@ -129,6 +130,27 @@
   td.n{text-align:left;color:#d5f0ff}
   tr.tot td{border-top:2px solid rgba(255,255,255,.3);font-weight:900;color:var(--sun)}
   .sc-eagle{color:#ffd34d;font-weight:900}.sc-birdie{color:#7dffa0;font-weight:900}.sc-bogey{color:#ffb0a8}.sc-dbl{color:#ff7f7f}
+  #tl button.hole{background:none;border:0;padding:0;font:inherit;font-weight:900;letter-spacing:.1em;font-size:15px;color:var(--sun);cursor:pointer;text-align:left}
+  #bMenu{font-size:19px !important;line-height:1;padding:0 2px !important;color:var(--paper) !important}
+  .btn small{display:block;font-size:11px;letter-spacing:.08em;opacity:.75;margin-top:2px;font-weight:800;text-transform:none}
+  .seg{display:inline-flex;background:rgba(13,27,58,.85);border:2px solid rgba(255,255,255,.22);border-radius:999px;padding:3px;gap:2px}
+  .seg button{background:none;border:0;border-radius:999px;padding:8px 16px;font-weight:800;letter-spacing:.06em;font-size:13px;color:var(--mute)}
+  .seg button[aria-pressed="true"]{background:var(--sun);color:var(--ink)}
+  .opt{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;font-size:13px;color:#d5f0ff;letter-spacing:.06em}
+  .opt select{font:inherit;font-weight:800;color:var(--paper);background:rgba(13,27,58,.85);border:2px solid rgba(255,255,255,.22);border-radius:999px;padding:8px 12px}
+  .note{margin:6px 0 10px;font-size:13px;line-height:1.4;color:var(--mute)}
+  .stack.wide{width:100%}.stack.wide .btn{width:100%;text-align:center;text-decoration:none;display:block}
+  #holeGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px}
+  #holeGrid button{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.16);border-radius:12px;padding:8px 8px 7px;text-align:left;display:grid;grid-template-columns:auto 1fr auto;gap:0 8px;align-items:center;line-height:1.2}
+  #holeGrid b{grid-row:1 / span 2;font-size:22px;color:var(--sun);min-width:26px;text-align:center}
+  #holeGrid span{font-size:13px;font-weight:800}
+  #holeGrid em{font-style:normal;font-size:10px;color:var(--mute);grid-column:2}
+  #holeGrid u{grid-row:1 / span 2;grid-column:3;text-decoration:none;font-weight:900;font-size:17px;font-variant-numeric:tabular-nums}
+  #holeGrid u.dim{color:rgba(255,255,255,.3);font-weight:700}
+  #holeGrid button[aria-pressed="true"]{border-color:var(--sun);background:rgba(255,211,77,.16)}
+  #holes .sheet,#card .sheet{max-height:92vh;overflow:auto}
+  .xbtn{position:sticky;float:right;top:0;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.3);font-size:16px;line-height:1;color:var(--paper);display:grid;place-items:center;padding:0;margin:-4px -4px 0 8px}
+  tr.sub td{font-weight:800;color:#d5f0ff;background:rgba(255,255,255,.06)}
   #club .nm{cursor:pointer}
   #bag .sheet{width:min(560px,100%);max-height:88vh;overflow:auto}
   #bagGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-top:12px}
@@ -160,7 +182,7 @@
 
 <div id="hud" hidden>
   <div id="tl" class="panel">
-    <div class="top"><span class="hole"><span id="hHole">HOLE 1</span> · PAR <span id="hPar">4</span></span><a href="index.html" title="Back to the arcade menu">&#9776;</a></div>
+    <div class="top"><button class="hole" id="bHoles" type="button" title="Choose a hole"><span id="hHole">HOLE 1</span> · PAR <span id="hPar">4</span> &#9662;</button><button class="mini" id="bMenu" type="button" aria-label="Menu">&#9776;</button></div>
     <div class="row"><span>Strokes</span><b id="hStr">0</b></div>
     <div class="row"><span>Lie</span><b id="hLie">Tee</b></div>
     <div class="row"><span>To pin</span><b id="hDist">0 yd</b></div>
@@ -204,8 +226,9 @@
 
 <div id="title" class="screen">
   <div class="logo"><span class="l1">MULLIGAN</span><span class="l2">CUP</span></div>
-  <p class="tag">Nine holes. Three swingers. One very windy day.</p>
+  <p class="tag">Eighteen holes. Three swingers. One very windy day.</p>
   <div class="stack">
+    <button class="btn big" id="bContinue" type="button" hidden>Continue<small id="contSub"></small></button>
     <button class="btn big" id="bStart" type="button">Tee off &#9654;</button>
     <button class="btn ghost" id="bHow" type="button">How to play</button>
   </div>
@@ -218,9 +241,10 @@
     <ol>
       <li><b>Aim.</b> Hold &#9664; &#9654; (or drag the screen) to turn. Pick a club with &#9650; &#9660; or tap its name to open your full bag. Check the wind and the map.</li>
       <li><b>Swing.</b> Tap SWING to start the meter, tap again to lock in your power.</li>
-      <li><b>Impact.</b> The cursor races back. Tap when it hits the green mark. Early slices right, late hooks left.</li>
+      <li><b>Impact.</b> The cursor races back. Tap when it hits the green mark. Early slices, late hooks. A slice curves right for righties and left for lefties.</li>
       <li><b>Putt.</b> Greens slope. Watch the BREAK arrow and aim uphill of it.</li>
-      <li><b>Score.</b> Water and out-of-bounds cost a stroke. Fewest strokes across nine holes wins the cup.</li>
+      <li><b>Score.</b> Water and out-of-bounds cost a stroke. Fewest strokes across 18 holes wins the cup.</li>
+      <li><b>Save &amp; jump.</b> Your round saves after every shot. Tap the hole name (top left) to jump to any hole, or &#9776; for the menu.</li>
     </ol>
     <div style="text-align:center"><button class="btn" id="bHowOk" type="button">Got it</button></div>
   </div>
@@ -229,9 +253,37 @@
 <div id="select" class="screen" hidden>
   <h2>Pick your swinger</h2>
   <div class="cards" id="cards"></div>
+  <div class="opt">
+    <div class="seg" id="hand" role="group" aria-label="Handedness"><button type="button" data-h="1" aria-pressed="true">Right-handed</button><button type="button" data-h="-1" aria-pressed="false">Left-handed</button></div>
+    <label>Start on <select id="startHole" aria-label="Starting hole"></select></label>
+  </div>
   <div class="stack">
-    <button class="btn big" id="bPlay" type="button">Play 9 holes &#9654;</button>
+    <button class="btn big" id="bPlay" type="button">Play 18 holes &#9654;</button>
     <button class="btn ghost" id="bSelBack" type="button">Back</button>
+  </div>
+</div>
+
+<div id="pause" class="screen" hidden>
+  <div class="sheet">
+    <h2>Paused</h2>
+    <p class="note">Your round saves itself after every shot. Close the page any time, then tap Continue on the title screen to pick up where you left off.</p>
+    <div class="stack wide">
+      <button class="btn" id="bResume" type="button">Resume</button>
+      <button class="btn ghost" id="bPHoles" type="button">Choose a hole</button>
+      <button class="btn ghost" id="bPCard" type="button">Scorecard</button>
+      <button class="btn ghost" id="bPQuit" type="button">Save &amp; quit to title</button>
+      <a class="btn ghost" href="index.html">Arcade menu</a>
+    </div>
+  </div>
+</div>
+
+<div id="holes" class="screen" hidden>
+  <div class="sheet" style="width:min(680px,100%);position:relative">
+    <button class="xbtn" id="bHolesX" type="button" aria-label="Close">&#10005;</button>
+    <h2>Choose a hole</h2>
+    <p class="note" id="holeMsg">Jump to any hole. Scores you have already posted are kept.</p>
+    <div id="holeGrid"></div>
+    <div style="text-align:center;margin-top:12px"><button class="btn ghost" id="bHolesClose" type="button">Close</button></div>
   </div>
 </div>
 
@@ -241,8 +293,9 @@
     <div id="cardBody"></div>
     <p id="cardMsg" style="margin:12px 0 4px;text-align:center;font-weight:800;color:var(--sun)"></p>
     <div class="stack" style="flex-direction:row;justify-content:center;flex-wrap:wrap;margin-top:8px">
-      <button class="btn" id="bAgain" type="button">Play again</button>
-      <a class="btn ghost" href="index.html" style="text-decoration:none">Arcade menu</a>
+      <button class="btn sm" id="bCardBack" type="button" hidden>Back to round</button>
+      <button class="btn sm" id="bAgain" type="button">Play again</button>
+      <a class="btn ghost sm" href="index.html" style="text-decoration:none">Arcade menu</a>
     </div>
   </div>
 </div>
@@ -357,14 +410,66 @@ const HOLE_DEFS = [
       C('fairway', 380, 730, 380, 380, 24),
       E('fringe', 380, 275, 110, 92), E('sand', 470, 332, 30, 22), E('sand', 290, 232, 26, 20),
       E('green', 380, 275, 84, 66), C('tee', 380, 860, 380, 830, 28)] },
-  { name: 'Grand Finale', par: 5, W: 1000, H: 2250, tee: [720, 2135], pin: [778, 304], guide: [[720, 1700], [430, 1350], [330, 930], [600, 660], [778, 304]], wind: [11, 2.9], slope: [9, 7],
+  { name: 'The Turn', par: 5, W: 1000, H: 2250, tee: [720, 2135], pin: [778, 304], guide: [[720, 1700], [430, 1350], [330, 930], [600, 660], [778, 304]], wind: [11, 2.9], slope: [9, 7],
     tip: 'An S-curve, with water guarding the green.', seed: 99, n: 36, margin: 64,
     rocks: [[560, 1450, 14], [380, 1100, 14]],
     shapes: [C('fairway', 720, 2120, 720, 1700, 100), C('fairway', 720, 1700, 430, 1350, 95), C('fairway', 430, 1350, 330, 930, 92),
       C('fairway', 330, 930, 600, 660, 90), C('fairway', 600, 660, 730, 420, 85),
       E('water', 480, 400, 130, 160), E('sand', 600, 1560, 36, 50), E('sand', 240, 1130, 38, 50), E('sand', 470, 860, 34, 44),
       E('sand', 560, 1900, 34, 50), E('sand', 884, 342, 34, 44), E('sand', 694, 192, 34, 28),
-      E('fringe', 770, 300, 110, 92), E('green', 770, 300, 86, 68, .3), C('tee', 720, 2140, 720, 2110, 30)] }
+      E('fringe', 770, 300, 110, 92), E('green', 770, 300, 86, 68, .3), C('tee', 720, 2140, 720, 2110, 30)] },
+
+  { name: 'Forest Run', par: 4, W: 760, H: 1450, tee: [380, 1340], pin: [402, 252], guide: [[380, 760], [402, 252]], wind: [5, 1.9], slope: [6, -8],
+    tip: 'Thread the needle between the pines.', seed: 101, n: 90, margin: 40,
+    shapes: [C('fairway', 380, 1320, 380, 760, 64), C('fairway', 380, 760, 410, 340, 58),
+      E('sand', 330, 560, 22, 30), E('sand', 462, 420, 22, 28),
+      E('fringe', 405, 245, 88, 76), E('green', 405, 245, 68, 56), C('tee', 380, 1345, 380, 1315, 28)] },
+  { name: 'Crossing Creek', par: 4, W: 800, H: 1450, tee: [400, 1340], pin: [422, 256], guide: [[400, 820], [422, 256]], wind: [7, 4.0], slope: [-7, 7],
+    tip: 'Carry the creek, then attack the pin.', seed: 111, n: 30, margin: 66,
+    shapes: [C('fairway', 400, 1330, 400, 800, 100), C('fairway', 400, 800, 420, 330, 90),
+      C('water', 40, 760, 400, 690, 28), C('water', 400, 690, 760, 640, 28),
+      E('sand', 300, 420, 30, 40), E('sand', 520, 380, 32, 40),
+      E('fringe', 420, 250, 100, 84), E('green', 420, 250, 78, 64), C('tee', 400, 1345, 400, 1315, 30)] },
+  { name: 'Long Bowl', par: 3, W: 760, H: 1150, tee: [380, 1040], pin: [384, 262], guide: [], wind: [10, .4], slope: [8, -6],
+    tip: 'A long par 3. Club up and trust it.', seed: 121, n: 20, margin: 70,
+    shapes: [C('fairway', 380, 1030, 380, 900, 60),
+      E('sand', 380, 270, 150, 110), E('sand', 255, 335, 52, 40), E('sand', 505, 335, 52, 40), E('sand', 380, 425, 62, 34), E('sand', 380, 158, 72, 30),
+      E('fringe', 380, 265, 108, 88), E('green', 380, 265, 88, 68), C('tee', 380, 1045, 380, 1015, 28)] },
+  { name: 'Split Decision', par: 5, W: 1000, H: 2100, tee: [500, 1990], pin: [515, 258], guide: [[500, 1650], [690, 1330], [670, 830], [510, 540], [515, 258]], wind: [6, 5.5], slope: [-8, -6],
+    tip: 'Two fairways. Left has a pond, right has sand.', seed: 131, n: 34, margin: 64,
+    clusters: [[420, 900, 580, 1250, 16]],
+    shapes: [C('fairway', 500, 1980, 500, 1650, 95), C('fairway', 500, 1650, 300, 1330, 78), C('fairway', 300, 1330, 330, 830, 78),
+      C('fairway', 500, 1650, 690, 1330, 78), C('fairway', 690, 1330, 670, 830, 78),
+      C('fairway', 330, 830, 500, 540, 82), C('fairway', 670, 830, 510, 540, 82), C('fairway', 500, 540, 515, 340, 88),
+      E('water', 150, 1150, 70, 110), E('sand', 790, 1150, 30, 50), E('sand', 600, 1000, 26, 36), E('sand', 410, 420, 30, 40),
+      E('fringe', 515, 250, 104, 88), E('green', 515, 250, 82, 66), C('tee', 500, 1995, 500, 1965, 30)] },
+  { name: 'Cliffside', par: 4, W: 800, H: 1450, tee: [300, 1340], pin: [392, 252], guide: [[300, 900], [392, 252]], wind: [9, .3], slope: [-10, 5],
+    tip: 'The sea hunts the ball on the right.', seed: 141, n: 26, margin: 60,
+    shapes: [C('fairway', 300, 1330, 300, 900, 90), C('fairway', 300, 900, 390, 330, 85),
+      E('water', 905, 760, 300, 900), E('sand', 500, 1000, 36, 50), E('sand', 520, 620, 34, 46), E('sand', 250, 480, 30, 40),
+      E('fringe', 392, 246, 102, 86), E('green', 392, 246, 80, 64), C('tee', 300, 1345, 300, 1315, 30)] },
+  { name: 'Twin Ponds', par: 3, W: 720, H: 980, tee: [360, 880], pin: [352, 272], guide: [], wind: [4, 2.9], slope: [9, -5],
+    tip: 'Stay on the center lane between the ponds.', seed: 151, n: 18, margin: 70,
+    shapes: [E('water', 190, 470, 120, 90), E('water', 530, 480, 120, 90), C('fairway', 360, 870, 355, 330, 44),
+      E('sand', 250, 230, 30, 40), E('sand', 470, 225, 30, 40),
+      E('fringe', 352, 270, 100, 80), E('green', 352, 270, 78, 60, .2), C('tee', 360, 885, 360, 855, 28)] },
+  { name: 'Horseshoe', par: 5, W: 1000, H: 1800, tee: [220, 1700], pin: [786, 1296], guide: [[220, 1250], [300, 760], [520, 540], [760, 700], [782, 1296]], wind: [8, 1.0], slope: [-9, 4],
+    tip: 'Follow the curve. No shortcuts through the trees.', seed: 161, n: 30, margin: 64,
+    clusters: [[420, 900, 650, 1500, 36]],
+    shapes: [C('fairway', 220, 1690, 220, 1150, 90), C('fairway', 220, 1150, 300, 760, 88), C('fairway', 300, 760, 520, 540, 88),
+      C('fairway', 520, 540, 760, 700, 86), C('fairway', 760, 700, 780, 1100, 86),
+      E('water', 600, 1150, 50, 80), E('sand', 150, 950, 28, 44), E('sand', 640, 560, 34, 28), E('sand', 866, 1000, 30, 44), E('sand', 690, 1340, 30, 40),
+      E('fringe', 782, 1290, 104, 88), E('green', 782, 1290, 82, 66), C('tee', 220, 1705, 220, 1675, 30)] },
+  { name: 'Dune Valley', par: 4, W: 760, H: 1250, tee: [380, 1140], pin: [404, 262], guide: [[380, 800], [250, 520], [230, 400], [330, 300], [404, 262]], wind: [5, 4.8], slope: [7, 8],
+    tip: 'Drive the green if you dare, or lay up left.', seed: 171, n: 24, margin: 66,
+    shapes: [C('fairway', 380, 1130, 380, 800, 90), C('fairway', 380, 800, 250, 520, 72), E('fairway', 230, 380, 62, 120), C('fairway', 230, 420, 330, 290, 40),
+      E('water', 470, 440, 170, 80), E('sand', 560, 300, 34, 50), E('sand', 250, 200, 30, 36), E('sand', 520, 620, 40, 50),
+      E('fringe', 404, 255, 104, 86), E('green', 404, 255, 80, 64), C('tee', 380, 1145, 380, 1115, 30)] },
+  { name: 'Clubhouse Corner', par: 4, W: 900, H: 1500, tee: [650, 1390], pin: [292, 264], guide: [[650, 1000], [420, 680], [292, 264]], wind: [12, 3.6], slope: [-9, -8],
+    tip: 'Dogleg left, water right. A proper finale.', seed: 181, n: 26, margin: 64,
+    shapes: [C('fairway', 650, 1380, 650, 1000, 95), C('fairway', 650, 1000, 420, 680, 92), C('fairway', 420, 680, 300, 340, 86),
+      E('water', 800, 800, 60, 200), E('water', 130, 170, 56, 84), E('sand', 560, 860, 34, 50), E('sand', 330, 560, 36, 44), E('sand', 420, 400, 30, 40), E('sand', 190, 330, 28, 36),
+      E('fringe', 290, 258, 104, 88), E('green', 290, 258, 82, 66, -.3), C('tee', 650, 1395, 650, 1365, 30)] }
 ];
 
 function ellPts(s, n) { const a = []; for (let i = 0; i < n; i++) { const t = i / n * TAU, x = Math.cos(t) * s.rx, y = Math.sin(t) * s.ry; a.push([s.cx + x * s.cos - y * s.sin, s.cy + x * s.sin + y * s.cos]); } return a; }
@@ -406,8 +511,9 @@ function prepHole(def) {
   const clear = (x, y, m) => { if (surfaceAt(h, x, y) !== 'rough') return false; for (let i = 0; i < 8; i++) { const t = i * TAU / 8; if (!okSurf(x + Math.cos(t) * m, y + Math.sin(t) * m)) return false; } return true; };
   const add = (x, y) => trees.push({ x, y, r: 25 + rr() * 9, h: 82 + rr() * 22, kind: rr() < .42 ? 1 : 0, c: (rr() * 3) | 0 });
   const close = (x, y, d) => trees.some(t => Math.hypot(t.x - x, t.y - y) < d);
-  for (let x = 30; x < def.W; x += 52) { add(x, 24 + rr() * 22); add(x, def.H - 24 - rr() * 22); }
-  for (let y = 80; y < def.H - 40; y += 52) { add(24 + rr() * 22, y); add(def.W - 24 - rr() * 22, y); }
+  const addB = (x, y) => { if (surfaceAt(h, x, y) === 'rough') add(x, y); };
+  for (let x = 30; x < def.W; x += 52) { addB(x, 24 + rr() * 22); addB(x, def.H - 24 - rr() * 22); }
+  for (let y = 80; y < def.H - 40; y += 52) { addB(24 + rr() * 22, y); addB(def.W - 24 - rr() * 22, y); }
   let n = 0, tries = 0;
   while (n < def.n && tries < 8000) { tries++; const x = 70 + rr() * (def.W - 140), y = 70 + rr() * (def.H - 140); if (!clear(x, y, def.margin) || close(x, y, 56)) continue; add(x, y); n++; }
   (def.clusters || []).forEach(([x0, y0, x1, y1, cnt]) => { let k = 0, t = 0; while (k < cnt && t < 4000) { t++; const x = x0 + rr() * (x1 - x0), y = y0 + rr() * (y1 - y0); if (!clear(x, y, 46) || close(x, y, 50)) continue; add(x, y); k++; } });
@@ -424,7 +530,7 @@ function prepHole(def) {
   h.shapes.forEach(s => { if (s.t === 'water') { const cx = s.k === 'e' ? s.cx : (s.x1 + s.x2) / 2, cy = s.k === 'e' ? s.cy : (s.y1 + s.y2) / 2, rx = s.k === 'e' ? s.rx : s.r, ry = s.k === 'e' ? s.ry : s.r;
     for (let i = 0; i < 14; i++) { const a = rt() * TAU, m = Math.sqrt(rt()) * .85; h.ripples.push([cx + Math.cos(a) * rx * m, cy + Math.sin(a) * ry * m, rt() * TAU]); } } });
   h.pinPos = { x: def.pin[0], y: def.pin[1] };
-  h.length = Math.hypot(def.tee[0] - def.pin[0], def.tee[1] - def.pin[1]);
+  { const pts = [def.tee].concat(def.guide || [], [def.pin]); let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); h.length = L; }
   return h;
 }
 const HOLES = HOLE_DEFS.map(prepHole);
@@ -433,7 +539,7 @@ const HOLES = HOLE_DEFS.map(prepHole);
    State
    ================================================================ */
 const G = { mode: 'title', phase: 'none', ch: 0, idx: 0, hole: HOLES[0], strokes: 0, scores: [], club: 0, aim: 0, aimDir: 0, aimHold: 0,
-  time: 0, timer: 0, after: null, introT: 0, strikeT: 0, lastPos: { x: 0, y: 0 }, golfer: null, shotInfo: null, muted: false };
+  hand: 1, paused: false, time: 0, timer: 0, after: null, introT: 0, strikeT: 0, lastPos: { x: 0, y: 0 }, golfer: null, shotInfo: null, muted: false };
 const ball = { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, cx: 0, cy: 0, air: false, done: true, result: '', retain: .4, bounces: 0, sink: 0, trail: [] };
 const M = { ph: 'off', v: 0, pw: 0, e: 0, ds: 1 };
 const parts = [];
@@ -677,6 +783,13 @@ function drawGolfer(c, ch, x, y, k, view, ang, len, ck) {
   c.beginPath(); c.ellipse(-4.5 * w, -1.4, 5, 2.6, 0, 0, TAU); fs(c, ch.shoe); c.beginPath(); c.ellipse(4.5 * w, -1.4, 5, 2.6, 0, 0, TAU); fs(c, ch.shoe);
   if (ch.kind === 'bird') { c.beginPath(); c.ellipse(0, -25, 11.5 * w, 13, 0, 0, TAU); fs(c, ch.body); if (view === 'front') { c.beginPath(); c.ellipse(0, -22, 7, 8, 0, 0, TAU); fs(c, '#fff3b0'); } }
   else { rrect(c, -10 * w, -37, 20 * w, 23, 8); fs(c, ch.body); if (view === 'front') { c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(-2 * w, -35, 4 * w, 19); } }
+  if (view === 'front' && ck) {
+    c.lineCap = 'round'; c.strokeStyle = INK; c.lineWidth = 3.4; c.beginPath(); c.moveTo(11, -25); c.lineTo(23, -60); c.stroke();
+    c.strokeStyle = '#e8eef7'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(11, -25); c.lineTo(23, -60); c.stroke();
+    c.fillStyle = '#39475f'; c.strokeStyle = INK; c.lineWidth = 1.3; c.beginPath(); c.ellipse(24, -62, 6, 3.6, -.5, 0, TAU); c.fill(); c.stroke();
+    c.lineWidth = 6; c.strokeStyle = INK; c.beginPath(); c.moveTo(9, -31); c.lineTo(12, -24); c.stroke(); c.lineWidth = 3.6; c.strokeStyle = ch.skin; c.beginPath(); c.moveTo(9, -31); c.lineTo(12, -24); c.stroke();
+    c.lineWidth = 1.5; c.strokeStyle = INK;
+  }
   const hy = -46, hr = 8.7 * ch.hs;
   c.beginPath(); c.arc(0, hy, hr, 0, TAU); fs(c, ch.skin);
   if (view === 'front') {
@@ -707,19 +820,21 @@ function golferPos() {
   if (G.phase === 'intro') return null;
   if (G.phase === 'fly' || G.phase === 'settle' || G.phase === 'result') return G.golfer && G.phase === 'fly' ? G.golfer : null;
   const y = cam.yaw, fx = Math.cos(y), fy = Math.sin(y), rx = -fy, ry = fx;
-  return { x: ball.x - rx * 21 - fx * 7, y: ball.y - ry * 21 - fy * 7 };
+  return { x: ball.x - rx * 21 * G.hand - fx * 7, y: ball.y - ry * 21 * G.hand - fy * 7 };
 }
 let clubLen = 40;
 function drawGolferSprite(s) {
   const ch = CHARS[G.ch], A0 = swingAngle(), k = s.k * .82;
   const bp = {}; let len = clubLen;
-  if (proj(ball.x, ball.y, 0, bp) && G.phase !== 'fly') { const ux = (bp.sx - s.sx) / k, uy = (bp.sy - s.sy) / k; len = clamp(Math.hypot(ux, uy + 31), 26, 70); clubLen = len; }
+  if (proj(ball.x, ball.y, 0, bp) && G.phase !== 'fly') { const ux = G.hand * (bp.sx - s.sx) / k, uy = (bp.sy - s.sy) / k; len = clamp(Math.hypot(ux, uy + 31), 26, 70); clubLen = len; }
+  if (G.hand < 0) { ctx.save(); ctx.translate(s.sx, 0); ctx.scale(-1, 1); ctx.translate(-s.sx, 0); }
   drawGolfer(ctx, ch, s.sx, s.sy, k, 'back', A0, len, CLUBS[G.club].t);
+  if (G.hand < 0) ctx.restore();
 }
 function addressAngle() {
   const bp = {}, gp = golferPos(), o = {};
   if (!gp || !proj(gp.x, gp.y, 0, o) || !proj(ball.x, ball.y, 0, bp)) return 0.9;
-  return Math.atan2((bp.sy - o.sy) / (o.k * .82) + 31, (bp.sx - o.sx) / (o.k * .82));
+  return Math.atan2((bp.sy - o.sy) / (o.k * .82) + 31, G.hand * (bp.sx - o.sx) / (o.k * .82));
 }
 function swingAngle() {
   const a0 = G.phase === 'fly' ? (G.a0 || .9) : addressAngle(); G.a0 = a0; const back = -1.95;
@@ -808,13 +923,13 @@ function launch(p, e) {
   Object.assign(ball, { z: .01, vz: 0, cx: 0, cy: 0, done: false, result: '', bounces: 0, sink: 0, trail: [] });
   if (club.putter) {
     const fr = (SURF[lie] && SURF[lie].fr) ? SURF[lie].fr : SURF.fairway.fr;
-    const dist = clubRange(club) * p * (1 - Math.min(Math.abs(eff) * .5, .3)), v = Math.sqrt(2 * fr * dist), a = G.aim + eff * .5;
+    const dist = clubRange(club) * p * (1 - Math.min(Math.abs(eff) * .5, .3)), v = Math.sqrt(2 * fr * dist), a = G.aim + eff * G.hand * .5;
     ball.vx = Math.cos(a) * v; ball.vy = Math.sin(a) * v; ball.z = 0; ball.air = false;
   } else {
     const R = clubRange(club) * p * (sweet ? 1.04 : 1) * (1 - Math.min(Math.abs(eff) * .9, .45)), th = club.loft * Math.PI / 180;
-    const v0 = Math.sqrt(R * GRAV / Math.sin(2 * th)), vh = v0 * Math.cos(th), a = G.aim + eff * .22 * L.err, side = eff * vh * 1.5 * ch.curve * L.err;
+    const v0 = Math.sqrt(R * GRAV / Math.sin(2 * th)), vh = v0 * Math.cos(th), a = G.aim + eff * G.hand * .22 * L.err, side = eff * G.hand * vh * 1.5 * ch.curve * L.err;
     ball.vx = Math.cos(a) * vh; ball.vy = Math.sin(a) * vh; ball.vz = v0 * Math.sin(th); ball.cx = rx * side; ball.cy = ry * side;
-    ball.air = true; ball.retain = .55 * (1 - club.loft / 70);
+    ball.air = true; ball.retain = .40 * (1 - club.loft / 70);
   }
   G.strokes++; G.shotInfo = { sweet, eff, p };
   G.phase = 'fly'; G.flyStart = G.time; G.flyT = 0; sfx('hit');
@@ -835,9 +950,9 @@ function penalty(t, s) {
   G.strokes++; toast(t, s); sfx('sad'); G.phase = 'result';
   schedule(1.6, () => { ball.x = G.lastPos.x; ball.y = G.lastPos.y; ball.z = 0; ball.vx = ball.vy = 0; ball.trail = []; ball.air = false; if (G.strokes >= G.hole.par + 3) return pickup(); startAim(); });
 }
-function pickup() { const h = G.hole; toast('PICK UP', 'Scored par + 4'); G.strokes = h.par + 4; G.phase = 'result'; schedule(1.8, () => nextHole()); }
+function pickup() { const h = G.hole; toast('PICK UP', 'Scored par + 4'); G.strokes = h.par + 4; G.phase = 'result'; recordScore(); schedule(1.8, () => nextHole()); }
 function holeDone() {
-  const h = G.hole, s = G.strokes, d = s - h.par; G.phase = 'result';
+  const h = G.hole, s = G.strokes, d = s - h.par; G.phase = 'result'; recordScore();
   let name = d === 0 ? 'PAR' : d === 1 ? 'BOGEY' : d === 2 ? 'DOUBLE BOGEY' : '+' + d;
   if (d < 0) name = ['', 'BIRDIE!', 'EAGLE!', 'ALBATROSS!'][Math.min(3, -d)];
   if (s === 1) name = 'HOLE IN ONE!';
@@ -877,38 +992,113 @@ function startHole(i) {
   G.lastPos = { x: ball.x, y: ball.y }; G.aim = autoAim(); G.club = autoClub(); G.phase = 'intro'; G.introT = 0; G.golfer = null;
   $('hud').hidden = true; $('title').hidden = true;
   const b = $('banner'); b.hidden = false;
-  b.innerHTML = '<div class="n">Hole ' + (i + 1) + ' of 9</div><div class="t">' + h.name + '</div><div class="s">PAR ' + h.par + ' · ' + Math.round(h.length * YARD) + ' YD · WIND ' + h.wind[0] + '</div><div class="h">' + h.tip + '</div>';
-  hudMeter(false);
+  b.innerHTML = '<div class="n">Hole ' + (i + 1) + ' of ' + HOLES.length + '</div><div class="t">' + h.name + '</div><div class="s">PAR ' + h.par + ' · ' + Math.round(h.length * YARD) + ' YD · WIND ' + h.wind[0] + '</div><div class="h">' + h.tip + '</div>';
+  hudMeter(false); saveSnap(i, 0, ball.x, ball.y, ball.x, ball.y);
 }
 function endIntro() { $('banner').hidden = true; startAim(); }
 function startAim() {
   G.phase = 'aim'; $('hud').hidden = false; ball.trail = []; ball.sink = 0; ball.done = true; ball.vx = ball.vy = 0;
-  G.aim = autoAim(); G.club = autoClub(); M.ph = 'off'; hudMeter(false); refreshHud(true);
+  G.aim = autoAim(); G.club = autoClub(); M.ph = 'off'; hudMeter(false); refreshHud(true); saveSnap(G.idx, G.strokes, ball.x, ball.y, G.lastPos.x, G.lastPos.y);
 }
-function nextHole() {
-  G.scores[G.idx] = G.strokes;
-  if (G.idx >= HOLES.length - 1) return showCard();
-  startHole(G.idx + 1);
+function nextUnplayed(from) { const n = HOLES.length; for (let k = 1; k <= n; k++) { const j = (from + k) % n; if (G.scores[j] == null) return j; } return -1; }
+function recordScore() {
+  G.scores[G.idx] = G.strokes; const n = nextUnplayed(G.idx);
+  if (n < 0) lsDel(SAVE_KEY); else { const t = HOLES[n].tee; saveSnap(n, 0, t[0], t[1], t[0], t[1]); }
 }
-function startRound() {
-  G.scores = []; G.mode = 'play'; $('select').hidden = true; $('title').hidden = true; $('card').hidden = true; startHole(0);
+function nextHole() { const n = nextUnplayed(G.idx); if (n < 0) return showCard(true); startHole(n); }
+function startRound(first) {
+  G.scores = []; G.mode = 'play'; G.paused = false; ['select', 'title', 'card', 'pause', 'holes'].forEach(id => $(id).hidden = true); startHole(first || 0);
 }
-function showCard() {
-  G.mode = 'card'; G.phase = 'none'; $('hud').hidden = true; $('banner').hidden = true; $('toast').classList.remove('show');
-  let tp = 0, ts = 0, rows = '<table><tr><th>Hole</th><th>Par</th><th>Strokes</th><th>+/-</th></tr>';
+const fmtD = d => d > 0 ? '+' + d : d === 0 ? 'E' : String(d);
+const scoreCls = d => d <= -2 ? 'sc-eagle' : d === -1 ? 'sc-birdie' : d === 1 ? 'sc-bogey' : d >= 2 ? 'sc-dbl' : '';
+function subRow(label, a, b, cls) {
+  let p = 0, sc = 0, n = 0, pp = 0;
+  for (let i = a; i < b; i++) { p += HOLES[i].par; if (G.scores[i] != null) { sc += G.scores[i]; pp += HOLES[i].par; n++; } }
+  return '<tr class="' + cls + '"><td class="n">' + label + '</td><td>' + p + '</td><td>' + (n ? sc : '–') + '</td><td>' + (n ? fmtD(sc - pp) : '–') + '</td></tr>';
+}
+function buildCard() {
+  const N = HOLES.length, half = Math.floor(N / 2);
+  let rows = '<table><tr><th>Hole</th><th>Par</th><th>Score</th><th>+/-</th></tr>';
   HOLES.forEach((h, i) => {
-    const s = G.scores[i], d = s - h.par; tp += h.par; ts += s;
-    const cls = d <= -2 ? 'sc-eagle' : d === -1 ? 'sc-birdie' : d === 1 ? 'sc-bogey' : d >= 2 ? 'sc-dbl' : '';
-    rows += '<tr><td class="n">' + (i + 1) + '. ' + h.name + '</td><td>' + h.par + '</td><td class="' + cls + '">' + s + '</td><td class="' + cls + '">' + (d > 0 ? '+' + d : d === 0 ? 'E' : d) + '</td></tr>';
+    const s = G.scores[i], d = s - h.par, cls = s == null ? '' : scoreCls(d);
+    rows += '<tr><td class="n">' + (i + 1) + '. ' + h.name + '</td><td>' + h.par + '</td><td class="' + cls + '">' + (s == null ? '–' : s) + '</td><td class="' + cls + '">' + (s == null ? '–' : fmtD(d)) + '</td></tr>';
+    if (i === half - 1) rows += subRow('Out', 0, half, 'sub');
+    if (i === N - 1) rows += subRow('In', half, N, 'sub');
   });
-  const td = ts - tp; rows += '<tr class="tot"><td class="n">Total</td><td>' + tp + '</td><td>' + ts + '</td><td>' + (td > 0 ? '+' + td : td === 0 ? 'E' : td) + '</td></tr></table>';
-  $('cardBody').innerHTML = rows;
-  let best = null; try { best = parseInt(localStorage.getItem('mulligancup.best'), 10); if (isNaN(best)) best = null; } catch (e) {}
-  const isBest = best === null || ts < best; if (isBest) { try { localStorage.setItem('mulligancup.best', String(ts)); } catch (e) {} }
-  const rank = td <= -6 ? 'Cup champion!' : td <= -2 ? 'Under par. Superb round.' : td <= 2 ? 'Solid round. Nicely played.' : td <= 8 ? 'Not bad. The wind had opinions.' : 'Everyone needs a mulligan. Go again!';
-  $('cardTitle').textContent = 'Scorecard · ' + CHARS[G.ch].name;
+  return rows + subRow('Total', 0, N, 'tot') + '</table>';
+}
+function showCard(final) {
+  $('cardBody').innerHTML = buildCard();
+  if (!final) {
+    const n = HOLES.filter((_, i) => G.scores[i] != null).length;
+    $('cardTitle').textContent = 'Scorecard · ' + CHARS[G.ch].name; $('cardMsg').textContent = n + ' of ' + HOLES.length + ' holes played.';
+    $('bCardBack').hidden = false; $('bAgain').hidden = true; $('pause').hidden = true; $('card').hidden = false; syncPause(); return;
+  }
+  G.mode = 'card'; G.phase = 'none'; G.paused = false; $('hud').hidden = true; $('banner').hidden = true; $('toast').classList.remove('show');
+  let tp = 0, ts = 0; HOLES.forEach((h, i) => { tp += h.par; ts += G.scores[i]; }); const td = ts - tp;
+  const best = lsGet(BEST_KEY), isBest = typeof best !== 'number' || ts < best; if (isBest) lsSet(BEST_KEY, ts); lsDel(SAVE_KEY);
+  const rank = td <= -8 ? 'Cup champion!' : td <= -3 ? 'Under par. Superb round.' : td <= 4 ? 'Solid round. Nicely played.' : td <= 16 ? 'Not bad. The wind had opinions.' : 'Everyone needs a mulligan. Go again!';
+  $('cardTitle').textContent = 'Final card · ' + CHARS[G.ch].name;
   $('cardMsg').textContent = rank + (isBest ? ' New best: ' + ts + '.' : ' Best: ' + best + '.');
-  $('card').hidden = false; sfx(td <= 2 ? 'fan' : 'cup');
+  $('bCardBack').hidden = true; $('bAgain').hidden = false; $('card').hidden = false; sfx(td <= 4 ? 'fan' : 'cup');
+}
+
+/* ---------- saving, resuming, menus ---------- */
+const SAVE_KEY = 'mulligancup.save.v2', PREF_KEY = 'mulligancup.prefs', BEST_KEY = 'mulligancup.best18';
+function lsGet(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+function saveSnap(idx, strokes, bx, by, lx, ly) {
+  if (G.mode !== 'play') return;
+  lsSet(SAVE_KEY, { v: 2, ch: G.ch, hand: G.hand, idx, strokes, ball: [Math.round(bx * 10) / 10, Math.round(by * 10) / 10], last: [Math.round(lx * 10) / 10, Math.round(ly * 10) / 10], scores: HOLES.map((_, i) => G.scores[i] == null ? null : G.scores[i]), t: Date.now() });
+}
+function savePrefs() { lsSet(PREF_KEY, { ch: G.ch, hand: G.hand }); }
+function savedGame() {
+  const d = lsGet(SAVE_KEY);
+  if (!d || d.v !== 2 || !(d.idx >= 0 && d.idx < HOLES.length) || !Array.isArray(d.scores) || !Array.isArray(d.ball) || !Array.isArray(d.last)) return null;
+  return d;
+}
+function snapCamera() { const pt = CLUBS[G.club].putter, dist = pt ? 72 : 95; cam.x = ball.x - Math.cos(G.aim) * dist; cam.y = ball.y - Math.sin(G.aim) * dist; cam.h = pt ? 40 : 52; cam.pitch = pt ? .36 : .27; cam.yaw = G.aim; }
+function continueRound() {
+  const d = savedGame(); if (!d) return;
+  G.ch = CHARS[d.ch] ? d.ch : 0; G.hand = d.hand === -1 ? -1 : 1; G.scores = HOLES.map((_, i) => d.scores[i] == null ? undefined : d.scores[i]);
+  G.mode = 'play'; G.paused = false; ['title', 'select', 'card', 'pause', 'holes', 'how'].forEach(id => $(id).hidden = true);
+  startHole(d.idx); G.strokes = d.strokes | 0; ball.x = d.ball[0]; ball.y = d.ball[1]; G.lastPos = { x: d.last[0], y: d.last[1] };
+  $('banner').hidden = true; startAim(); snapCamera();
+  toast('WELCOME BACK', 'Hole ' + (d.idx + 1) + ' · ' + G.strokes + (G.strokes === 1 ? ' stroke' : ' strokes'));
+}
+function refreshTitle() {
+  const d = savedGame(), b = $('bContinue'); if (!d) { b.hidden = true; return; }
+  const played = d.scores.filter(v => v != null).length; b.hidden = false;
+  $('contSub').textContent = 'Hole ' + (d.idx + 1) + ' · ' + played + ' of ' + HOLES.length + ' played';
+}
+function syncPause() { G.paused = !$('pause').hidden || !$('holes').hidden || (!$('card').hidden && G.mode === 'play'); }
+function openPause() { if (G.mode !== 'play') return; $('bag').hidden = true; $('mapModal').hidden = true; $('pause').hidden = false; syncPause(); sfx('click'); }
+function closeModals() { ['pause', 'holes', 'bag', 'mapModal', 'how'].forEach(id => $(id).hidden = true); if (G.mode === 'play') $('card').hidden = true; syncPause(); }
+function goTitle() {
+  G.mode = 'title'; G.phase = 'none'; G.paused = false; G.after = null; ['hud', 'banner', 'pause', 'holes', 'card', 'select', 'bag', 'mapModal', 'how'].forEach(id => $(id).hidden = true);
+  $('toast').classList.remove('show'); $('title').hidden = false; refreshTitle();
+}
+let pendingHole = -1;
+function buildHoleGrid() {
+  const g = $('holeGrid'); g.innerHTML = '';
+  HOLES.forEach((h, i) => {
+    const s = G.scores[i], b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-pressed', i === G.idx ? 'true' : 'false');
+    const sc = s != null ? '<u class="' + scoreCls(s - h.par) + '">' + s + '</u>' : (i === G.idx && G.strokes > 0 ? '<u>' + G.strokes + '</u>' : '<u class="dim">–</u>');
+    b.innerHTML = '<b>' + (i + 1) + '</b><span>' + h.name + '</span><em>Par ' + h.par + ' · ' + Math.round(h.length * YARD) + ' yd</em>' + sc;
+    b.addEventListener('click', () => pickHole(i)); g.appendChild(b);
+  });
+}
+function openHoles() { if (G.mode !== 'play') return; pendingHole = -1; $('holeMsg').textContent = 'Jump to any hole. Scores you have already posted are kept.'; buildHoleGrid(); $('pause').hidden = true; $('bag').hidden = true; $('holes').hidden = false; syncPause(); sfx('click'); }
+function pickHole(i) {
+  const inProgress = G.strokes > 0 && G.scores[G.idx] == null && G.phase !== 'intro';
+  if (i === G.idx && !inProgress) { $('holes').hidden = true; syncPause(); return; }
+  if (inProgress && pendingHole !== i) {
+    pendingHole = i;
+    $('holeMsg').textContent = 'Hole ' + (G.idx + 1) + ' is in progress (' + G.strokes + (G.strokes === 1 ? ' stroke' : ' strokes') + '). Tap hole ' + (i + 1) + ' again to ' + (i === G.idx ? 'restart it' : 'switch') + '; those strokes will not count.';
+    return;
+  }
+  $('holes').hidden = true; G.after = null; $('toast').classList.remove('show'); syncPause(); sfx('click'); startHole(i);
 }
 
 /* ---------- swing meter ---------- */
@@ -1012,6 +1202,7 @@ function updateCamera(dt) {
 let last = 0, acc = 0;
 function update(dt) {
   G.time += dt;
+  if (G.paused) return;
   if (G.mode === 'play') {
     if (G.phase === 'intro') { G.introT += dt; if (G.introT > 3.4) endIntro(); }
     else if (G.phase === 'aim') {
@@ -1065,13 +1256,14 @@ cv.addEventListener('pointermove', e => { if (drag && G.phase === 'aim') { G.aim
 const endDrag = () => { drag = null; }; cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
 window.addEventListener('keydown', e => {
   if (e.repeat && (e.key === ' ' || e.key === 'Enter')) return;
-  if (G.mode !== 'play') return;
+  if (G.mode !== 'play' || G.paused) { if (e.key === 'Escape' && G.paused) closeModals(); return; }
   if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); swingPress(); }
   else if (e.key === 'ArrowLeft' || e.key === 'a') { if (G.phase === 'aim') G.aimDir = -1; }
   else if (e.key === 'ArrowRight' || e.key === 'd') { if (G.phase === 'aim') G.aimDir = 1; }
   else if (e.key === 'ArrowUp' || e.key === 'w') changeClub(-1);
   else if (e.key === 'ArrowDown' || e.key === 's') changeClub(1);
-  else if (e.key === 'Escape') { if (!$('bag').hidden) $('bag').hidden = true; else cancelSwing(); }
+  else if (e.key === 'Escape') { if (!$('bag').hidden || !$('mapModal').hidden) closeModals(); else if (G.phase === 'meter') cancelSwing(); else openPause(); }
+  else if (e.key === 'h') openHoles();
   else if (e.key === 'b') { $('bag').hidden ? openBag() : ($('bag').hidden = true); }
   else if (e.key === 'm') { $('mapModal').hidden ? openMap() : ($('mapModal').hidden = true); }
 });
@@ -1079,20 +1271,31 @@ window.addEventListener('keyup', e => { if (['ArrowLeft', 'ArrowRight', 'a', 'd'
 
 // screens
 $('bStart').addEventListener('click', () => { audio(); sfx('click'); $('title').hidden = true; $('select').hidden = false; G.mode = 'select'; });
+$('bContinue').addEventListener('click', () => { audio(); sfx('click'); continueRound(); });
 $('bHow').addEventListener('click', () => { sfx('click'); $('how').hidden = false; });
 $('bHowOk').addEventListener('click', () => { sfx('click'); $('how').hidden = true; });
 $('bSelBack').addEventListener('click', () => { sfx('click'); $('select').hidden = true; $('title').hidden = false; G.mode = 'title'; });
-$('bPlay').addEventListener('click', () => { sfx('click'); startRound(); });
+$('bPlay').addEventListener('click', () => { sfx('click'); savePrefs(); startRound(parseInt($('startHole').value, 10) || 0); });
 $('bAgain').addEventListener('click', () => { sfx('click'); $('card').hidden = true; G.mode = 'select'; $('select').hidden = false; });
-const cardsEl = $('cards');
+$('bCardBack').addEventListener('click', () => { sfx('click'); $('card').hidden = true; syncPause(); });
+$('bMenu').addEventListener('click', openPause); $('bHoles').addEventListener('click', openHoles);
+$('bResume').addEventListener('click', () => { sfx('click'); closeModals(); });
+$('bPHoles').addEventListener('click', openHoles); $('bPCard').addEventListener('click', () => showCard(false));
+$('bPQuit').addEventListener('click', () => { sfx('click'); goTitle(); }); $('bHolesClose').addEventListener('click', () => { $('holes').hidden = true; syncPause(); }); $('bHolesX').addEventListener('click', () => { $('holes').hidden = true; syncPause(); });
+const cardsEl = $('cards'), cardCtx = [];
+function drawCards() { CHARS.forEach((ch, i) => { const c = cardCtx[i]; c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, 220, 240); c.translate(110, 220); if (G.hand < 0) c.scale(-1, 1); drawGolfer(c, ch, 0, 0, 3.4, 'front', undefined, undefined, 'w'); }); }
 CHARS.forEach((ch, i) => {
   const b = document.createElement('button'); b.type = 'button'; b.className = 'char'; b.setAttribute('aria-pressed', i === G.ch ? 'true' : 'false');
   b.innerHTML = '<canvas width="220" height="240"></canvas><b>' + ch.name + '</b><em>' + ch.tag + '</em>' +
     ['Power', 'Aim', 'Curve'].map((n, j) => '<div class="stat"><span>' + n.toUpperCase() + '</span><i><u style="width:' + Math.round(ch.stats[j] * 100) + '%"></u></i></div>').join('');
-  const c = b.querySelector('canvas').getContext('2d'); c.translate(110, 220); drawGolfer(c, ch, 0, 0, 3.6, 'front');
-  b.addEventListener('click', () => { G.ch = i; sfx('click'); [...cardsEl.children].forEach((x, j) => x.setAttribute('aria-pressed', j === i ? 'true' : 'false')); });
+  cardCtx.push(b.querySelector('canvas').getContext('2d'));
+  b.addEventListener('click', () => { G.ch = i; sfx('click'); savePrefs(); [...cardsEl.children].forEach((x, j) => x.setAttribute('aria-pressed', j === i ? 'true' : 'false')); });
   cardsEl.appendChild(b);
 });
+function syncSelect() { [...cardsEl.children].forEach((x, j) => x.setAttribute('aria-pressed', j === G.ch ? 'true' : 'false')); [...$('hand').children].forEach(b => b.setAttribute('aria-pressed', String(parseInt(b.dataset.h, 10) === G.hand))); drawCards(); }
+[...$('hand').children].forEach(b => b.addEventListener('click', () => { G.hand = parseInt(b.dataset.h, 10); sfx('click'); savePrefs(); syncSelect(); }));
+HOLES.forEach((h, i) => { const o = document.createElement('option'); o.value = i; o.textContent = (i + 1) + '. ' + h.name; $('startHole').appendChild(o); });
+{ const pr = lsGet(PREF_KEY); if (pr) { if (CHARS[pr.ch]) G.ch = pr.ch; if (pr.hand === -1) G.hand = -1; } syncSelect(); }
 
 window.addEventListener('resize', resize); window.addEventListener('orientationchange', () => setTimeout(resize, 120));
 resize();
@@ -1106,11 +1309,11 @@ window.__mc = {
     while (G.after && guard++ < 6) { const f = G.after; G.after = null; f(); if (G.phase === 'intro') endIntro(); }
     return ball.result;
   },
-  swingPress, launch, update, render, M, drawMini, openMap, cam, endIntro
+  swingPress, launch, update, render, M, drawMini, openMap, cam, endIntro, stepBall, savedGame, continueRound, openHoles, pickHole, showCard, goTitle, openPause, recordScore, nextHole, startRound
 };
 
 startHole(0); G.mode = 'title'; G.phase = 'none';
-$('title').hidden = false; $('banner').hidden = true; $('hud').hidden = true;
+$('title').hidden = false; $('banner').hidden = true; $('hud').hidden = true; refreshTitle();
 requestAnimationFrame(frame);
 })();
 </script>

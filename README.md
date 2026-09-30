@@ -24,23 +24,32 @@
 
 # Mulligan Cup
 
-A nine-hole golf game in the spirit of the console classics, drawn from behind
-the ball in real perspective (a small 3D projection engine on Canvas 2D — no
-libraries). Original characters and courses.
+An eighteen-hole golf game in the spirit of the console classics, drawn from
+behind the ball in real perspective (a small 3D projection engine on Canvas
+2D, no libraries). Original characters and courses.
 
 - **Swing** with three taps: start the meter, lock in power, then hit the green
-  impact mark on the way back. Early slices right, late hooks left.
-- **Read the hole**: wind arrow, distance to the pin, a live minimap (tap it for
-  the full course map with the green's slope arrows), and a BREAK dial on the
-  green.
+  impact mark on the way back. Early slices, late hooks. A slice curves right
+  for right-handers and left for left-handers.
+- **Right- or left-handed** golfers: pick your swinger (Pip, Boulder or Zippy)
+  and your handedness on the select screen. The golfer mirrors to the other
+  side of the ball.
+- **Save and resume.** The round autosaves after every shot. Close the page,
+  come back, and tap **Continue** on the title screen to pick up at the same
+  ball, stroke count and scorecard. The menu (&#9776;) also has Save & quit.
+- **Choose any hole, any time.** Tap the hole name (top left, or press `H`) to
+  jump anywhere. Posted scores are kept, the round finishes when all 18 holes
+  have a score, and you can also pick the starting hole before you tee off.
+- **Read the hole**: wind arrow, distance to the pin, a live minimap (tap it
+  for the full course map with the green's slope arrows), and a BREAK dial on
+  the green.
 - **A full 14-club bag**: Driver, 3 and 5 Wood, 4 through 9 Iron, Pitching, Gap,
   Sand and Lob Wedge, and Putter. Tap the club name (or press `B`) to open the
   bag and see each club's distance from your current lie. Rough and bunkers cost
   distance and accuracy; water and out-of-bounds cost a stroke.
-- **Three swingers**: Pip (balanced), Boulder (long but hard to time), Zippy
-  (short but forgiving).
-- Best score is saved in your browser. Playable with touch, mouse or keyboard
-  (`←` `→` aim, `↑` `↓` club, `Space` swing, `M` map, `Esc` cancel).
+- Out/In/Total scorecard against par 71, and your best 18-hole score is saved
+  in your browser. Playable with touch, mouse or keyboard (`←` `→` aim, `↑` `↓`
+  club, `Space` swing, `B` bag, `M` map, `H` holes, `Esc` menu).
 
 ---
 
