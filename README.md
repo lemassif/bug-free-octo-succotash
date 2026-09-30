@@ -33,8 +33,10 @@ libraries). Original characters and courses.
 - **Read the hole**: wind arrow, distance to the pin, a live minimap (tap it for
   the full course map with the green's slope arrows), and a BREAK dial on the
   green.
-- **Six clubs** from Driver to Putter. The lie matters: rough and bunkers cost
-  distance and accuracy, water and out-of-bounds cost a stroke.
+- **A full 14-club bag**: Driver, 3 and 5 Wood, 4 through 9 Iron, Pitching, Gap,
+  Sand and Lob Wedge, and Putter. Tap the club name (or press `B`) to open the
+  bag and see each club's distance from your current lie. Rough and bunkers cost
+  distance and accuracy; water and out-of-bounds cost a stroke.
 - **Three swingers**: Pip (balanced), Boulder (long but hard to time), Zippy
   (short but forgiving).
 - Best score is saved in your browser. Playable with touch, mouse or keyboard

@@ -129,6 +129,15 @@
   td.n{text-align:left;color:#d5f0ff}
   tr.tot td{border-top:2px solid rgba(255,255,255,.3);font-weight:900;color:var(--sun)}
   .sc-eagle{color:#ffd34d;font-weight:900}.sc-birdie{color:#7dffa0;font-weight:900}.sc-bogey{color:#ffb0a8}.sc-dbl{color:#ff7f7f}
+  #club .nm{cursor:pointer}
+  #bag .sheet{width:min(560px,100%);max-height:88vh;overflow:auto}
+  #bagGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-top:12px}
+  #bagGrid button{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.16);border-radius:12px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.15}
+  #bagGrid b{font-size:20px;letter-spacing:.04em;color:var(--paper)}
+  #bagGrid span{font-size:11px;color:var(--mute)}
+  #bagGrid em{font-style:normal;font-size:12px;font-weight:800;color:var(--sun)}
+  #bagGrid button[aria-pressed="true"]{border-color:var(--sun);background:rgba(255,211,77,.16)}
+  #bagGrid button.rec::after{content:"SUGGESTED";font-size:9px;letter-spacing:.1em;color:#7dffa0;font-weight:800;margin-top:2px}
   #mapModal{position:fixed;inset:0;background:rgba(13,27,58,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px}
   #mapModal canvas{max-width:100%;max-height:82%;border-radius:12px;border:3px solid rgba(255,255,255,.25)}
   #mapModal p{margin:0;color:var(--mute);font-size:13px;letter-spacing:.08em}
@@ -207,7 +216,7 @@
   <div class="sheet">
     <h2>How to play</h2>
     <ol>
-      <li><b>Aim.</b> Hold &#9664; &#9654; (or drag the screen) to turn. Pick a club with &#9650; &#9660;. Check the wind and the map.</li>
+      <li><b>Aim.</b> Hold &#9664; &#9654; (or drag the screen) to turn. Pick a club with &#9650; &#9660; or tap its name to open your full bag. Check the wind and the map.</li>
       <li><b>Swing.</b> Tap SWING to start the meter, tap again to lock in your power.</li>
       <li><b>Impact.</b> The cursor races back. Tap when it hits the green mark. Early slices right, late hooks left.</li>
       <li><b>Putt.</b> Greens slope. Watch the BREAK arrow and aim uphill of it.</li>
@@ -237,6 +246,8 @@
     </div>
   </div>
 </div>
+
+<div id="bag" class="screen" hidden><div class="sheet"><h2>Your bag</h2><div id="bagGrid"></div><div style="text-align:center;margin-top:12px"><button class="btn ghost" id="bBagClose" type="button">Close</button></div></div></div>
 
 <div id="mapModal" hidden><canvas id="bigmap"></canvas><p>TAP ANYWHERE TO CLOSE</p></div>
 
@@ -269,13 +280,22 @@ const LIE = {
   rough: { pw: .82, err: 1.35 }, sand: { pw: .55, err: 1.5, wedge: .85 }
 };
 const CLUBS = [
-  { n: 'Driver',        R: 800, loft: 17 },
-  { n: '5 Iron',        R: 620, loft: 27 },
-  { n: '8 Iron',        R: 450, loft: 38 },
-  { n: 'Pitching Wedge',R: 300, loft: 50 },
-  { n: 'Sand Wedge',    R: 190, loft: 60 },
-  { n: 'Putter',        R: 520, putter: true }
+  { k: 'DR', n: 'Driver',        R: 800, loft: 16, t: 'w' },
+  { k: '3W', n: '3 Wood',        R: 735, loft: 18, t: 'w' },
+  { k: '5W', n: '5 Wood',        R: 680, loft: 21, t: 'w' },
+  { k: '4I', n: '4 Iron',        R: 640, loft: 24, t: 'i' },
+  { k: '5I', n: '5 Iron',        R: 605, loft: 27, t: 'i' },
+  { k: '6I', n: '6 Iron',        R: 565, loft: 31, t: 'i' },
+  { k: '7I', n: '7 Iron',        R: 520, loft: 35, t: 'i' },
+  { k: '8I', n: '8 Iron',        R: 470, loft: 39, t: 'i' },
+  { k: '9I', n: '9 Iron',        R: 415, loft: 43, t: 'i' },
+  { k: 'PW', n: 'Pitching Wedge',R: 355, loft: 48, t: 'g' },
+  { k: 'GW', n: 'Gap Wedge',     R: 295, loft: 52, t: 'g' },
+  { k: 'SW', n: 'Sand Wedge',    R: 235, loft: 56, t: 'g' },
+  { k: 'LW', n: 'Lob Wedge',     R: 175, loft: 62, t: 'g' },
+  { k: 'PT', n: 'Putter',        R: 520, putter: true, t: 'p' }
 ];
+const CI = k => CLUBS.findIndex(c => c.k === k);
 const CHARS = [
   { name: 'Pip',     tag: 'All-rounder', pw: 1.00, tol: .075, curve: 1.0,  stats: [.6, .6, .6],
     body: '#3b82f6', pants: '#1e3a8a', shoe: '#ffffff', skin: '#ffd6a8', cap: '#ff4d5e', w: 1, hs: 1, kind: 'kid' },
@@ -649,7 +669,7 @@ function drawTrail() {
 /* ---------- golfer character ---------- */
 function rrect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
 function fs(c, fill) { c.fillStyle = fill; c.fill(); c.stroke(); }
-function drawGolfer(c, ch, x, y, k, view, ang, len) {
+function drawGolfer(c, ch, x, y, k, view, ang, len, ck) {
   c.save(); c.translate(x, y); c.scale(k, k); c.lineWidth = 1.5; c.strokeStyle = INK; c.lineJoin = 'round'; c.lineCap = 'round';
   const w = ch.w;
   if (ch.kind === 'bird' && view === 'back') { c.fillStyle = '#ffb43d'; c.beginPath(); c.moveTo(-6, -22); c.lineTo(-13, -30); c.lineTo(-3, -28); c.lineTo(0, -34); c.lineTo(3, -28); c.lineTo(13, -30); c.lineTo(6, -22); c.closePath(); c.fill(); c.stroke(); }
@@ -677,7 +697,8 @@ function drawGolfer(c, ch, x, y, k, view, ang, len) {
     c.lineWidth = 3.6; c.strokeStyle = ch.kind === 'bird' ? '#ffd34d' : ch.skin; c.beginPath(); c.moveTo(px, py); c.lineTo(hx, hyy); c.stroke();
     c.lineWidth = 2.6; c.strokeStyle = INK; c.beginPath(); c.moveTo(hx, hyy); c.lineTo(ex, ey); c.stroke();
     c.lineWidth = 1.3; c.strokeStyle = '#e8eef7'; c.beginPath(); c.moveTo(hx, hyy); c.lineTo(ex, ey); c.stroke();
-    c.fillStyle = '#cfd8e6'; c.strokeStyle = INK; c.lineWidth = 1.2; c.beginPath(); c.ellipse(ex, ey, 3.4, 2, ang, 0, TAU); c.fill(); c.stroke();
+    const hd = ck === 'w' ? [5.6, 3.4, '#39475f'] : ck === 'g' ? [3.6, 1.7, '#e8eef7'] : ck === 'p' ? [4.2, 1.3, '#cfd8e6'] : [3.6, 2.1, '#cfd8e6'];
+    c.fillStyle = hd[2]; c.strokeStyle = INK; c.lineWidth = 1.2; c.beginPath(); c.ellipse(ex, ey, hd[0], hd[1], ang, 0, TAU); c.fill(); c.stroke();
   }
   c.restore();
 }
@@ -693,7 +714,7 @@ function drawGolferSprite(s) {
   const ch = CHARS[G.ch], A0 = swingAngle(), k = s.k * .82;
   const bp = {}; let len = clubLen;
   if (proj(ball.x, ball.y, 0, bp) && G.phase !== 'fly') { const ux = (bp.sx - s.sx) / k, uy = (bp.sy - s.sy) / k; len = clamp(Math.hypot(ux, uy + 31), 26, 70); clubLen = len; }
-  drawGolfer(ctx, ch, s.sx, s.sy, k, 'back', A0, len);
+  drawGolfer(ctx, ch, s.sx, s.sy, k, 'back', A0, len, CLUBS[G.club].t);
 }
 function addressAngle() {
   const bp = {}, gp = golferPos(), o = {};
@@ -845,9 +866,9 @@ function pinDist() { return Math.hypot(ball.x - G.hole.pin[0], ball.y - G.hole.p
 function autoClub() {
   const lie = lieAt(), d = pinDist(); const pt = CLUBS.length - 1;
   if (lie === 'green' || (lie === 'fringe' && d < 210)) return pt;
-  if (lie === 'sand') return d < 240 ? 4 : 3;
-  const tgt = Math.hypot(aimTarget()[0] - ball.x, aimTarget()[1] - ball.y);
-  let pick = 0; for (let i = 0; i < pt; i++) if (clubRange(CLUBS[i]) * .98 >= Math.min(tgt, d)) pick = i;
+  const tgt = Math.min(Math.hypot(aimTarget()[0] - ball.x, aimTarget()[1] - ball.y), d);
+  if (lie === 'sand') { let pick = CI('7I'); for (let i = CI('7I'); i < pt; i++) if (clubRange(CLUBS[i]) * .98 >= tgt) pick = i; return pick; }
+  let pick = 0; for (let i = 0; i < pt; i++) if (clubRange(CLUBS[i]) * .98 >= tgt) pick = i;
   return pick;
 }
 function startHole(i) {
@@ -1024,6 +1045,17 @@ $('swing').addEventListener('pointerdown', e => { e.preventDefault(); swingPress
 $('bCancel').addEventListener('click', cancelSwing);
 function changeClub(d) { if (G.phase !== 'aim') return; const n = clamp(G.club + d, 0, CLUBS.length - 1); if (n !== G.club) { G.club = n; sfx('click'); refreshHud(true); } }
 $('clubUp').addEventListener('click', () => changeClub(-1)); $('clubDn').addEventListener('click', () => changeClub(1));
+function openBag() {
+  if (G.phase !== 'aim') return; const rec = autoClub(), grid = $('bagGrid'); grid.innerHTML = '';
+  CLUBS.forEach((c, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-pressed', i === G.club ? 'true' : 'false'); if (i === rec) b.className = 'rec';
+    b.innerHTML = '<b>' + c.k + '</b><span>' + c.n + '</span><em>' + Math.round(clubRange(c) * YARD) + ' yd</em>';
+    b.addEventListener('click', () => { G.club = i; sfx('click'); $('bag').hidden = true; refreshHud(true); });
+    grid.appendChild(b);
+  });
+  $('bag').hidden = false; sfx('click');
+}
+$('club').querySelector('.nm').addEventListener('click', openBag); $('bBagClose').addEventListener('click', () => { $('bag').hidden = true; });
 $('mini').addEventListener('click', openMap); $('mapModal').addEventListener('click', () => { $('mapModal').hidden = true; });
 $('bSfx').addEventListener('click', () => { G.muted = !G.muted; $('bSfx').textContent = G.muted ? 'SOUND OFF' : 'SOUND ON'; audio(); sfx('click'); });
 // drag to aim / tap to swing on the scene
@@ -1039,7 +1071,8 @@ window.addEventListener('keydown', e => {
   else if (e.key === 'ArrowRight' || e.key === 'd') { if (G.phase === 'aim') G.aimDir = 1; }
   else if (e.key === 'ArrowUp' || e.key === 'w') changeClub(-1);
   else if (e.key === 'ArrowDown' || e.key === 's') changeClub(1);
-  else if (e.key === 'Escape') cancelSwing();
+  else if (e.key === 'Escape') { if (!$('bag').hidden) $('bag').hidden = true; else cancelSwing(); }
+  else if (e.key === 'b') { $('bag').hidden ? openBag() : ($('bag').hidden = true); }
   else if (e.key === 'm') { $('mapModal').hidden ? openMap() : ($('mapModal').hidden = true); }
 });
 window.addEventListener('keyup', e => { if (['ArrowLeft', 'ArrowRight', 'a', 'd'].includes(e.key)) G.aimDir = 0; });
