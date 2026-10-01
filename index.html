@@ -60,6 +60,7 @@
   .name.miner { color: #ffd34d; }
   .name.ferrow { color: #f0b763; letter-spacing: 3px; }
   .name.golf { color: #8ee86b; letter-spacing: 2px; }
+  .name.casino { color: #ffd34d; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,79,134,.55); }
   .desc { font-size: 13px; opacity: .78; line-height: 1.45; }
   .play {
     margin-top: 6px; font-weight: 800; letter-spacing: 1px; font-size: 15px;
@@ -71,7 +72,7 @@
 </head>
 <body>
   <h1>RETRO ARCADE</h1>
-  <p class="sub">Four hand-built games · works on desktop &amp; iPhone</p>
+  <p class="sub">Five hand-built games · works on desktop &amp; iPhone</p>
 
   <div class="games">
     <a class="card" href="cubert.html">
@@ -221,6 +222,25 @@
       </svg>
       <span class="name golf">MULLIGAN CUP</span>
       <span class="desc">Eighteen holes of golf with wind, water and sloped greens. Pick a swinger, save anywhere, and sink it.</span>
+      <span class="play">PLAY &#9654;</span>
+    </a>
+
+    <a class="card" href="casino.html">
+      <!-- Lucky Seven Casino: marquee sign with dice and chips -->
+      <svg class="art" viewBox="0 0 300 132" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs><linearGradient id="cas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a0e1e"/><stop offset="1" stop-color="#1a050b"/></linearGradient></defs>
+        <rect width="300" height="132" rx="12" fill="url(#cas)"/>
+        <rect x="14" y="12" width="272" height="108" rx="12" fill="none" stroke="#e8b94a" stroke-width="3"/>
+        <g fill="#ffe39a"><circle cx="34" cy="12" r="3"/><circle cx="64" cy="12" r="3"/><circle cx="94" cy="12" r="3"/><circle cx="124" cy="12" r="3"/><circle cx="154" cy="12" r="3"/><circle cx="184" cy="12" r="3"/><circle cx="214" cy="12" r="3"/><circle cx="244" cy="12" r="3"/><circle cx="270" cy="12" r="3"/>
+          <circle cx="34" cy="120" r="3"/><circle cx="64" cy="120" r="3"/><circle cx="94" cy="120" r="3"/><circle cx="124" cy="120" r="3"/><circle cx="154" cy="120" r="3"/><circle cx="184" cy="120" r="3"/><circle cx="214" cy="120" r="3"/><circle cx="244" cy="120" r="3"/><circle cx="270" cy="120" r="3"/></g>
+        <text x="150" y="38" text-anchor="middle" font-family="Georgia,serif" font-size="11" font-weight="700" letter-spacing="6" fill="#e8b94a">WELCOME TO</text>
+        <text x="132" y="86" text-anchor="middle" font-family="Georgia,serif" font-size="38" font-weight="700" fill="#fff4d6" stroke="#ff4f86" stroke-width="1.4" paint-order="stroke">LUCKY</text>
+        <text x="224" y="90" text-anchor="middle" font-family="Georgia,serif" font-size="56" font-style="italic" font-weight="700" fill="#ffe39a" stroke="#ffb02e" stroke-width="1.4" paint-order="stroke">7</text>
+        <g transform="translate(34,92) rotate(-12)"><rect width="22" height="22" rx="4" fill="#d92b3a" stroke="#ffe39a"/><g fill="#fff"><circle cx="6" cy="6" r="2"/><circle cx="16" cy="6" r="2"/><circle cx="11" cy="11" r="2"/><circle cx="6" cy="16" r="2"/><circle cx="16" cy="16" r="2"/></g></g>
+        <circle cx="262" cy="46" r="12" fill="#1f9d55" stroke="#fff" stroke-dasharray="4 4" stroke-width="3"/>
+      </svg>
+      <span class="name casino">LUCKY SEVEN CASINO</span>
+      <span class="desc">Craps with every bet and rotating shooters, blackjack, and roulette. Bring friends: it's play money only.</span>
       <span class="play">PLAY &#9654;</span>
     </a>
   </div>

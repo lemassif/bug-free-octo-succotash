@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lucky Seven">
+<meta name="theme-color" content="#3a0c18">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Lucky Seven Casino — craps, blackjack, roulette</title>
+<link rel="stylesheet" href="casino.css">
+<style>
+  body { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 14px; }
+  .sign { margin: max(14px, env(safe-area-inset-top)) auto 8px; max-width: 640px; text-align: center; position: relative; padding: 26px 16px 22px;
+    background: linear-gradient(180deg, #2a0710, #4a0e1e); border-radius: 18px; border: 3px solid var(--gold-lo); box-shadow: 0 0 0 3px #1a050b, 0 14px 30px rgba(0,0,0,.55), inset 0 0 40px rgba(0,0,0,.5); }
+  .sign::before, .sign::after { content: ""; position: absolute; left: 10px; right: 10px; height: 10px;
+    background: radial-gradient(circle, #fff3c4 0 2.6px, #ffd34d 3px, rgba(255,211,77,.0) 6px) 0 50%/18px 10px repeat-x; animation: bulbs 1.6s steps(2, jump-none) infinite; }
+  .sign::before { top: 7px; } .sign::after { bottom: 7px; animation-delay: .8s; }
+  @keyframes bulbs { 50% { opacity: .35; } }
+  .sign .top7 { font: 700 13px var(--serif); letter-spacing: .5em; text-indent: .5em; color: var(--gold); text-transform: uppercase; }
+  .sign h1 { margin: 2px 0 0; font: 700 clamp(40px, 12vw, 86px)/.9 var(--serif); letter-spacing: .04em; text-transform: uppercase; color: #fff4d6;
+    text-shadow: 0 0 6px #ff4f86, 0 0 18px #ff4f86, 0 0 38px rgba(255,79,134,.6); }
+  .sign h1 b { color: var(--gold-hi); text-shadow: 0 0 6px #ffb02e, 0 0 20px #ffb02e, 0 0 40px rgba(255,176,46,.6); font-style: italic; }
+  .sign p { margin: 10px 0 0; color: var(--mute); letter-spacing: .24em; text-indent: .24em; text-transform: uppercase; font-size: 11px; font-weight: 700; }
+  .tables { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 16px 0; }
+  .tbl { text-decoration: none; display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 14px; border-radius: 18px; text-align: center;
+    background: linear-gradient(180deg, rgba(60,14,28,.92), rgba(24,6,12,.92)); border: 2px solid var(--gold-lo); box-shadow: 0 10px 24px rgba(0,0,0,.45); transition: transform .12s, border-color .12s; }
+  @media (hover: hover) { .tbl:hover { transform: translateY(-4px); border-color: var(--gold-hi); } }
+  .tbl:active { transform: scale(.98); }
+  .tbl svg { width: 100%; height: 124px; border-radius: 12px; display: block; }
+  .tbl h2 { margin: 2px 0 0; font: 700 26px var(--serif); letter-spacing: .16em; text-indent: .16em; text-transform: uppercase; color: var(--gold-hi); }
+  .tbl p { margin: 0; font-size: 13px; line-height: 1.4; color: #e6d3b3; }
+  .tbl .go { align-self: center; margin-top: 4px; }
+  h3.sec { margin: 22px 0 8px; font: 700 14px var(--serif); letter-spacing: .3em; text-indent: .3em; text-transform: uppercase; color: var(--gold); text-align: center; }
+  .cashier { padding: 12px; display: grid; gap: 8px; }
+  .prow { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 12px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); }
+  .prow .sw { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; color: #1a0a10; background: var(--pc); border: 3px solid rgba(0,0,0,.35); }
+  .prow input { width: 100%; background: rgba(0,0,0,.35); border: 1px solid var(--line); color: var(--ivory); border-radius: 8px; padding: 7px 9px; font: 800 15px var(--sans); }
+  .prow .meta { font-size: 11px; color: var(--mute); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .prow .bk { font-weight: 900; font-size: 18px; color: var(--gold-hi); text-align: right; }
+  .prow .acts { display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px; }
+  .seg { display: inline-flex; background: rgba(0,0,0,.4); border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
+  .seg button { background: none; border: 0; border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 800; letter-spacing: .06em; color: var(--mute); }
+  .seg button[aria-pressed="true"] { background: var(--gold); color: var(--ink); }
+  .mini { background: rgba(255,255,255,.08); border: 1px solid var(--line); border-radius: 999px; padding: 5px 10px; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--gold-hi); }
+  .mini.danger { color: #ffb3b3; }
+  .fine { text-align: center; color: var(--mute); font-size: 12px; line-height: 1.5; margin: 18px auto 0; max-width: 520px; }
+</style>
+</head>
+<body>
+<header class="top"><a class="back" href="index.html">&#9776; Arcade</a><h1>Lucky Seven</h1><span style="width:74px"></span></header>
+<main class="wrap">
+  <section class="sign" aria-label="Lucky Seven Casino">
+    <div class="top7">Welcome to fabulous</div>
+    <h1>Lucky <b>7</b></h1>
+    <p>Casino &nbsp;·&nbsp; Play money only</p>
+  </section>
+
+  <div class="tables">
+    <a class="tbl" href="craps.html">
+      <svg viewBox="0 0 300 124" aria-hidden="true">
+        <rect width="300" height="124" rx="12" fill="#0d6b3d"/><rect width="300" height="124" rx="12" fill="url(#cg)" opacity=".5"/>
+        <defs><radialGradient id="cg" cx=".5" cy=".4"><stop offset="0" stop-color="#34c97a"/><stop offset="1" stop-color="#05301b"/></radialGradient></defs>
+        <rect x="6" y="6" width="288" height="112" rx="9" fill="none" stroke="#e8b94a" stroke-width="2" opacity=".6"/>
+        <text x="150" y="26" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="13" letter-spacing="5" fill="#ffe39a">PASS LINE</text>
+        <g transform="translate(96,56) rotate(-14)"><rect width="52" height="52" rx="9" fill="#d92b3a" stroke="#ffe39a" stroke-width="2"/><g fill="#fff"><circle cx="14" cy="14" r="5"/><circle cx="38" cy="14" r="5"/><circle cx="26" cy="26" r="5"/><circle cx="14" cy="38" r="5"/><circle cx="38" cy="38" r="5"/></g></g>
+        <g transform="translate(168,62) rotate(16)"><rect width="52" height="52" rx="9" fill="#d92b3a" stroke="#ffe39a" stroke-width="2"/><g fill="#fff"><circle cx="16" cy="14" r="5"/><circle cx="36" cy="26" r="5"/><circle cx="16" cy="38" r="5"/></g></g>
+        <circle cx="46" cy="86" r="16" fill="#fff"/><circle cx="46" cy="86" r="11" fill="#111"/><text x="46" y="90" text-anchor="middle" font-size="9" font-weight="900" fill="#fff" font-family="sans-serif">ON</text>
+      </svg>
+      <h2>Craps</h2>
+      <p>Every bet on the layout: pass, odds, place, field, hardways, props and hops. Several shooters take turns with the dice.</p>
+      <span class="btn go">Roll &#9654;</span>
+    </a>
+    <a class="tbl" href="blackjack.html">
+      <svg viewBox="0 0 300 124" aria-hidden="true">
+        <rect width="300" height="124" rx="12" fill="#0d6b3d"/><rect width="300" height="124" rx="12" fill="url(#bg)" opacity=".5"/>
+        <defs><radialGradient id="bg" cx=".5" cy=".4"><stop offset="0" stop-color="#34c97a"/><stop offset="1" stop-color="#05301b"/></radialGradient></defs>
+        <path d="M30 20 Q150 -6 270 20" fill="none" stroke="#e8b94a" stroke-width="2" opacity=".6"/>
+        <text x="150" y="38" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="11" letter-spacing="4" fill="#ffe39a">BLACKJACK PAYS 3 TO 2</text>
+        <g transform="translate(96,44) rotate(-10) scale(.9)"><rect width="62" height="86" rx="7" fill="#fff" stroke="#999"/><text x="9" y="22" font-family="Georgia,serif" font-weight="700" font-size="20" fill="#111">A</text><path d="M31 40 C20 52 14 58 22 66 C26 70 30 68 31 63 C32 68 36 70 40 66 C48 58 42 52 31 40Z M28 66 h6 l3 10 h-12Z" fill="#111"/></g>
+        <g transform="translate(148,44) rotate(9) scale(.9)"><rect width="62" height="86" rx="7" fill="#fff" stroke="#999"/><text x="9" y="22" font-family="Georgia,serif" font-weight="700" font-size="20" fill="#c8202f">K</text><path d="M31 66 C14 54 14 40 24 40 C28 40 31 43 31 47 C31 43 34 40 38 40 C48 40 48 54 31 66Z" fill="#c8202f"/></g>
+        <circle cx="40" cy="96" r="15" fill="#26262d" stroke="#fff" stroke-dasharray="4 4" stroke-width="3"/><circle cx="256" cy="96" r="15" fill="#d6332f" stroke="#fff" stroke-dasharray="4 4" stroke-width="3"/>
+      </svg>
+      <h2>Blackjack</h2>
+      <p>Split, double, surrender and insure. Up to five seats, a dealer who stands on soft 17, and a basic-strategy hint.</p>
+      <span class="btn go">Deal &#9654;</span>
+    </a>
+    <a class="tbl" href="roulette.html">
+      <svg viewBox="0 0 300 124" aria-hidden="true">
+        <rect width="300" height="124" rx="12" fill="#1a0a10"/>
+        <g transform="translate(150,62)">
+          <circle r="58" fill="#6b3a1c" stroke="#e8b94a" stroke-width="3"/>
+          <g id="pk"></g>
+          <circle r="50" fill="#111"/>
+          <circle r="22" fill="#e8b94a" stroke="#8f6a1f" stroke-width="2"/><circle r="9" fill="#ffe39a"/>
+          <path d="M-3 -22 h6 l1 -16 h-8Z M-3 22 h6 l1 16 h-8Z M-22 -3 v6 l-16 1 v-8Z M22 -3 v6 l16 1 v-8Z" fill="#e8b94a"/>
+        </g>
+        <circle cx="178" cy="22" r="4.5" fill="#fff"/>
+      </svg>
+      <h2>Roulette</h2>
+      <p>American double-zero or European single-zero wheel. Straight up, splits, corners, dozens, columns: everyone bets at once.</p>
+      <span class="btn go">Spin &#9654;</span>
+    </a>
+  </div>
+
+  <h3 class="sec">The cashier</h3>
+  <section class="cashier panel" id="cashier" aria-label="Players and bankrolls"></section>
+  <div class="row c" style="margin-top:12px" id="cashierBtns"></div>
+  <p class="fine">Every player keeps one bankroll that follows them from table to table, saved on this device. Out of chips? The cashier tops you up for free. Play money only: there is no real money, no prizes and nothing to buy.</p>
+</main>
+<script src="casino-core.js"></script>
+<script>
+(function () {
+  'use strict';
+  const { h, money, sfx } = Casino;
+  // roulette wheel art: coloured pocket wedges
+  (function () {
+    const g = document.getElementById('pk'), N = 24; let s = '';
+    for (let i = 0; i < N; i++) {
+      const a0 = i / N * 2 * Math.PI, a1 = (i + 1) / N * 2 * Math.PI, c = i === 0 ? '#0b8a43' : i % 2 ? '#c8202f' : '#161616';
+      s += '<path d="M' + (Math.cos(a0) * 38).toFixed(1) + ' ' + (Math.sin(a0) * 38).toFixed(1) + ' L' + (Math.cos(a0) * 54).toFixed(1) + ' ' + (Math.sin(a0) * 54).toFixed(1) +
+        ' A54 54 0 0 1 ' + (Math.cos(a1) * 54).toFixed(1) + ' ' + (Math.sin(a1) * 54).toFixed(1) + ' L' + (Math.cos(a1) * 38).toFixed(1) + ' ' + (Math.sin(a1) * 38).toFixed(1) + ' A38 38 0 0 0 ' + (Math.cos(a0) * 38).toFixed(1) + ' ' + (Math.sin(a0) * 38).toFixed(1) + 'Z" fill="' + c + '" stroke="#e8b94a" stroke-width=".6"/>';
+    }
+    g.innerHTML = s;
+  })();
+
+  const box = document.getElementById('cashier');
+  function paint() {
+    const roster = Casino.list(); box.innerHTML = '';
+    roster.forEach(p => {
+      const net = Casino.r2(p.bank - Casino.START_BANK * (1 + (p.rebuys || 0)));
+      box.append(h('div', { class: 'prow', style: { '--pc': p.color } },
+        h('span', { class: 'sw' }, (p.name || '?')[0].toUpperCase()),
+        h('div', null,
+          h('input', { value: p.name, maxlength: 14, 'aria-label': 'Player name', onchange: e => { p.name = e.target.value.trim().slice(0, 14) || p.name; Casino.save(); paint(); } }),
+          h('div', { class: 'meta' },
+            h('span', { class: 'seg', role: 'group', 'aria-label': 'Player type' },
+              h('button', { type: 'button', 'aria-pressed': p.human, onclick: () => { p.human = true; Casino.save(); sfx('click'); paint(); } }, 'Human'),
+              h('button', { type: 'button', 'aria-pressed': !p.human, onclick: () => { p.human = false; Casino.save(); sfx('click'); paint(); } }, 'Computer')),
+            h('span', null, 'Peak ' + money(p.peak || p.bank)), h('span', null, 'Session ' + Casino.signed(net)))),
+        h('div', null, h('div', { class: 'bk' }, money(p.bank)),
+          h('div', { class: 'acts' },
+            p.bank < Casino.START_BANK ? h('button', { class: 'mini', type: 'button', onclick: () => { Casino.rebuy(p); sfx('chips'); paint(); } }, '+ ' + money(Casino.START_BANK)) : null,
+            roster.length > 1 ? h('button', { class: 'mini danger', type: 'button', 'aria-label': 'Remove ' + p.name, onclick: () => { Casino.removePlayer(p.id); paint(); } }, 'Remove') : null))));
+    });
+    const bar = document.getElementById('cashierBtns'); bar.innerHTML = '';
+    if (roster.length < Casino.MAX_PLAYERS) {
+      bar.append(h('button', { class: 'btn sm', type: 'button', onclick: () => { Casino.addPlayer('', true); sfx('click'); paint(); } }, '+ Add a person'));
+      bar.append(h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { Casino.addPlayer('', false); sfx('click'); paint(); } }, '+ Add a computer'));
+    }
+    bar.append(h('button', { class: 'btn sm ghost', type: 'button', onclick: () => {
+      Casino.modal('Start over?', h('p', null, 'This resets every player and bankroll back to the starting lineup. It cannot be undone.'),
+        [{ label: 'Keep playing' }, { label: 'Reset casino', cls: 'red', fn: () => { Casino.resetAll(); paint(); } }]); } }, 'Reset casino'));
+  }
+  paint();
+  Casino.registerSW();
+})();
+</script>
+</body>
+</html>

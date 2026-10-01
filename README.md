@@ -1,4 +1,4 @@
-> This repo is a small **retro arcade** with four self-contained browser games.
+> This repo is a small **retro arcade** with five self-contained browser games.
 > Open [`index.html`](index.html) for the **menu**, then pick a game:
 >
 > | Game | File | Description |
@@ -6,7 +6,8 @@
 > | **Cubert** | [`cubert.html`](cubert.html) | cube-hopping isometric arcade — see [`CUBERT.md`](CUBERT.md) |
 > | **Miner 2049er** | [`miner.html`](miner.html) | platformer (documented below) |
 > | **Ferrow Light** | [`ferrow-light.html`](ferrow-light.html) | a four-chapter Zork-style text adventure |
-> | **Mulligan Cup** | [`golf.html`](golf.html) | nine-hole golf from behind the ball — see below |
+> | **Mulligan Cup** | [`golf.html`](golf.html) | eighteen-hole golf from behind the ball — see below |
+> | **Lucky Seven Casino** | [`casino.html`](casino.html) | craps, blackjack and roulette with several players — see below |
 >
 > Every page cross-links, so you can hop between the menu and any game.
 >
@@ -50,6 +51,37 @@ behind the ball in real perspective (a small 3D projection engine on Canvas
 - Out/In/Total scorecard against par 71, and your best 18-hole score is saved
   in your browser. Playable with touch, mouse or keyboard (`←` `→` aim, `↑` `↓`
   club, `Space` swing, `B` bag, `M` map, `H` holes, `Esc` menu).
+
+---
+
+# Lucky Seven Casino
+
+A Las Vegas-style casino for play money only: no real money, no prizes, no
+purchases. Open `casino.html` for the lobby.
+
+- **Shared players.** The cashier keeps a roster of up to six players, each
+  human or computer, each with one bankroll that follows them from table to
+  table (saved on the device). Pass the phone around: every human bets on
+  their own turn. Out of chips? The cashier tops you up for free.
+- **Craps** (`craps.html`) has every bet on the layout: Pass / Don't Pass,
+  Come / Don't Come, free odds up to 3-4-5x (and 6x lay), Place, Buy and Lay,
+  Field, Big 6 / Big 8, Hardways, Any 7, Any Craps, 2, 3, 11, 12, C&E, Horn,
+  and all 21 Hop bets. Up to six players share the table and **the dice pass
+  to the next shooter after every seven-out**; computer shooters roll on their
+  own. The Odds sheet lists every payout and house edge, and a stats sheet
+  charts your rolls against the odds.
+- **Blackjack** (`blackjack.html`): six decks, dealer stands on soft 17,
+  blackjack pays 3 to 2, double after split, up to four hands, late
+  surrender, insurance, and a basic-strategy Hint. Up to five seats.
+- **Roulette** (`roulette.html`): American double-zero or European
+  single-zero wheel. Tap a number, the line between numbers (split), a corner,
+  a street or a six line, plus dozens, columns and even-money bets. Basket,
+  First four and the European call bets (Voisins, Orphelins, Tiers, Jeu zéro)
+  live under Special. Everyone bets on the same spin.
+- **Honest odds.** The rules engines (`craps-engine.js`, `blackjack-engine.js`,
+  `roulette-engine.js`) are plain, DOM-free JavaScript. Every craps and
+  roulette bet reproduces its published house edge exactly, and perfect basic
+  strategy at the blackjack table measures about 0.4% over millions of hands.
 
 ---
 

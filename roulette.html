@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Roulette">
+<meta name="theme-color" content="#3a0c18">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Roulette — Lucky Seven Casino</title>
+<link rel="stylesheet" href="casino.css">
+<style>
+  .wrap { max-width: 640px; margin: 0 auto; }
+  .stage { position: relative; margin: 8px 10px 0; border-radius: 16px; overflow: hidden; border: 3px solid var(--gold-lo); box-shadow: 0 0 0 3px #1a050b, 0 10px 22px rgba(0,0,0,.5);
+    background: radial-gradient(100% 100% at 50% 50%, #2a0710, #12060a); }
+  #wheel { display: block; width: 100%; height: 210px; }
+  .result { position: absolute; right: 10px; top: 10px; min-width: 64px; text-align: center; pointer-events: none; }
+  .result .n { width: 62px; height: 62px; border-radius: 50%; display: grid; place-items: center; font: 800 26px var(--sans); color: #fff; border: 3px solid var(--gold-hi); box-shadow: 0 0 18px rgba(255,227,154,.5); animation: callIn .4s ease-out; }
+  .result .n.red { background: #c1272d; } .result .n.black { background: #161616; } .result .n.green { background: #0b8a43; }
+  .result small { display: block; margin-top: 3px; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--gold-hi); text-shadow: 0 1px 3px #000; }
+  @keyframes callIn { from { opacity: 0; transform: scale(.6); } }
+  .status { position: absolute; left: 10px; top: 10px; font-size: 11px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: var(--gold-hi); text-shadow: 0 1px 3px #000; }
+  .strip { display: flex; align-items: center; gap: 8px; padding: 8px 12px 0; flex-wrap: wrap; }
+  .hist { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; }
+  .hist span { min-width: 25px; height: 25px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 900; color: #fff; border: 1.5px solid rgba(255,255,255,.35); }
+  .hist .red { background: #c1272d; } .hist .black { background: #161616; } .hist .green { background: #0b8a43; }
+  .kind { background: rgba(255,255,255,.08); border: 1px solid var(--line); border-radius: 999px; padding: 6px 11px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-hi); }
+  .tablewrap { margin: 8px 10px 4px; padding: 8px; border-radius: 16px; border: 3px solid var(--gold-lo); box-shadow: 0 0 0 3px #1a050b, 0 10px 22px rgba(0,0,0,.5);
+    background: radial-gradient(120% 90% at 50% 0%, var(--felt-hi), var(--felt) 55%, var(--felt-lo)); }
+  #table { display: block; width: 100%; touch-action: manipulation; cursor: pointer; }
+  .hint { text-align: center; font-size: 12px; color: #e9ddc6; margin: 6px 4px 2px; line-height: 1.4; }
+  .dock { position: sticky; bottom: 0; z-index: 25; padding: 8px 10px max(10px, env(safe-area-inset-bottom)); background: linear-gradient(0deg, #12060a 72%, rgba(18,6,10,0)); }
+  .dock .inner { max-width: 640px; margin: 0 auto; display: grid; gap: 8px; }
+  .dock .who2 { text-align: center; font-size: 12px; color: var(--mute); letter-spacing: .05em; } .dock .who2 b { color: var(--gold-hi); }
+  .acts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .acts .btn { padding: 11px 4px; font-size: 12px; letter-spacing: .04em; line-height: 1.1; }
+  .acts .btn.red { font-size: 17px; letter-spacing: .1em; }
+  .rebuy { margin-top: 4px; background: var(--gold); color: var(--ink); border: 0; border-radius: 999px; font-size: 10px; font-weight: 900; letter-spacing: .06em; padding: 3px 8px; text-transform: uppercase; }
+  .seg { display: flex; background: rgba(0,0,0,.4); border: 1px solid var(--line); border-radius: 999px; padding: 3px; margin: 8px auto; max-width: 360px; }
+  .seg button { flex: 1; background: none; border: 0; border-radius: 999px; padding: 8px 6px; font-weight: 800; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+  .seg button[aria-pressed="true"] { background: var(--gold); color: var(--ink); }
+  .callrow { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.1); }
+  .callrow b { font-size: 14px; } .callrow small { display: block; color: var(--mute); font-size: 12px; }
+  .cnt { display: grid; grid-template-columns: 44px 1fr 46px; gap: 8px; align-items: center; font-size: 12px; margin: 5px 0; }
+  .bar { height: 10px; border-radius: 5px; background: rgba(255,255,255,.1); overflow: hidden; } .bar i { display: block; height: 100%; background: var(--gold); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; font-size: 13px; }
+</style>
+</head>
+<body>
+<header class="top tight">
+  <a class="back" href="casino.html">&#8249; Lobby</a><h1>Roulette</h1>
+  <div class="tools"><button class="tool" id="bRef" type="button">Odds</button><button class="tool" id="bStat" type="button">Stats</button><button class="tool" id="bSnd" type="button" aria-pressed="true" aria-label="Sound">Sound</button></div>
+</header>
+<div id="setup"></div>
+<main id="game" class="wrap" hidden>
+  <section class="stage" aria-label="Roulette wheel"><canvas id="wheel"></canvas><div class="status" id="status"></div><div class="result" id="result" aria-live="polite"></div></section>
+  <section class="strip"><div class="hist" id="hist" aria-label="Recent numbers"></div><button class="kind" id="bKind" type="button"></button></section>
+  <section class="seats" id="seats" aria-label="Players"></section>
+  <section class="tablewrap"><canvas id="table" aria-label="Roulette betting table. Tap a number or a line between numbers to place a chip."></canvas></section>
+  <p class="hint" id="hint"></p>
+</main>
+<footer class="dock" id="dock" hidden><div class="inner">
+  <div id="tray"></div>
+  <div class="who2" id="who2"></div>
+  <div class="acts">
+    <button class="btn ghost" id="bUndo" type="button">Undo</button>
+    <button class="btn ghost" id="bRebet" type="button">Rebet</button>
+    <button class="btn ghost" id="bExtra" type="button">Special</button>
+    <button class="btn red" id="bSpin" type="button">Spin</button>
+  </div>
+  <div class="acts" style="grid-template-columns:1fr 1fr 1fr 1.5fr;margin-top:-2px">
+    <button class="btn ghost sm" id="bClear" type="button">Clear</button>
+    <button class="btn ghost sm" id="bDouble" type="button">Double</button>
+    <button class="btn ghost sm" id="bAuto" type="button" aria-pressed="true">Auto-spin</button>
+    <span></span>
+  </div>
+</div></footer>
+
+<script src="roulette-engine.js"></script>
+<script src="casino-core.js"></script>
+<script>
+(function () {
+  'use strict';
+  const R = Roulette, { h, money, signed, sfx } = Casino;
+  const $ = id => document.getElementById(id);
+  const TAU = Math.PI * 2;
+  const S = { t: null, ps: [], active: 0, chip: 5, type: 'american', phase: 'setup', undo: [], hl: null, auto: false, spinning: false, timer: 0 };
+  try { S.type = localStorage.getItem('luckyseven.roulette.type') === 'european' ? 'european' : 'american'; } catch (e) { /* ignore */ }
+  const TS = { amount: n => n >= 1000 ? (n / 1000) + 'K' : (n % 1 ? n.toFixed(1) : String(n)) };
+
+  /* ================= wheel ================= */
+  const wv = $('wheel'), wg = wv.getContext('2d'); let WW = 300, WH = 210, dpr = 1;
+  const WS = { wa: 0, ba: -1.2, br: 0, mode: 'idle', idx: 0 };
+  function sizeWheel() { const r = wv.getBoundingClientRect(); if (!r.width) return; dpr = Math.min(window.devicePixelRatio || 1, 2.5); WW = r.width; WH = r.height; wv.width = Math.round(WW * dpr); wv.height = Math.round(WH * dpr); wg.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  const pockets = () => R.pockets(S.type);
+  function wheelGeom() { const R0 = Math.min(WH / 2 - 6, WW / 2 - 6); return { cx: WW / 2, cy: WH / 2, R0, track: R0 * .93, pocketOut: R0 * .82, pocketIn: R0 * .56, ballRest: R0 * .69 }; }
+  function drawWheel() {
+    const Gm = wheelGeom(), w = pockets(), N = w.length, step = TAU / N;
+    wg.clearRect(0, 0, WW, WH);
+    wg.save(); wg.translate(Gm.cx, Gm.cy);
+    // wooden bowl and ball track
+    let gr = wg.createRadialGradient(0, 0, Gm.R0 * .6, 0, 0, Gm.R0); gr.addColorStop(0, '#5a2d12'); gr.addColorStop(.85, '#8a4a1f'); gr.addColorStop(1, '#3b1c0a');
+    wg.fillStyle = gr; wg.beginPath(); wg.arc(0, 0, Gm.R0, 0, TAU); wg.fill();
+    wg.strokeStyle = '#e8b94a'; wg.lineWidth = 3; wg.beginPath(); wg.arc(0, 0, Gm.R0 - 1.5, 0, TAU); wg.stroke();
+    wg.strokeStyle = 'rgba(0,0,0,.45)'; wg.lineWidth = 2; wg.beginPath(); wg.arc(0, 0, Gm.track - 4, 0, TAU); wg.stroke();
+    // rotating wheel
+    wg.save(); wg.rotate(WS.wa);
+    for (let i = 0; i < N; i++) {
+      const a0 = -Math.PI / 2 + i * step, a1 = a0 + step, c = R.color(w[i]);
+      wg.fillStyle = c === 'red' ? '#c1272d' : c === 'black' ? '#161616' : '#0b8a43';
+      wg.beginPath(); wg.arc(0, 0, Gm.pocketOut, a0, a1); wg.arc(0, 0, Gm.pocketIn, a1, a0, true); wg.closePath(); wg.fill();
+      wg.strokeStyle = '#e8b94a'; wg.lineWidth = 1; wg.stroke();
+      wg.save(); wg.rotate(a0 + step / 2); wg.translate(Gm.pocketOut - Gm.R0 * .06, 0); wg.rotate(Math.PI / 2);
+      wg.fillStyle = '#fff'; wg.font = '700 ' + Math.max(8, Gm.R0 * (N > 37 ? .085 : .095)) + 'px sans-serif'; wg.textAlign = 'center'; wg.textBaseline = 'middle'; wg.fillText(R.label(w[i]), 0, 0); wg.restore();
+    }
+    wg.fillStyle = '#111'; wg.beginPath(); wg.arc(0, 0, Gm.pocketIn, 0, TAU); wg.fill();
+    wg.strokeStyle = '#e8b94a'; wg.lineWidth = 2; wg.beginPath(); wg.arc(0, 0, Gm.pocketIn, 0, TAU); wg.stroke();
+    gr = wg.createRadialGradient(0, 0, 2, 0, 0, Gm.pocketIn * .62); gr.addColorStop(0, '#ffe9a8'); gr.addColorStop(1, '#a8741c');
+    wg.fillStyle = gr; wg.beginPath(); wg.arc(0, 0, Gm.pocketIn * .62, 0, TAU); wg.fill();
+    wg.strokeStyle = '#6b4a10'; wg.lineWidth = 3;
+    for (let k = 0; k < 4; k++) { wg.save(); wg.rotate(k * Math.PI / 2); wg.beginPath(); wg.moveTo(0, -Gm.pocketIn * .62); wg.lineTo(0, -Gm.pocketIn * .22); wg.stroke(); wg.fillStyle = '#ffe9a8'; wg.beginPath(); wg.arc(0, -Gm.pocketIn * .22, 4, 0, TAU); wg.fill(); wg.restore(); }
+    wg.restore();
+    // highlight the winning pocket
+    if (S.hl != null && WS.mode === 'idle') {
+      const i = w.indexOf(S.hl), a = WS.wa - Math.PI / 2 + i * step; wg.strokeStyle = '#ffe39a'; wg.lineWidth = 3; wg.beginPath(); wg.arc(0, 0, Gm.pocketOut + 1, a, a + step); wg.arc(0, 0, Gm.pocketIn - 1, a + step, a, true); wg.closePath(); wg.stroke();
+    }
+    // ball
+    const bx = Math.cos(WS.ba) * WS.br, by = Math.sin(WS.ba) * WS.br;
+    wg.fillStyle = 'rgba(0,0,0,.4)'; wg.beginPath(); wg.arc(bx + 1.5, by + 2, 5.2, 0, TAU); wg.fill();
+    gr = wg.createRadialGradient(bx - 1.5, by - 1.5, 1, bx, by, 5.5); gr.addColorStop(0, '#fff'); gr.addColorStop(1, '#bbb'); wg.fillStyle = gr; wg.beginPath(); wg.arc(bx, by, 5, 0, TAU); wg.fill();
+    wg.restore();
+  }
+  function idleBall() { const Gm = wheelGeom(); WS.br = Gm.track - 8; WS.ba = -Math.PI * .72; }
+  function spinAnim(result) {
+    return new Promise(done => {
+      const Gm = wheelGeom(), w = pockets(), N = w.length, step = TAU / N, T = 6200, i = result.index;
+      const wa0 = WS.wa, Aw = TAU * (2.6 + Math.random() * .6), b0 = Math.random() * TAU, pc = -Math.PI / 2 + (i + .5) * step;
+      const waT = wa0 + Aw; let Ab = (((b0 - (waT + pc)) % TAU) + TAU) % TAU + TAU * 8;
+      const t0 = performance.now(); let lastSlot = 0; WS.mode = 'spin'; sfx('spin');
+      const ease = x => 1 - Math.pow(1 - x, 3);
+      function f(now) {
+        const u = Math.min(1, (now - t0) / T);
+        WS.wa = wa0 + Aw * ease(u);
+        WS.ba = b0 - Ab * (1 - Math.pow(1 - u, 2.4));
+        const drop = .66;
+        if (u < drop) WS.br = Gm.track - 8;
+        else { const k = (u - drop) / (1 - drop), e = k * k * (3 - 2 * k); WS.br = (Gm.track - 8) + (Gm.ballRest - (Gm.track - 8)) * e + Math.sin(k * 3 * Math.PI) * (1 - k) * 8; }
+        if (u > drop - .08) { const slot = Math.floor((((WS.ba - WS.wa) % TAU) + TAU) % TAU / step); if (slot !== lastSlot) { lastSlot = slot; sfx('tick'); } }
+        drawWheel();
+        if (u < 1) requestAnimationFrame(f); else { WS.mode = 'idle'; WS.ba = waT + pc; WS.wa = waT; drawWheel(); done(); }
+      }
+      requestAnimationFrame(f);
+    });
+  }
+
+  /* ================= betting table (canvas) ================= */
+  const tv = $('table'), tg = tv.getContext('2d'); let TW = 340, TH = 480, tdpr = 1;
+  const Gt = {};
+  function layoutTable() {
+    const w = tv.parentElement.clientWidth - 16; if (w <= 0) return; tdpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    Gt.pad = 2; Gt.dw = Math.round(w * .115); Gt.sw = Math.round(w * .052); Gt.ow = Math.round(w * .15);
+    Gt.cw = (w - Gt.dw - Gt.sw - Gt.ow - 2 * Gt.pad) / 3; Gt.rh = Math.max(30, Math.min(40, w / 9.6)); Gt.zh = 44; Gt.ch = 34;
+    Gt.x0 = Gt.pad; Gt.xs = Gt.x0 + Gt.dw; Gt.xn = Gt.xs + Gt.sw; Gt.xo = Gt.xn + 3 * Gt.cw;
+    Gt.yz = Gt.pad; Gt.yn = Gt.yz + Gt.zh; Gt.yc = Gt.yn + 12 * Gt.rh; Gt.yEnd = Gt.yc + Gt.ch;
+    TW = w; TH = Gt.yEnd + Gt.pad;
+    tv.style.height = TH + 'px'; tv.style.width = TW + 'px'; tv.width = Math.round(TW * tdpr); tv.height = Math.round(TH * tdpr); tg.setTransform(tdpr, 0, 0, tdpr, 0, 0);
+  }
+  const cellPos = n => { const r = Math.floor((n - 1) / 3), c = (n - 1) % 3; return { x: Gt.xn + c * Gt.cw, y: Gt.yn + r * Gt.rh, r, c }; };
+  const zeroRect = n => {   // n is 0 or 37
+    const am = S.type === 'american', full = 3 * Gt.cw;
+    if (!am) return { x: Gt.xn, y: Gt.yz, w: full, h: Gt.zh };
+    return n === 0 ? { x: Gt.xn, y: Gt.yz, w: full / 2, h: Gt.zh } : { x: Gt.xn + full / 2, y: Gt.yz, w: full / 2, h: Gt.zh };
+  };
+  function numCenter(n) {
+    if (n === 0 || n === 37) { const z = zeroRect(n); return { x: z.x + z.w / 2, y: z.y + z.h / 2 }; }
+    const c = cellPos(n); return { x: c.x + Gt.cw / 2, y: c.y + Gt.rh / 2 };
+  }
+  function specPos(s) {
+    const k = s.kind, nums = s.nums;
+    if (k === 'dozen') return { x: Gt.x0 + Gt.dw / 2, y: Gt.yn + (nums[0] - 1) / 12 * 12 * Gt.rh / 3 * 1 + 2 * Gt.rh };
+    if (k === 'column') { const c = (nums[0] - 1) % 3; return { x: Gt.xn + c * Gt.cw + Gt.cw / 2, y: Gt.yc + Gt.ch / 2 }; }
+    if (k === 'even') { const idx = { '1 to 18': 0, 'Even': 1, 'Red': 2, 'Black': 3, 'Odd': 4, '19 to 36': 5 }[s.name]; return { x: Gt.xo + Gt.ow / 2, y: Gt.yn + (idx * 2 + 1) * Gt.rh }; }
+    if (k === 'street' || k === 'six') { const r0 = Math.floor((nums[0] - 1) / 3), rows = k === 'six' ? 2 : 1; return { x: Gt.xs + Gt.sw / 2, y: Gt.yn + (r0 + rows / 2) * Gt.rh }; }
+    if (k === 'basket' || k === 'first4') return { x: Gt.xn + 1.5 * Gt.cw, y: Gt.yn };
+    let x = 0, y = 0; nums.forEach(n => { const c = numCenter(n); x += c.x; y += c.y; }); return { x: x / nums.length, y: y / nums.length };
+  }
+  function drawTable() {
+    if (!Gt.cw) return; const g = tg, am = S.type === 'american';
+    g.clearRect(0, 0, TW, TH);
+    const gold = 'rgba(232,185,74,.85)'; g.lineWidth = 1.5; g.strokeStyle = gold;
+    const cellR = (x, y, w, h, fill) => { g.fillStyle = fill; g.fillRect(x, y, w, h); g.strokeRect(x, y, w, h); };
+    const label = (txt, cx, cy, size, col, rot) => { g.save(); g.translate(cx, cy); if (rot) g.rotate(rot); g.fillStyle = col || '#fff'; g.font = '800 ' + size + 'px ui-rounded, system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, 0, 0); g.restore(); };
+    // zeros
+    (am ? [0, 37] : [0]).forEach(n => { const z = zeroRect(n); cellR(z.x, z.y, z.w, z.h, '#0b8a43'); label(R.label(n), z.x + z.w / 2, z.y + z.h / 2, 22); });
+    // numbers
+    for (let n = 1; n <= 36; n++) {
+      const c = cellPos(n); cellR(c.x, c.y, Gt.cw, Gt.rh, R.color(n) === 'red' ? '#b3202b' : '#151515');
+      label(String(n), c.x + Gt.cw / 2, c.y + Gt.rh / 2 + 1, Math.round(Gt.rh * .55));
+    }
+    // street strip
+    g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(Gt.xs, Gt.yn, Gt.sw, 12 * Gt.rh); g.strokeRect(Gt.xs, Gt.yn, Gt.sw, 12 * Gt.rh);
+    g.strokeStyle = 'rgba(232,185,74,.35)'; g.lineWidth = 1; for (let r = 1; r < 12; r++) { g.beginPath(); g.moveTo(Gt.xs, Gt.yn + r * Gt.rh); g.lineTo(Gt.xs + Gt.sw, Gt.yn + r * Gt.rh); g.stroke(); } g.strokeStyle = gold; g.lineWidth = 1.5;
+    // dozens
+    ['1st 12', '2nd 12', '3rd 12'].forEach((t, i) => { const y = Gt.yn + i * 4 * Gt.rh; cellR(Gt.x0, y, Gt.dw, 4 * Gt.rh, 'rgba(0,0,0,.22)'); label(t, Gt.x0 + Gt.dw / 2, y + 2 * Gt.rh, Math.round(Gt.dw * .36), '#ffe39a', -Math.PI / 2); });
+    // outside
+    ['1-18', 'EVEN', 'RED', 'BLACK', 'ODD', '19-36'].forEach((t, i) => {
+      const y = Gt.yn + i * 2 * Gt.rh; cellR(Gt.xo, y, Gt.ow, 2 * Gt.rh, 'rgba(0,0,0,.22)');
+      if (t === 'RED' || t === 'BLACK') { const cx = Gt.xo + Gt.ow / 2, cy = y + Gt.rh, rx = Gt.ow * .28, ry = Gt.rh * .62; g.fillStyle = t === 'RED' ? '#c1272d' : '#151515'; g.strokeStyle = '#ffe39a'; g.beginPath(); g.moveTo(cx, cy - ry); g.lineTo(cx + rx, cy); g.lineTo(cx, cy + ry); g.lineTo(cx - rx, cy); g.closePath(); g.fill(); g.stroke(); g.strokeStyle = gold; }
+      else label(t, Gt.xo + Gt.ow / 2, y + Gt.rh, Math.round(Gt.ow * .24), '#ffe39a');
+    });
+    // columns
+    for (let c = 0; c < 3; c++) { cellR(Gt.xn + c * Gt.cw, Gt.yc, Gt.cw, Gt.ch, 'rgba(0,0,0,.22)'); label('2 to 1', Gt.xn + c * Gt.cw + Gt.cw / 2, Gt.yc + Gt.ch / 2, 13, '#ffe39a'); }
+    // winning number
+    if (S.hl != null) { const c = numCenter(S.hl), rr = S.hl === 0 || S.hl === 37 ? zeroRect(S.hl) : { x: cellPos(S.hl).x, y: cellPos(S.hl).y, w: Gt.cw, h: Gt.rh }; g.strokeStyle = '#ffe39a'; g.lineWidth = 4; g.strokeRect(rr.x + 2, rr.y + 2, rr.w - 4, rr.h - 4); g.fillStyle = 'rgba(255,227,154,.22)'; g.fillRect(rr.x, rr.y, rr.w, rr.h); }
+    // chips: group by spot
+    const spots = new Map(); S.t.bets.forEach(b => { if (!spots.has(b.spec.key)) spots.set(b.spec.key, { spec: b.spec, list: [] }); spots.get(b.spec.key).list.push(b); });
+    spots.forEach(sp => {
+      const pos = specPos(sp.spec);
+      sp.list.forEach((b, i) => {
+        const x = pos.x + i * 5 - (sp.list.length - 1) * 2.5, y = pos.y - i * 4, col = S.ps[b.p].color;
+        g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.arc(x + 1, y + 2, 12, 0, TAU); g.fill();
+        g.fillStyle = col; g.beginPath(); g.arc(x, y, 12, 0, TAU); g.fill();
+        g.strokeStyle = '#fff'; g.lineWidth = 2; g.setLineDash([3, 3]); g.beginPath(); g.arc(x, y, 9.5, 0, TAU); g.stroke(); g.setLineDash([]);
+        g.strokeStyle = 'rgba(0,0,0,.6)'; g.lineWidth = 1; g.beginPath(); g.arc(x, y, 12, 0, TAU); g.stroke();
+        label(TS.amount(b.amt), x, y + .5, b.amt >= 100 ? 8 : 10, '#1a0a10');
+      });
+    });
+  }
+
+  /* hit-testing: tap a number, a line between numbers, a corner, a street or an outside bet */
+  function zeroHit(x, bottom) {
+    const am = S.type === 'american', u = (x - Gt.xn) / (3 * Gt.cw), nr = 0.07;
+    if (bottom) {
+      if (Math.abs(u - 1 / 3) < nr) return R.spec('trio', [0, 1, 2], 'Trio 0-1-2');
+      if (am && Math.abs(u - .5) < nr) return R.spec('trio', [0, 37, 2], 'Trio 0-00-2');
+      if (Math.abs(u - 2 / 3) < nr) return am ? R.spec('trio', [37, 2, 3], 'Trio 00-2-3') : R.spec('trio', [0, 2, 3], 'Trio 0-2-3');
+      const below = Math.min(3, Math.max(1, Math.floor(u * 3) + 1));
+      const z = am ? (u < .5 ? 0 : 37) : 0;
+      return R.spec('split', [z, below]);
+    }
+    if (am && Math.abs(u - .5) < .06) return R.spec('split', [0, 37]);
+    return R.straight(am && u >= .5 ? 37 : 0);
+  }
+  function hit(x, y) {
+    const G = Gt;
+    if (y >= G.yz && y < G.yn && x >= G.xn && x < G.xo) return zeroHit(x, y > G.yn - G.zh * .32);
+    if (y >= G.yn && y < G.yc) {
+      const r = Math.min(11, Math.floor((y - G.yn) / G.rh)), fy = ((y - G.yn) - r * G.rh) / G.rh;
+      if (x >= G.xn && x < G.xo) {
+        const c = Math.min(2, Math.floor((x - G.xn) / G.cw)), fx = ((x - G.xn) - c * G.cw) / G.cw;
+        const ex = Math.min(.24, 15 / G.cw), ey = Math.min(.27, 9 / G.rh);
+        const nearL = fx < ex && c > 0, nearR = fx > 1 - ex && c < 2, nearT = fy < ey, nearB = fy > 1 - ey && r < 11;
+        if (r === 0 && nearT) return zeroHit(x, true);
+        const dc = nearL ? -1 : nearR ? 1 : 0, dr = nearT ? -1 : nearB ? 1 : 0, base = r * 3 + c + 1, nums = [base];
+        if (dc) nums.push(r * 3 + c + dc + 1); if (dr) nums.push((r + dr) * 3 + c + 1); if (dc && dr) nums.push((r + dr) * 3 + c + dc + 1);
+        return nums.length === 1 ? R.straight(base) : nums.length === 2 ? R.spec('split', nums) : R.spec('corner', nums);
+      }
+      if (x >= G.xs && x < G.xn) {
+        if (fy < .22 && r > 0) return R.spec('six', [r * 3 - 2, r * 3 - 1, r * 3, r * 3 + 1, r * 3 + 2, r * 3 + 3]);
+        if (fy > .78 && r < 11) return R.spec('six', [r * 3 + 1, r * 3 + 2, r * 3 + 3, r * 3 + 4, r * 3 + 5, r * 3 + 6]);
+        return R.spec('street', [r * 3 + 1, r * 3 + 2, r * 3 + 3]);
+      }
+      if (x >= G.x0 && x < G.xs) return R.outside.dozen(Math.floor(r / 4));
+      if (x >= G.xo) return [R.outside.low, R.outside.even, R.outside.red, R.outside.black, R.outside.odd, R.outside.high][Math.floor(r / 2)]();
+    }
+    if (y >= G.yc && y < G.yEnd && x >= G.xn && x < G.xo) return R.outside.column(Math.min(2, Math.floor((x - G.xn) / G.cw)));
+    return null;
+  }
+
+  /* ================= game flow ================= */
+  function start(players) {
+    S.ps = players; S.t = R.create(players, S.type); S.undo = players.map(() => []);
+    const first = players.findIndex(p => p.human); S.active = first < 0 ? 0 : first;
+    $('setup').hidden = true; $('game').hidden = false; $('dock').hidden = false;
+    sizeWheel(); layoutTable(); idleBall(); drawWheel();
+    try { if (!localStorage.getItem('luckyseven.roulette.seen')) { localStorage.setItem('luckyseven.roulette.seen', '1'); setTimeout(showHow, 400); } } catch (e) { /* ignore */ }
+    S.phase = 'bet'; beginBetting();
+  }
+  function beginBetting() {
+    clearTimeout(S.timer); S.phase = 'bet'; S.hl = null; $('result').innerHTML = '';
+    S.t.type = S.type;
+    S.ps.forEach((p, i) => { if (!p.human) { if (p.bank < 25) { Casino.rebuy(p); Casino.toast(p.name + ' reloads ' + money(Casino.START_BANK) + '.'); } R.cpuBets(S.t, i, p.style); } });
+    S.undo = S.ps.map(() => []);
+    render();
+  }
+  async function spin() {
+    if (S.phase !== 'bet') return;
+    const t = S.t;
+    if (!t.bets.some(b => S.ps[b.p].human)) { Casino.toast('Place at least one bet first. Tap the table.'); return; }
+    clearTimeout(S.timer); S.phase = 'spin'; S.hl = null; $('result').innerHTML = ''; renderDock(); $('status').textContent = 'No more bets';
+    const res = window.__forceSpin != null ? (() => { const n = window.__forceSpin; window.__forceSpin = null; const w = R.pockets(S.type); return { index: Math.max(0, w.indexOf(n)), n }; })() : R.spin(S.type);
+    await spinAnim(res);
+    settle(res.n);
+  }
+  function settle(n) {
+    const out = R.settle(S.t, n); S.hl = n;
+    S.ps.forEach(p => Casino.touch(p)); Casino.save();
+    $('status').textContent = '';
+    $('result').append(h('div', { class: 'n ' + R.color(n) }, R.label(n)), h('small', null, (R.color(n) === 'green' ? 'Zero' : R.color(n)) + (n && n !== 37 ? ' · ' + (n % 2 ? 'odd' : 'even') : '')));
+    const anyWin = out.net.some(v => v > 0), big = out.net.some(v => v >= 175);
+    sfx(big ? 'big' : anyWin ? 'win' : 'lose'); if (anyWin) sfx('chips');
+    S.phase = 'result'; render(); drawWheel();
+    out.net.forEach((v, i) => { const el = document.querySelector('.seat[data-i="' + i + '"]'); if (el && out.results.some(r => r.p === i)) Casino.pop(el, signed(v), v > 0 ? 'win' : 'lose'); });
+    S.timer = setTimeout(() => { if (S.phase === 'result') { beginBetting(); if (S.auto) autoSpinSoon(); } }, 3200);
+  }
+  function autoSpinSoon() { S.timer = setTimeout(() => { if (S.phase === 'bet' && S.auto && !document.querySelector('.modal')) spin(); }, 4200); }
+
+  /* ================= betting actions ================= */
+  function place(spec) {
+    if (S.phase !== 'bet') { Casino.toast('Wait for the wheel to stop.'); return; }
+    const p = S.active; if (!S.ps[p].human) { Casino.toast('Pick a human seat to bet.'); return; }
+    const r = R.addBet(S.t, p, spec, S.chip);
+    if (!r.ok) { Casino.toast(r.error); sfx('lose'); return; }
+    S.undo[p].push([{ key: spec.key, amt: S.chip }]); sfx('chip'); Casino.touch(S.ps[p]); Casino.save(); render();
+  }
+  function undo() {
+    if (S.phase !== 'bet') return; const p = S.active, e = S.undo[p].pop();
+    if (!e) { Casino.toast('Nothing to undo.'); return; }
+    e.forEach(it => R.reduce(S.t, p, it.key, it.amt)); sfx('click'); Casino.save(); render();
+  }
+  function clearMine() { if (S.phase !== 'bet') return; const back = R.clear(S.t, S.active); S.undo[S.active] = []; if (back) sfx('click'); Casino.save(); render(); }
+  function rebet() {
+    if (S.phase !== 'bet') return; const p = S.active; let n = 0, grp = [];
+    S.t.last.filter(b => b.p === p).forEach(b => { if (S.type === 'european' && b.spec.nums.includes(37)) return; const r = R.addBet(S.t, p, b.spec, b.amt); if (r.ok) { n++; grp.push({ key: b.spec.key, amt: b.amt }); } });
+    if (n) { S.undo[p].push(grp); sfx('chips'); Casino.save(); render(); } else Casino.toast('No earlier bets to repeat.');
+  }
+  function doubleUp() {
+    if (S.phase !== 'bet') return; const p = S.active, mine = S.t.bets.filter(b => b.p === p).map(b => ({ spec: b.spec, amt: b.amt })); let grp = [];
+    mine.forEach(b => { const r = R.addBet(S.t, p, b.spec, b.amt); if (r.ok) grp.push({ key: b.spec.key, amt: b.amt }); });
+    if (grp.length) { S.undo[p].push(grp); sfx('chips'); Casino.save(); render(); } else Casino.toast(mine.length ? 'Not enough chips to double.' : 'Place a bet first.');
+  }
+  function placeCall(name, chips) {
+    if (S.phase !== 'bet') return; const p = S.active; const units = chips.reduce((a, c) => a + c[1], 0), cost = units * S.chip;
+    if (S.ps[p].bank + 1e-9 < cost) { Casino.toast('You need ' + money(cost) + ' for ' + name + '.'); return; }
+    const grp = []; chips.forEach(([spec, w]) => { const r = R.addBet(S.t, p, spec, S.chip * w); if (r.ok) grp.push({ key: spec.key, amt: S.chip * w }); });
+    if (grp.length) { S.undo[p].push(grp); sfx('chips'); Casino.save(); render(); }
+  }
+
+  /* ================= rendering ================= */
+  function renderSeats() {
+    const box = $('seats'), keep = box.scrollLeft; box.innerHTML = '';
+    S.ps.forEach((p, i) => {
+      const tot = R.total(S.t, i);
+      box.append(h('button', { class: 'seat', type: 'button', 'data-i': i, 'aria-pressed': i === S.active, style: { '--pc': p.color }, onclick: () => { if (p.human) { S.active = i; sfx('click'); render(); } else Casino.toast(p.name + ' is a computer player.'); } },
+        h('div', { class: 'nm' }, h('span', { class: 'dot' }), p.name, p.human ? null : h('span', { class: 'cpu' }, 'CPU')),
+        h('div', { class: 'bk' }, money(p.bank)),
+        h('div', { class: 'sub' }, tot ? money(tot) + ' on table' : 'no bets'),
+        p.human && p.bank < 1 && !tot ? h('span', { class: 'rebuy', role: 'button', onclick: e => { e.stopPropagation(); Casino.rebuy(p); sfx('chips'); render(); } }, 'Rebuy ' + money(Casino.START_BANK)) : null));
+    });
+    box.scrollLeft = keep;
+  }
+  function renderHist() { const el = $('hist'); el.innerHTML = ''; S.t.history.slice(0, 14).forEach(n => el.append(h('span', { class: R.color(n) }, R.label(n)))); }
+  function renderDock() {
+    const bet = S.phase === 'bet', ap = S.ps[S.active];
+    $('tray').innerHTML = ''; $('tray').append(Casino.chipTray(S.chip, v => { S.chip = v; sfx('click'); renderDock(); }));
+    $('who2').innerHTML = ''; $('who2').append(ap && ap.human ? h('span', null, 'Betting as ', h('b', null, ap.name), ' · ', h('b', null, money(R.total(S.t, S.active))), ' on the table · chip ', h('b', null, money(S.chip))) : 'Pick a human seat to place bets');
+    ['bUndo', 'bRebet', 'bExtra', 'bClear', 'bDouble'].forEach(id => $(id).disabled = !bet); $('bSpin').disabled = !bet;
+    $('bAuto').setAttribute('aria-pressed', S.auto);
+    $('hint').textContent = 'Tap a number to bet straight up. Tap the line between numbers for a split, a corner where lines cross, the strip beside the rows for a street or six line.';
+    $('bKind').textContent = (S.type === 'american' ? 'American · 00 · 5.26% edge' : 'European · single zero · 2.70% edge');
+    if (bet && !$('status').textContent) $('status').textContent = 'Place your bets';
+    if (!bet && S.phase !== 'spin') $('status').textContent = '';
+  }
+  function render() { renderHist(); renderSeats(); renderDock(); drawTable(); drawWheel(); }
+
+  /* ================= modals ================= */
+  function showExtras() {
+    const body = h('div'), am = S.type === 'american';
+    body.append(h('p', null, 'Special bets use your selected chip (' + money(S.chip) + ') on each spot they cover.'));
+    const add = (name, sub, chips, units) => body.append(h('div', { class: 'callrow' }, h('div', null, h('b', null, name), h('small', null, sub)),
+      h('button', { class: 'btn sm', type: 'button', onclick: () => { m.close(); placeCall(name, chips); } }, 'Bet ' + money(units * S.chip))));
+    if (am) add('Basket', '0, 00, 1, 2, 3 · pays 6:1 · house edge 7.89%', [[R.basket(), 1]], 1);
+    else {
+      add('First four', '0, 1, 2, 3 · pays 8:1', [[R.first4(), 1]], 1);
+      Object.entries(R.CALLS).forEach(([name, chips]) => add(name, chips.length + ' spots · ' + chips.reduce((a, c) => a + c[1], 0) + ' chips', chips, chips.reduce((a, c) => a + c[1], 0)));
+    }
+    body.append(h('p', { style: { marginTop: '10px' } }, am ? 'The basket is the worst bet on the American table. Every other bet costs the house edge of 5.26%.' : 'Call bets are bundles of neighbouring bets on the European wheel. They carry the same 2.70% edge as any other bet.'));
+    const m = Casino.modal('Special bets', body, [{ label: 'Close' }]);
+  }
+  function showRef() {
+    const body = h('div'), am = S.type === 'american';
+    body.append(h('div', { class: 'seg', role: 'group' }, [['american', 'American 00'], ['european', 'European 0']].map(([k, l]) => h('button', { type: 'button', 'aria-pressed': S.type === k, onclick: () => { if (k !== S.type) { switchType(k); m.close(); showRef(); } } }, l))));
+    body.append(h('p', null, am ? 'The American wheel has 38 pockets (1 to 36, 0 and 00). Every bet except the basket carries a 5.26% house edge.' : 'The European wheel has 37 pockets (1 to 36 and a single 0). Every bet carries a 2.70% house edge.'));
+    const rows = [['Straight up', 'One number', '35:1'], ['Split', 'Two adjacent numbers', '17:1'], ['Street', 'Three in a row', '11:1'], ['Trio', 'Zero(s) with two numbers', '11:1'], ['Corner', 'Four numbers', '8:1'], ['Six line', 'Two streets', '5:1'], ['Column', '12 numbers', '2:1'], ['Dozen', '12 numbers', '2:1'], ['Red / Black, Odd / Even, 1-18 / 19-36', '18 numbers', '1:1']];
+    if (am) rows.splice(6, 0, ['Basket', '0, 00, 1, 2, 3', '6:1']); else rows.splice(6, 0, ['First four', '0, 1, 2, 3', '8:1']);
+    const tb = h('table', null, h('tr', null, h('th', null, 'Bet'), h('th', null, 'Covers'), h('th', { class: 'r' }, 'Pays')));
+    rows.forEach(r => tb.append(h('tr', null, h('td', null, h('b', null, r[0])), h('td', null, r[1]), h('td', { class: 'r' }, r[2]))));
+    body.append(tb, h('p', null, 'Zero and double zero make every outside bet lose, which is where the house edge comes from. The chance to hit any single number is 1 in ' + R.pockets(S.type).length + '.'));
+    const m = Casino.modal('Odds & payouts', body);
+  }
+  function showStats() {
+    const t = S.t, hist = t.history, body = h('div');
+    if (!hist.length) body.append(h('p', null, 'No spins yet. The numbers will pile up here.'));
+    else {
+      const cnt = {}; hist.forEach(n => { cnt[n] = (cnt[n] || 0) + 1; });
+      const col = { red: 0, black: 0, green: 0 }; hist.forEach(n => { col[R.color(n)]++; });
+      const odd = hist.filter(n => n && n !== 37 && n % 2).length, even = hist.filter(n => n && n !== 37 && n % 2 === 0).length;
+      body.append(h('p', null, hist.length + ' spins this session (last 60 kept).'));
+      [['Red', col.red, '#c1272d'], ['Black', col.black, '#444'], ['Green', col.green, '#0b8a43'], ['Odd', odd, '#e8b94a'], ['Even', even, '#e8b94a']].forEach(([l, v, c]) => body.append(h('div', { class: 'cnt' }, h('b', null, l), h('div', { class: 'bar' }, h('i', { style: { width: (v / hist.length * 100) + '%', background: c } })), h('span', { style: { textAlign: 'right' } }, v + ' / ' + Math.round(v / hist.length * 100) + '%'))));
+      const all = R.pockets(S.type).slice().map(n => [n, cnt[n] || 0]).sort((a, b) => b[1] - a[1] || a[0] - b[0]);
+      body.append(h('h3', null, 'Hot numbers'), h('div', { class: 'hist' }, all.slice(0, 6).map(([n, c]) => h('span', { class: R.color(n), title: c + ' hits' }, R.label(n)))));
+      body.append(h('h3', null, 'Cold numbers'), h('div', { class: 'hist' }, all.slice(-6).reverse().map(([n]) => h('span', { class: R.color(n) }, R.label(n)))));
+      body.append(h('p', { style: { marginTop: '10px', color: 'var(--mute)' } }, 'The wheel has no memory. Hot and cold streaks are just chance.'));
+    }
+    Casino.modal('Spin statistics', body);
+  }
+  function showHow() {
+    Casino.modal('How roulette works', h('div', null,
+      h('p', null, h('b', null, 'Pick your seat and a chip,'), ' then tap the table. Tap a number to bet on it. Tap the line between two numbers to cover both (a split), where four numbers meet for a corner, or the narrow strip beside the rows for a street (3 numbers) or six line.'),
+      h('p', null, 'The right-hand column holds the even-money bets (red, black, odd, even, low, high) and the left holds the dozens. Columns sit under the grid.'),
+      h('p', null, 'Press Spin. Everyone’s bets are settled together. ', h('b', null, 'Rebet'), ' repeats your last spin, ', h('b', null, 'Double'), ' doubles what you have down, and ', h('b', null, 'Special'), ' holds the basket and the European call bets.'),
+      h('p', null, 'Tap the wheel name at the top right of the table to switch between the American (00) and European (single zero) wheel from the Odds sheet. Play money only.')), [{ label: 'Place your bets', cls: '' }]);
+  }
+  function switchType(k) {
+    if (S.phase !== 'bet') { Casino.toast('Wait for the wheel to stop.'); return; }
+    if (S.t.bets.some(b => S.ps[b.p].human)) { Casino.toast('Take your bets down before changing the wheel.'); return; }
+    S.type = k; try { localStorage.setItem('luckyseven.roulette.type', k); } catch (e) { /* ignore */ }
+    R.clear; S.t.bets.forEach(b => { S.ps[b.p].bank = Casino.r2(S.ps[b.p].bank + b.amt); }); S.t.bets = []; S.t.type = k; S.t.history = []; idleBall(); sfx('bell'); beginBetting();
+  }
+
+  /* ================= wiring ================= */
+  tv.addEventListener('pointerup', e => {
+    if (S.phase === 'setup') return; const r = tv.getBoundingClientRect(), spec = hit(e.clientX - r.left, e.clientY - r.top); if (spec) place(spec);
+  });
+  $('bSpin').addEventListener('click', () => { sfx('click'); spin(); });
+  $('bUndo').addEventListener('click', undo); $('bRebet').addEventListener('click', rebet); $('bClear').addEventListener('click', clearMine); $('bDouble').addEventListener('click', doubleUp); $('bExtra').addEventListener('click', showExtras);
+  $('bAuto').addEventListener('click', () => { S.auto = !S.auto; $('bAuto').setAttribute('aria-pressed', S.auto); if (S.auto && S.phase === 'bet') autoSpinSoon(); else if (!S.auto && S.phase === 'bet') clearTimeout(S.timer); });
+  $('bKind').addEventListener('click', showRef); $('bRef').addEventListener('click', showRef);
+  $('bStat').addEventListener('click', () => { if (S.t) showStats(); else Casino.toast('Take your seats first.'); });
+  const snd = $('bSnd'); snd.setAttribute('aria-pressed', !Casino.isMuted()); snd.addEventListener('click', () => { Casino.setMuted(!Casino.isMuted()); snd.setAttribute('aria-pressed', !Casino.isMuted()); sfx('click'); });
+  window.addEventListener('resize', () => { sizeWheel(); layoutTable(); if (S.t) { drawTable(); drawWheel(); } });
+
+  window.__rl = { S, R, hit, specPos, place, spin, settle, Gt, layoutTable, drawTable };
+  Casino.pickSeats($('setup'), { game: 'roulette', max: 6, title: 'Take your seats', blurb: 'Everyone bets on the same table at once. Pick the players, then choose a chip and tap the layout.', onStart: start });
+  Casino.registerSW();
+})();
+</script>
+</body>
+</html>
