@@ -41,9 +41,16 @@ behind the ball in real perspective (a small 3D projection engine on Canvas
 - **Choose any hole, any time.** Tap the hole name (top left, or press `H`) to
   jump anywhere. Posted scores are kept, the round finishes when all 18 holes
   have a score, and you can also pick the starting hole before you tee off.
-- **Read the hole**: wind arrow, distance to the pin, a live minimap (tap it
-  for the full course map with the green's slope arrows), and a BREAK dial on
-  the green.
+- **Three difficulties.** *Casual* is the original, forgiving game. *Pro*
+  (the default) tightens the impact window, speeds up the meter, randomizes
+  the wind per hole with gusts between shots, quickens and tilts the greens,
+  shrinks the cup's capture, and drops the yardage readouts from the meter.
+  *Tour* goes further on all of those. Best scores are kept per difficulty.
+- **Read the hole**: wind arrow, distance to the pin, and a live minimap. Tap
+  it for the full course map, then **tap any spot to measure it**: yards from
+  the ball to that spot, from the spot to the pin, what it lands in, and the
+  club that reaches it. **Aim here** points your shot at it and picks that
+  club. A BREAK dial appears on the green.
 - **A full 14-club bag**: Driver, 3 and 5 Wood, 4 through 9 Iron, Pitching, Gap,
   Sand and Lob Wedge, and Putter. Tap the club name (or press `B`) to open the
   bag and see each club's distance from your current lie. Rough and bunkers cost
