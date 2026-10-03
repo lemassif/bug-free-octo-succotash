@@ -542,7 +542,7 @@
       }
     } else if (mode === 'levelclear') {
       stateTimer -= dt;
-      if (stateTimer <= 0) { level++; startLevel(true); }
+      if (stateTimer <= 0) { level++; lives++; startLevel(true); }
     }
   }
 
