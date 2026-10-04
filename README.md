@@ -1,4 +1,4 @@
-> This repo is a small **retro arcade** with five self-contained browser games.
+> This repo is a small **retro arcade** with six self-contained browser games.
 > Open [`index.html`](index.html) for the **menu**, then pick a game:
 >
 > | Game | File | Description |
@@ -7,6 +7,7 @@
 > | **Miner 2049er** | [`miner.html`](miner.html) | platformer (documented below) |
 > | **Ferrow Light** | [`ferrow-light.html`](ferrow-light.html) | a four-chapter Zork-style text adventure |
 > | **Mulligan Cup** | [`golf.html`](golf.html) | eighteen-hole golf from behind the ball — see below |
+> | **Giraffatron** | [`giraffe.html`](giraffe.html) | skateboarding, skiing laser giraffe — see below |
 > | **Lucky Seven Casino** | [`casino.html`](casino.html) | craps, blackjack and roulette with several players — see below |
 >
 > Every page cross-links, so you can hop between the menu and any game.
@@ -58,6 +59,30 @@ behind the ball in real perspective (a small 3D projection engine on Canvas
 - Out/In/Total scorecard against par 71, and your best 18-hole score is saved
   in your browser. Playable with touch, mouse or keyboard (`←` `→` aim, `↑` `↓`
   club, `Space` swing, `B` bag, `M` map, `H` holes, `Esc` menu).
+
+---
+
+# Giraffatron
+
+A side-scrolling arcade score-chaser. A giraffe skateboards through **Downtown**,
+skates the **Countryside**, then straps on skis for the **Alpine Slopes**, and the
+three stages loop, getting faster each lap.
+
+- **Eye lasers:** tap or hold anywhere on the screen and the giraffe's eyes fire
+  at that spot, locking onto the nearest target. Hold too long and they overheat.
+- **Hoof blasters:** hold BLAST to fire the laser guns on the front hooves.
+- **Jump** cones, fences, rocks, trees and gaps; launch off ramps; grind rails.
+  Tap JUMP again in the air for a kickflip (a daffy on skis), and again for a
+  360. Land it cleanly for points; land mid-trick and you bail.
+- **MEGA:** lasering targets, landing tricks, grinding and grabbing power cells
+  charge the meter. Hit MEGA to transform into a robot giraffe for 10 seconds:
+  invincible, hover-board over gaps, smash through obstacles, twin auto-lasers,
+  double points.
+- **Score** comes from targets (robots, drones, saucers, scarecrow bots, snow
+  bots and more), tricks, grinds, smashes and distance, multiplied by your
+  combo. Three crashes end the run; your best score is saved.
+- Keyboard: `Space` jump, `J` blast, `K` mega, `F` eye lasers at the nearest
+  target, mouse to aim, `P` pause.
 
 ---
 
