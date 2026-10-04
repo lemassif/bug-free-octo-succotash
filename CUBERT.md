@@ -66,7 +66,7 @@ arrow keys (or W A S D) are rotated 45°:
   - **Red balls** bounce down the pyramid at random. Touching one costs a life.
   - **Slinky** (the purple snake) hatches from a bouncing egg, then relentlessly
     chases you. Touching it costs a life — lure it off a disc edge to beat it.
-- You start with **3 lives**. Losing one clears the board of enemies for a brief
+- You start with **5 lives** and earn a bonus life for every level you clear. Losing one clears the board of enemies for a brief
   breather; your cube progress is kept.
 - High score is saved in your browser's local storage.
 
