@@ -1,4 +1,4 @@
-> This repo is a small **retro arcade** with six self-contained browser games.
+> This repo is a small **retro arcade** with seven self-contained browser games.
 > Open [`index.html`](index.html) for the **menu**, then pick a game:
 >
 > | Game | File | Description |
@@ -9,6 +9,7 @@
 > | **Mulligan Cup** | [`golf.html`](golf.html) | eighteen-hole golf from behind the ball — see below |
 > | **Giraffatron** | [`giraffe.html`](giraffe.html) | skateboarding, skiing laser giraffe — see below |
 > | **Lucky Seven Casino** | [`casino.html`](casino.html) | craps, blackjack and roulette with several players — see below |
+> | **Decathlon** | [`decathlon.html`](decathlon.html) | all ten track and field events for one to five athletes — see below |
 >
 > Every page cross-links, so you can hop between the menu and any game.
 >
@@ -114,6 +115,36 @@ purchases. Open `casino.html` for the lobby.
   `roulette-engine.js`) are plain, DOM-free JavaScript. Every craps and
   roulette bet reproduces its published house edge exactly, and perfect basic
   strategy at the blackjack table measures about 0.4% over millions of hands.
+
+---
+
+# Decathlon
+
+All ten decathlon events in their real order over two days, scored with the
+official World Athletics points tables.
+
+- **Day one:** 100 metres, long jump, shot put, high jump, 400 metres.
+  **Day two:** 110m hurdles, discus, pole vault, javelin, 1500 metres.
+- **One to five athletes.** At least one is human. The rest can be more humans
+  passing the device around, or computer athletes at *Rookie* (about 4,000 to
+  6,000 points), *Pro* (6,000 to 8,000) or *Olympian* (8,000 to 9,000) level.
+  Computer athletes run in the lanes beside you.
+- **Controls.** Tap LEFT and RIGHT in turn to run: the faster you alternate,
+  the faster you go. ACTION jumps hurdles and takes off at the board, plants
+  the pole and releases throws. For jumps, shot and javelin, keep holding
+  ACTION and let go at the right angle. Release the discus while the arrow is
+  in the green sector.
+- **Real rules.** Two false starts and you are out. Overstepping the board or
+  the line is a foul, and the best of three attempts counts. High jump and pole
+  vault use a rising bar: jump, pass a height or retire, and three misses in a
+  row ends your competition. In the 400 and 1500, sprinting flat out drains
+  your energy, so pace yourself and kick at the end.
+- **Standings** after every event, a podium and event-by-event points at the
+  finish, and the best human totals are saved on the device. The decathlon
+  saves after each event; **Continue** on the title screen picks it up.
+- Keyboard: `←` `→` (or `Z` `X`, `A` `D`) to run, `Space` / `↑` / `Enter` for
+  action, `P` to pause. The rules engine (`decathlon-engine.js`) has no DOM
+  and can be tested on its own.
 
 ---
 
