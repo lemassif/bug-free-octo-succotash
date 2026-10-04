@@ -1,5 +1,5 @@
 /* Retro Arcade service worker — caches the whole arcade for offline play. */
-const CACHE = 'arcade-v7';
+const CACHE = 'arcade-v8';
 const ASSETS = [
   './',
   './index.html',
@@ -25,7 +25,7 @@ const ASSETS = [
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE).then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())
   );
 });
 
@@ -37,19 +37,23 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Cache-first: play fully offline once loaded; refresh the cache when online.
+// Network-first: always show the newest version when online (asking the server whether
+// each file changed), and fall back to the saved copy when offline or the network is slow.
 self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request).then((cached) => {
-      const network = fetch(e.request).then((resp) => {
-        if (resp && resp.status === 200 && resp.type === 'basic') {
-          const copy = resp.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
-        }
-        return resp;
-      }).catch(() => cached || caches.match('./index.html'));
-      return cached || network;
-    })
-  );
+  const req = e.request;
+  if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+  e.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+    const fromCache = async () => (await cache.match(req, { ignoreSearch: true })) || (req.mode === 'navigate' ? cache.match('./index.html') : undefined) || Response.error();
+    try {
+      const resp = await Promise.race([
+        fetch(new Request(req.url, { cache: 'no-cache', credentials: 'same-origin' })),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('slow network')), 4000))
+      ]);
+      if (resp && resp.ok && resp.type === 'basic') cache.put(req, resp.clone()).catch(() => {});
+      return resp;
+    } catch (err) {
+      return (await fromCache()) || Response.error();
+    }
+  })());
 });
