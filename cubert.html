@@ -204,6 +204,11 @@
     { base:'#1f8ad6', mid:'#d64fb0', target:'#ffd23f', hops:2, reversible:false, ballEvery:2000, ballSpeed:460, coilyAt:3500, coilySpeed:470, discs:[{side:'left',row:4},{side:'right',row:3}] },
     { base:'#d6472f', target:'#42e0ff', hops:1, reversible:true, ballEvery:1900, ballSpeed:440, coilyAt:3200, coilySpeed:440, discs:[{side:'left',row:3},{side:'right',row:5}] },
     { base:'#2f45d6', mid:'#ff8a3d', target:'#31d67a', hops:2, reversible:false, ballEvery:1700, ballSpeed:410, coilyAt:2800, coilySpeed:410, discs:[{side:'left',row:2},{side:'right',row:5}] },
+    { base:'#ff5d8f', target:'#66f4ff', hops:1, reversible:false, ballEvery:1600, ballSpeed:390, coilyAt:2600, coilySpeed:390, discs:[{side:'left',row:5},{side:'right',row:2}] },
+    { base:'#2ec4b6', mid:'#ff9f1c', target:'#e71d36', hops:2, reversible:false, ballEvery:1500, ballSpeed:370, coilyAt:2400, coilySpeed:360, discs:[{side:'left',row:3},{side:'right',row:5}] },
+    { base:'#7c5cff', target:'#79ff7a', hops:1, reversible:true, ballEvery:1400, ballSpeed:350, coilyAt:2200, coilySpeed:340, discs:[{side:'left',row:2},{side:'right',row:4}] },
+    { base:'#ffd166', mid:'#ef476f', target:'#06d6a0', hops:2, reversible:true, ballEvery:1300, ballSpeed:330, coilyAt:2000, coilySpeed:320, discs:[{side:'left',row:4},{side:'right',row:2}] },
+    { base:'#0f172a', mid:'#f97316', target:'#22c55e', hops:2, reversible:true, ballEvery:1200, ballSpeed:300, coilyAt:1800, coilySpeed:290, discs:[{side:'left',row:5},{side:'right',row:3}] },
   ];
   function levelDef(i) { return LEVELS[Math.min(i, LEVELS.length - 1)]; }
   function paletteFor(def) {
@@ -212,7 +217,7 @@
 
   // ---- Game state ------------------------------------------------------
   const HOP_MS = 170;         // player/ball hop duration
-  const START_LIVES = 3;
+  const START_LIVES = 5;
 
   let mode = 'title';         // title | play | dying | levelclear | gameover
   let score = 0, level = 0, lives = START_LIVES;
@@ -537,7 +542,7 @@
       }
     } else if (mode === 'levelclear') {
       stateTimer -= dt;
-      if (stateTimer <= 0) { level++; startLevel(true); }
+      if (stateTimer <= 0) { level++; lives++; startLevel(true); }
     }
   }
 
