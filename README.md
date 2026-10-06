@@ -1,4 +1,4 @@
-> This repo is a small **retro arcade** with seven self-contained browser games.
+> This repo is a small **retro arcade** with eight self-contained browser games.
 > Open [`index.html`](index.html) for the **menu**, then pick a game:
 >
 > | Game | File | Description |
@@ -10,6 +10,7 @@
 > | **Giraffatron** | [`giraffe.html`](giraffe.html) | skateboarding, skiing, flying laser giraffe — see below |
 > | **Lucky Seven Casino** | [`casino.html`](casino.html) | craps, blackjack and roulette with several players — see below |
 > | **Decathlon** | [`decathlon.html`](decathlon.html) | all ten track and field events for one to five athletes — see below |
+> | **Powder Cup** | [`winter.html`](winter.html) | ski and snowboard: races, moguls, halfpipe and big air — see below |
 >
 > Every page cross-links, so you can hop between the menu and any game.
 >
@@ -155,6 +156,36 @@ official World Athletics points tables.
 - Keyboard: `←` `→` (or `Z` `X`, `A` `D`) to run, `Space` / `↑` / `Enter` for
   action, `P` to pause. The rules engine (`decathlon-engine.js`) has no DOM
   and can be tested on its own.
+
+---
+
+# Powder Cup
+
+Six ski and snowboard events for one to four riders. Each rider picks skis or
+a snowboard; humans pass the device around and computer riders (Rookie, Pro or
+Legend) fill the field. Play the full cup (cup points 100, 80, 60, 50 per
+event) or any single event.
+
+- **Downhill:** the fastest race, over 110 km/h. The course is slick and icy:
+  skis keep sliding sideways after you turn, and shiny blue bands of sheet ice
+  are slicker still. Three big jumps.
+- **Giant slalom:** wide, sweeping gates. **Slalom:** flat and fast, with tight
+  gates every few metres. In all three races, hold ◀ ▶ to steer and TUCK for
+  speed; a missed gate costs 3 seconds.
+- **Moguls:** tap ◀ or ▶ as each bump arrives, in the arrow's direction, then
+  throw tricks off the two kickers. Judged like the real thing: turns 60%,
+  air 20%, speed 20%.
+- **Halfpipe:** pump in the flat middle for speed, then six hits. **Big air:**
+  one huge jump, three tries, best two count.
+- **Tricks:** in the air hold ◀ or ▶ to spin (180 to 1440 and beyond), FLIP
+  to flip and GRAB to grab, and let go in time to land straight. Tricks get
+  their real names, such as *Backside Double Cork 1440 Melon* or *Left 1080
+  Japan*, and score on difficulty, height and landing (clean, sketchy or
+  crash). In the halfpipe, repeating a trick scores half.
+- The cup saves after every event; **Continue** on the title screen resumes it.
+  Best results per event are kept on the device.
+- Keyboard: `←` `→` steer or spin, `↓` / `Z` tuck or flip, `Space` / `↑` / `X`
+  pump, pop or grab, `P` pause. The rules engine (`winter-engine.js`) has no DOM.
 
 ---
 

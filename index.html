@@ -62,6 +62,7 @@
   .name.golf { color: #8ee86b; letter-spacing: 2px; }
   .name.giraffe { color: #ffb02e; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,45,85,.6); }
   .name.casino { color: #ffd34d; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,79,134,.55); }
+  .name.winter { color: #bfe6ff; letter-spacing: 3px; font-style: italic; text-shadow: 0 0 10px rgba(61,165,255,.6); }
   .name.decathlon { color: #ffc93c; letter-spacing: 3px; font-style: italic; text-shadow: 0 0 10px rgba(79,195,255,.5); }
   .desc { font-size: 13px; opacity: .78; line-height: 1.45; }
   .play {
@@ -74,7 +75,7 @@
 </head>
 <body>
   <h1>RETRO ARCADE</h1>
-  <p class="sub">Seven hand-built games · works on desktop &amp; iPhone</p>
+  <p class="sub">Eight hand-built games · works on desktop &amp; iPhone</p>
 
   <div class="games">
     <a class="card" href="cubert.html">
@@ -301,6 +302,32 @@
       </svg>
       <span class="name decathlon">DECATHLON</span>
       <span class="desc">All ten events over two days, from the 100 metres to the 1500. Up to five athletes: friends on one device or computer rivals.</span>
+      <span class="play">PLAY &#9654;</span>
+    </a>
+
+    <a class="card" href="winter.html">
+      <!-- Powder Cup: a snowboarder spinning above a snowy slope with slalom gates -->
+      <svg class="art" viewBox="0 0 300 132" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs><linearGradient id="wsk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f7fd8"/><stop offset="1" stop-color="#bfe6ff"/></linearGradient></defs>
+        <rect width="300" height="132" rx="12" fill="url(#wsk)"/>
+        <path d="M0 78 L40 44 L70 62 L112 26 L150 58 L190 34 L232 60 L262 40 L300 58 L300 132 L0 132 Z" fill="#7aa6d6"/>
+        <path d="M100 37 L112 26 L124 37 L117 35 L112 40 L107 35 Z M180 42 L190 34 L200 42 L194 41 L190 45 L186 41 Z" fill="#ffffff"/>
+        <path d="M0 132 L0 96 Q120 70 300 100 L300 132 Z" fill="#ffffff"/>
+        <g stroke-width="2.4"><line x1="208" y1="108" x2="208" y2="88" stroke="#e8323c"/><line x1="226" y1="110" x2="226" y2="90" stroke="#e8323c"/><line x1="250" y1="104" x2="250" y2="88" stroke="#2f6fd6"/><line x1="266" y1="105" x2="266" y2="89" stroke="#2f6fd6"/></g>
+        <path d="M208 88 l9 3 l-9 3 Z M226 90 l9 3 l-9 3 Z" fill="#e8323c"/><path d="M250 88 l8 3 l-8 3 Z M266 89 l8 3 l-8 3 Z" fill="#2f6fd6"/>
+        <path d="M44 104 q40 -60 92 -66" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="4 5" opacity=".9"/>
+        <g transform="translate(150,40) rotate(-24)" stroke-linecap="round">
+          <rect x="-24" y="16" width="48" height="6" rx="3" fill="#1b2b44"/><rect x="-16" y="17.5" width="32" height="2" fill="#ff3d6e"/>
+          <path d="M-8 16 L-4 2 M8 16 L4 2" stroke="#26324a" stroke-width="5"/>
+          <path d="M0 3 L2 -14" stroke="#ff3d6e" stroke-width="9"/>
+          <path d="M2 -10 L-14 -16 M2 -10 L18 -4" stroke="#ff3d6e" stroke-width="4"/>
+          <circle cx="3" cy="-22" r="6" fill="#ffffff"/><rect x="2" y="-24" width="7" height="3.5" rx="1.5" fill="#ffb000"/>
+        </g>
+        <g stroke="#ffffff" stroke-width="2" fill="none" opacity=".85"><path d="M116 22 a40 14 0 0 1 64 0"/><path d="M178 20 l4 4 l-6 1"/></g>
+        <text x="104" y="20" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="12" fill="#ffffff" opacity=".95">1440</text>
+      </svg>
+      <span class="name winter">POWDER CUP</span>
+      <span class="desc">Ski or snowboard: downhill, giant slalom, slalom, moguls, halfpipe and big air. Spin 360s to 1440s and race friends or the computer.</span>
       <span class="play">PLAY &#9654;</span>
     </a>
   </div>
