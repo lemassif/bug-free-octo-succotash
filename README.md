@@ -7,7 +7,7 @@
 > | **Miner 2049er** | [`miner.html`](miner.html) | platformer (documented below) |
 > | **Ferrow Light** | [`ferrow-light.html`](ferrow-light.html) | a four-chapter Zork-style text adventure |
 > | **Mulligan Cup** | [`golf.html`](golf.html) | eighteen-hole golf from behind the ball — see below |
-> | **Giraffatron** | [`giraffe.html`](giraffe.html) | skateboarding, skiing laser giraffe — see below |
+> | **Giraffatron** | [`giraffe.html`](giraffe.html) | skateboarding, skiing, flying laser giraffe — see below |
 > | **Lucky Seven Casino** | [`casino.html`](casino.html) | craps, blackjack and roulette with several players — see below |
 > | **Decathlon** | [`decathlon.html`](decathlon.html) | all ten track and field events for one to five athletes — see below |
 >
@@ -72,9 +72,19 @@ three stages loop, getting faster each lap.
 - **Eye lasers:** tap or hold anywhere on the screen and the giraffe's eyes fire
   at that spot, locking onto the nearest target. Hold too long and they overheat.
 - **Hoof blasters:** hold BLAST to fire the laser guns on the front hooves.
+- **Wings:** hold FLY to flap up over the rooftops and let go to glide down.
+  Flying uses the WINGS meter, which refills on the ground and from power
+  cells. Fly into drones, saucers and other flying robots to ram them.
+- **Demolish buildings:** robot-company buildings (marked with a robot sign)
+  line the road. Laser or blast them until they collapse for big points.
+- **Mothership:** every so often a huge spaceship hovers high overhead. Fly up
+  and blast it or ram it for 1,000 points.
+- **Turbo ramps:** the glowing yellow ramps launch you at 10 times your speed
+  with an automatic backflip and 360 ollie, smashing through anything in the
+  way.
 - **Jump** cones, fences, rocks, trees and gaps; launch off ramps; grind rails.
-  Tap JUMP again in the air for a kickflip (a daffy on skis), and again for a
-  360. Land it cleanly for points; land mid-trick and you bail.
+  Tap JUMP again in the air for a kickflip (a daffy on skis), then a backflip,
+  then a 360 ollie. Land it cleanly for points; land mid-trick and you bail.
 - **MEGA:** lasering targets, landing tricks, grinding and grabbing power cells
   charge the meter. Hit MEGA to transform into a robot giraffe for 10 seconds:
   invincible, hover-board over gaps, smash through obstacles, twin auto-lasers,
@@ -82,7 +92,7 @@ three stages loop, getting faster each lap.
 - **Score** comes from targets (robots, drones, saucers, scarecrow bots, snow
   bots and more), tricks, grinds, smashes and distance, multiplied by your
   combo. Three crashes end the run; your best score is saved.
-- Keyboard: `Space` jump, `J` blast, `K` mega, `F` eye lasers at the nearest
+- Keyboard: `Space` jump, hold `↑` or `W` to fly, `J` blast, `K` mega, `F` eye lasers at the nearest
   target, mouse to aim, `P` pause.
 
 ---
