@@ -28,9 +28,13 @@
 
 # Mulligan Cup
 
-An eighteen-hole golf game in the spirit of the console classics, drawn from
-behind the ball in real perspective (a small 3D projection engine on Canvas
-2D, no libraries). Original characters and courses.
+An eighteen-hole golf game in the spirit of the 1990s console classics, in
+real 3D (WebGL, using three.js stored in the repo as `three.module.min.js`, so
+it still works offline). Rolling hills, sunken bunkers, tilted greens, ponds,
+3D trees with shadows, and round, smooth-shaded golfers that swing the club.
+Original characters and courses. `golf3d.js` draws the scene; the rules and
+physics stay in `golf.html`, which falls back to its older 2D view on devices
+without WebGL.
 
 - **Swing** with three taps: start the meter, lock in power, then hit the green
   impact mark on the way back. Early slices, late hooks. A slice curves right

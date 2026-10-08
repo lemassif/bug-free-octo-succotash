@@ -21,7 +21,7 @@
   html,body{margin:0;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);
     font-family:var(--font);touch-action:none;user-select:none;-webkit-user-select:none;
     -webkit-touch-callout:none;overscroll-behavior:none}
-  #c{position:fixed;inset:0;width:100%;height:100%;display:block}
+  #c,#c3{position:fixed;inset:0;width:100%;height:100%;display:block}
   [hidden]{display:none !important}
   button{font:inherit;color:inherit;cursor:pointer}
   button:focus-visible,a:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
@@ -186,6 +186,7 @@
 </style>
 </head>
 <body>
+<canvas id="c3" aria-hidden="true"></canvas>
 <canvas id="c"></canvas>
 
 <div id="hud" hidden>
@@ -558,6 +559,35 @@ function prepHole(def) {
   { const pts = [def.tee].concat(def.guide || [], [def.pin]); let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); h.length = L; }
   return h;
 }
+/* Terrain height (world z) for the 3D view: rolling hills in the rough, gentle fairways, raised tees,
+   greens tilted along their break, sunken bunkers and ponds, and hills rising beyond the course edge.
+   The ball's z stays measured above this surface, so the flight physics are unchanged. */
+const sstep = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+function shapeDist(s, x, y) {
+  if (s.k === 'e') { const dx = x - s.cx, dy = y - s.cy, u = (dx * s.cos + dy * s.sin) / s.rx, v = (-dx * s.sin + dy * s.cos) / s.ry; return (Math.sqrt(u * u + v * v) - 1) * Math.min(s.rx, s.ry); }
+  const vx = s.x2 - s.x1, vy = s.y2 - s.y1, wx = x - s.x1, wy = y - s.y1, t = clamp((wx * vx + wy * vy) / (vx * vx + vy * vy + 1e-9), 0, 1);
+  return Math.hypot(wx - t * vx, wy - t * vy) - s.r;
+}
+const FEATHER = { fairway: 46, fringe: 34, green: 30, tee: 14, sand: 7, water: 14 };
+function groundZ(h, x, y) {
+  const sd = h.seed || 1;
+  let hills = 7 + 6 * Math.sin(x * .0105 + sd) * Math.sin(y * .0088 + sd * 1.7) + 4 * Math.sin(x * .021 + y * .016 + sd * 2.3) + 2.5 * Math.sin((x - y) * .033 + sd);
+  hills = Math.max(0, hills);
+  let fair = 0, green = 0, grn = 0, tee = 0, sand = 0, water = 0;
+  for (const s of h.shapes) {
+    if (s.deco) continue; const f = FEATHER[s.t]; if (!f) continue;
+    const d = shapeDist(s, x, y); if (d > f) continue; const m = 1 - sstep(-f * .25, f, d);
+    if (s.t === 'fairway') fair = Math.max(fair, m); else if (s.t === 'fringe') green = Math.max(green, m); else if (s.t === 'green') { green = Math.max(green, m); grn = Math.max(grn, m); }
+    else if (s.t === 'tee') tee = Math.max(tee, m); else if (s.t === 'sand') sand = Math.max(sand, m); else if (s.t === 'water') water = Math.max(water, m);
+  }
+  let z = hills * (1 - .82 * fair) * (1 - green);
+  z += green * (4 - ((x - h.pin[0]) * h.slope[0] + (y - h.pin[1]) * h.slope[1]) * .011);
+  z = lerp(z, 5, tee); z -= sand * 6.5; z -= water * 8;
+  const out = Math.max(-x, -y, x - h.W, y - h.H);
+  if (out > 0) z += out * .32 + Math.sin(x * .02 + sd) * Math.sin(y * .02) * out * .08;
+  return z;
+}
+function groundGrad(h, x, y) { const e = 2; return [(groundZ(h, x + e, y) - groundZ(h, x - e, y)) / (2 * e), (groundZ(h, x, y + e) - groundZ(h, x, y - e)) / (2 * e)]; }
 const HOLES = HOLE_DEFS.map(prepHole);
 for (const k in SURF) if (SURF[k].fr) SURF[k].fr0 = SURF[k].fr;
 const LIE_ROUGH0 = [LIE.rough.pw, LIE.rough.err];
@@ -929,6 +959,7 @@ function roll(dt) {
   if (s === 'ob') { b.done = true; b.result = 'ob'; return; }
   const S = SURF[s]; let sp;
   if (s === 'green' || s === 'fringe') { const m = (s === 'green' ? 1 : .5) * D().slope; b.vx += h.slope[0] * m * dt; b.vy += h.slope[1] * m * dt; }
+  else if (s === 'fairway' || s === 'rough') { const gr = groundGrad(h, b.x, b.y); b.vx -= gr[0] * GRAV * .55 * dt; b.vy -= gr[1] * GRAV * .55 * dt; }
   sp = Math.hypot(b.vx, b.vy);
   if (sp > 0) { const dec = S.fr * dt; if (sp <= dec) { b.vx = b.vy = 0; } else { const k = (sp - dec) / sp; b.vx *= k; b.vy *= k; } }
   b.x += b.vx * dt; b.y += b.vy * dt; collide();
@@ -1313,7 +1344,13 @@ function update(dt) {
   for (let i = parts.length - 1; i >= 0; i--) { const p = parts[i]; p.life -= dt; p.vz -= 300 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; if (p.z < 0) { p.z = 0; p.vz *= -.3; p.vx *= .6; p.vy *= .6; } if (p.life <= 0) parts.splice(i, 1); }
   updateCamera(dt);
 }
-function frame(t) { const dt = Math.min(.05, (t - last) / 1000 || .016); last = t; update(dt); render(); requestAnimationFrame(frame); }
+function frame(t) {
+  const dt = Math.min(.05, (t - last) / 1000 || .016); last = t; update(dt);
+  let drawn = false;
+  if (window.Golf3D && window.Golf3D.ok) { try { ctx.clearRect(0, 0, W, Hh); window.Golf3D.render(dt); drawn = true; } catch (e) { if (!frame.warned) { frame.warned = true; console.error('3D view error', e); } } }
+  if (!drawn) render();
+  requestAnimationFrame(frame);
+}
 
 /* ================================================================
    Input & screens
@@ -1386,7 +1423,7 @@ $('bResume').addEventListener('click', () => { sfx('click'); closeModals(); });
 $('bPHoles').addEventListener('click', openHoles); $('bPCard').addEventListener('click', () => showCard(false));
 $('bPQuit').addEventListener('click', () => { sfx('click'); goTitle(); }); $('bHolesClose').addEventListener('click', () => { $('holes').hidden = true; syncPause(); }); $('bHolesX').addEventListener('click', () => { $('holes').hidden = true; syncPause(); });
 const cardsEl = $('cards'), cardCtx = [];
-function drawCards() { CHARS.forEach((ch, i) => { const c = cardCtx[i]; c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, 220, 240); c.translate(110, 220); if (G.hand < 0) c.scale(-1, 1); drawGolfer(c, ch, 0, 0, 3.4, 'front', undefined, undefined, 'w'); }); }
+function drawCards() { if (window.Golf3D && window.Golf3D.ok) return window.Golf3D.drawCards(cardCtx); CHARS.forEach((ch, i) => { const c = cardCtx[i]; c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, 220, 240); c.translate(110, 220); if (G.hand < 0) c.scale(-1, 1); drawGolfer(c, ch, 0, 0, 3.4, 'front', undefined, undefined, 'w'); }); }
 CHARS.forEach((ch, i) => {
   const b = document.createElement('button'); b.type = 'button'; b.className = 'char'; b.setAttribute('aria-pressed', i === G.ch ? 'true' : 'false');
   b.innerHTML = '<canvas width="220" height="240"></canvas><b>' + ch.name + '</b><em>' + ch.tag + '</em>' +
@@ -1413,6 +1450,7 @@ window.__mc = {
     while (G.after && guard++ < 6) { const f = G.after; G.after = null; f(); if (G.phase === 'intro') endIntro(); }
     return ball.result;
   },
+  parts, golferPos, swingAngle, groundZ, BALL_R, CUP_R, drawCards, get W() { return W; }, get H() { return Hh; },
   swingPress, launch, update, render, M, drawMini, openMap, cam, endIntro, stepBall, DIFF, D, applyDiff, setWind, clubFor, aimAtMark, closeMap, mapInfo, savedGame, continueRound, openHoles, pickHole, showCard, goTitle, openPause, recordScore, nextHole, startRound
 };
 
@@ -1421,5 +1459,6 @@ $('title').hidden = false; $('banner').hidden = true; $('hud').hidden = true; re
 requestAnimationFrame(frame);
 })();
 </script>
+<script type="module" src="golf3d.js"></script>
 </body>
 </html>
