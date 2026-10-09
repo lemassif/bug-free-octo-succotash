@@ -158,11 +158,18 @@ official World Athletics points tables.
   passing the device around, or computer athletes at *Rookie* (about 4,000 to
   6,000 points), *Pro* (6,000 to 8,000) or *Olympian* (8,000 to 9,000) level.
   Computer athletes run in the lanes beside you.
+- **Full 3D stadium.** A 400 m track with eight lanes, a packed crowd,
+  floodlights and every field event laid out in the infield. The cameras track
+  you down the straight, swing round the bends and follow the javelin, shot
+  and discus through the air. Devices without WebGL get the original 2D view.
 - **Controls.** Tap LEFT and RIGHT in turn to run: the faster you alternate,
-  the faster you go. ACTION jumps hurdles and takes off at the board, plants
+  the faster you go. Speed builds up and fades smoothly, so a missed tap or two
+  will not stall you. ACTION jumps hurdles and takes off at the board, plants
   the pole and releases throws. For jumps, shot and javelin, keep holding
   ACTION and let go at the right angle. Release the discus while the arrow is
-  in the green sector.
+  in the green sector. In the high jump, tap ACTION again to arch your back
+  just as you reach the bar. In the pole vault, push off when the swing meter
+  peaks.
 - **Real rules.** Two false starts and you are out. Overstepping the board or
   the line is a foul, and the best of three attempts counts. High jump and pole
   vault use a rising bar: jump, pass a height or retire, and three misses in a
@@ -173,7 +180,8 @@ official World Athletics points tables.
   saves after each event; **Continue** on the title screen picks it up.
 - Keyboard: `←` `→` (or `Z` `X`, `A` `D`) to run, `Space` / `↑` / `Enter` for
   action, `P` to pause. The rules engine (`decathlon-engine.js`) has no DOM
-  and can be tested on its own.
+  and can be tested on its own; `decathlon3d.js` draws the 3D stadium with
+  three.js.
 
 ---
 

@@ -25,7 +25,8 @@
   button,input,select{font:inherit;color:inherit}
   button{cursor:pointer}
   button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-  #c{position:fixed;inset:0;width:100%;height:100%;display:block}
+  #c,#c3{position:fixed;inset:0;width:100%;height:100%;display:block}
+  #c3{pointer-events:none}
   #safe{position:fixed;top:0;left:0;width:0;height:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);pointer-events:none}
 
   /* ---------- controls ---------- */
@@ -117,6 +118,7 @@
 </style>
 </head>
 <body>
+<canvas id="c3" aria-hidden="true"></canvas>
 <canvas id="c" aria-label="Decathlon stadium"></canvas>
 <div id="safe"></div>
 
@@ -374,18 +376,22 @@ const P = {
   flop: () => ({ lean: 0, hipH: 0, rot: 0, legs: [[.6, -1.3], [.4, -1.1]], arms: [[1.4, .2], [1.2, .2]] }),
   vault: k => ({ lean: 0, hipH: 0, legs: [[1.6 * k, -.4], [1.3 * k, -.2]], arms: [[3.14, 0], [3.0, 0]] }),
   cheer: t => ({ lean: 0, legs: [[.08, 0], [-.08, 0]], arms: [[3.0 + Math.sin(t * 9) * .2, -.2], [-3.0 - Math.sin(t * 9) * .2, .2]] }),
-  slump: () => ({ lean: .5, hipH: .9, legs: [[.1, 0], [-.05, 0]], arms: [[.3, .2], [.25, .2]] })
+  hurdle: k => ({ lean: .55, hipH: .98, legs: [[1.55, -.05], [-.5, -1.6]], arms: [[1.2, .3], [-.8, .4]] }),
+    slump: () => ({ lean: .5, hipH: .9, legs: [[.1, 0], [-.05, 0]], arms: [[.3, .2], [.25, .2]] })
 };
 
+const V3 = () => !!(window.Deca3D && window.Deca3D.ok);
 /* ================================================================
    Input
    ================================================================ */
 const taps = [];
 function tapRate(now) {
-  let n = 0, last = null; const win = .6;
-  for (let i = taps.length - 1; i >= 0; i--) { const tp = taps[i]; if (now - tp.t > win) break; n += last === null || tp.side !== last ? 1 : .35; last = tp.side; }
+  // taps in the last half second; alternating left-right counts fully, hammering one side still counts most of a step
+  let n = 0, last = null; const win = .5;
+  for (let i = taps.length - 1; i >= 0; i--) { const tp = taps[i]; if (now - tp.t > win) break; n += last === null || tp.side !== last ? 1 : .6; last = tp.side; }
   return n / win;
 }
+let effort = 0;   // smoothed, so the runner doesn't stutter between taps
 function tap(side) {
   if (G.paused || !G.ctl) return; audio();
   const now = performance.now() / 1000; taps.push({ t: now, side }); if (taps.length > 64) taps.splice(0, taps.length - 64);
@@ -415,7 +421,7 @@ function setFeet(dim) { $('bL').classList.toggle('dim', !!dim); $('bR').classLis
 /* ================================================================
    Controllers: one per event kind. Each calls finish(result) when done.
    ================================================================ */
-function runEffort(now) { return D.tapEffort(tapRate(now)); }
+function runEffort(now, dt) { const target = D.tapEffort(tapRate(now)); effort += (target - effort) * Math.min(1, (dt || .016) * (target > effort ? 12 : 3.5)); return effort; }
 const PROMPT = { tap: 'TAP ◀ ▶ AS FAST AS YOU CAN' };
 
 /* ---------- races: 100, 400, 110H, 1500 ---------- */
@@ -438,7 +444,7 @@ function RaceCtl(ev, ai, done) {
       if (phase === 'marks' || phase === 'set') { timer -= dt; if (timer <= 0) { if (phase === 'marks') { phase = 'set'; timer = 1.0 + Math.random() * 1.2; prompt = 'Set…'; } else { phase = 'run'; prompt = 'GO!'; sfx('gun'); G.cheerT = 2; } } return; }
       if (phase === 'run' || phase === 'finish') {
         const sdt = dt * ev.scale, now = performance.now() / 1000;
-        let f = phase === 'finish' ? .2 : runEffort(now); lastF = f;
+        let f = phase === 'finish' ? .2 : runEffort(now, dt); lastF = f;
         if (air > 0) { air -= sdt; st.x += st.v * sdt; st.t += sdt; }
         else { const before = st.x; D.runStep(ev, st, f, sdt);
           if (ev.hurdles) HURDLES.forEach((hx, i) => { if (!knocked.has(i) && before < hx && st.x >= hx && phase === 'run') { knocked.add(i); hits++; st.v *= .55; sfx('clang'); } }); }
@@ -450,6 +456,19 @@ function RaceCtl(ev, ai, done) {
       }
     },
     draw() {
+      if (V3()) {
+        const tt = phase === 'marks' || phase === 'set' ? 0 : st.t;
+        G.sc = { kind: 'race', ev, human: ai, focus: st.x, knocked: [...knocked].filter(x => typeof x === 'number'), runners: lanes.map((idx, l) => {
+          let d, pose, y = 0;
+          if (idx === ai) { d = st.x; pose = phase === 'marks' ? P.marks() : phase === 'set' ? P.set() : (air > 0 ? P.hurdle(1 - air / .38) : st.v < .2 ? P.set() : P.run(ph, st.v / ev.vmax)); if (air > 0) y = Math.sin(Math.PI * (1 - air / .38)) * .55; if (phase === 'finish' && st.v < 2) pose = P.cheer(G.t); }
+          else { const c = G.cpu[idx], i0 = Math.min(c.trace.length - 1, Math.floor(tt / .05)), i1 = Math.min(c.trace.length - 1, i0 + 1); d = lerp(c.trace[i0], c.trace[i1], tt / .05 - Math.floor(tt / .05)); const v = (c.trace[i1] - c.trace[i0]) / .05;
+            const hx = ev.hurdles ? HURDLES.find(q => Math.abs(d - q) < 1.6) : null;
+            pose = phase === 'marks' ? P.marks() : phase === 'set' || tt === 0 ? P.set() : hx != null ? P.hurdle((d - hx + 1.6) / 3.2) : P.run(d * 1.25, v / ev.vmax);
+            if (hx != null) y = Math.sin(Math.PI * clamp((d - hx + 1.6) / 3.2, 0, 1)) * .55; if (tt > c.perf + .3 && v < 2) pose = P.stand(); }
+          return { idx, lane: l, d, y, pose };
+        }) };
+      }
+      if (!V3()) {
       const ppm = scaleFor(12, 2.2), camX = st.x - (W * .35) / ppm, n = lanes.length;
       stadium(camX, ppm, 'track');
       const laneH = Math.min(34, (H - PADH - GY) / Math.max(n, 3)), X = m => (m - camX) * ppm;
@@ -469,6 +488,7 @@ function RaceCtl(ev, ai, done) {
         else { const c = G.cpu[idx], tt = phase === 'marks' || phase === 'set' ? 0 : st.t, i0 = Math.min(c.trace.length - 1, Math.floor(tt / .05)), i1 = Math.min(c.trace.length - 1, i0 + 1); mx = lerp(c.trace[i0], c.trace[i1], tt / .05 - Math.floor(tt / .05)); const v = (c.trace[i1] - c.trace[i0]) / .05; k = v / ev.vmax; pose = phase === 'marks' ? P.marks() : phase === 'set' || tt === 0 ? P.set() : P.run(mx * 1.25, k); }
         const x = X(mx); if (x < -80 || x > W + 80) { if (idx !== ai) { const ahead = x > W; text((ahead ? '▶ ' : '◀ ') + G.athletes[idx].name, ahead ? W - 8 : 8, y - .6 * sc, 12, G.athletes[idx].color, ahead ? 'right' : 'left', 900); } continue; }
         drawAthlete(x, y, sc, pose, G.athletes[idx]);
+      }
       }
       // HUD
       hudTop(ev, a, phase === 'marks' || phase === 'set' ? '0.00' : fmt(ev, st.t), ev.drain ? 'Lap ' + Math.min(Math.ceil((st.x + .01) / 400), Math.ceil(ev.dist / 400)) + ' of ' + Math.ceil(ev.dist / 400) + ' · ' + Math.max(0, Math.round(ev.dist - st.x)) + 'm to go' : Math.max(0, Math.round(ev.dist - st.x)) + 'm to go');
@@ -498,12 +518,19 @@ function JumpCtl(ev, ai, done) {
     },
     update(dt) {
       const now = performance.now() / 1000;
-      if (phase === 'run') { lastF = runEffort(now); D.runStep(ev, st, lastF, dt); ph += st.v * dt * 1.25; stepAcc += st.v * dt; if (stepAcc > 1.9) { stepAcc = 0; sfx('step'); } if (st.x > BOARD + .3) overstep(); }
+      if (phase === 'run') { lastF = runEffort(now, dt); D.runStep(ev, st, lastF, dt); ph += st.v * dt * 1.25; stepAcc += st.v * dt; if (stepAcc > 1.9) { stepAcc = 0; sfx('step'); } if (st.x > BOARD + .3) overstep(); }
       else if (phase === 'angle') { angle = Math.min(80, angle + 55 * dt); if (angle >= 80) launch(); }
       else if (phase === 'flight') { flight += dt / 1.0; if (flight >= 1) { phase = 'land'; endT = 2.3; sfx('sand'); sfx(mark > 6.5 ? 'cheer' : 'thud'); G.cheerT = mark > 6.5 ? 2 : 0; } }
       else if (phase === 'land') { st.v *= .9; endT -= dt; if (endT <= 0) { phase = 'done'; done({ perf: foul ? null : mark, foul }); } }
     },
     draw() {
+      if (V3()) {
+        let x = st.x, y = 0, pose;
+        if (phase === 'ready') { x = 0; pose = P.stand(); } else if (phase === 'run') pose = P.run(ph, st.v / ev.vmax); else if (phase === 'angle') pose = P.air(.1);
+        else { const k = Math.min(1, flight); x = lerp(BOARD - loss, BOARD + mark, k); y = Math.sin(Math.PI * k) * Math.max(.4, mark * .13); pose = phase === 'land' && !foul ? P.land() : P.air(k); if (phase === 'land') y = 0; if (foul) { x = st.x; pose = P.slump(); } }
+        G.sc = { kind: 'lj', ev, ai, x, y, pose, board: BOARD, mark: phase === 'land' && !foul ? BOARD + mark : null };
+      }
+      if (!V3()) {
       const flyingTo = BOARD + mark;
       const focus = (phase === 'flight' || phase === 'land') && !foul ? lerp(BOARD - loss, flyingTo, Math.min(1, flight)) : st.x;
       const ppm = scaleFor(14, 2.4), camX = focus - (W * .38) / ppm, X = m => (m - camX) * ppm;
@@ -521,6 +548,7 @@ function JumpCtl(ev, ai, done) {
       else { const k = Math.min(1, flight), sx = BOARD - loss, ex = BOARD + mark; x = X(lerp(sx, ex, k)); y = GY - Math.sin(Math.PI * k) * Math.max(.4, mark * .13) * ppm; pose = phase === 'land' && !foul ? P.land() : P.air(k); if (foul) { x = X(st.x); y = GY; pose = P.slump(); } }
       drawAthlete(x, y, ppm, pose, a);
       if (phase === 'land' && !foul) { const mx = X(BOARD + mark); ctx.fillStyle = '#ffc93c'; ctx.beginPath(); ctx.moveTo(mx, GY - 30); ctx.lineTo(mx + 14, GY - 24); ctx.lineTo(mx, GY - 18); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillRect(mx - 1, GY - 30, 2, 32); }
+      }
       hudTop(ev, a, phase === 'land' ? (foul ? 'FOUL' : mark.toFixed(2) + ' m') : '', 'Attempt ' + (G.ctlInfo.round + 1) + ' of 3');
       if (phase === 'run') { meters(lastF); const dist = BOARD - st.x; text(dist > 0 ? dist.toFixed(1) + 'm to the board' : 'JUMP!', W / 2, INFO_Y, 18, dist < 3 ? '#ffc93c' : '#fff'); }
       if (phase === 'angle' || (phase === 'flight' && flight < .25)) angleGauge(angle, ev.opt, 80);
@@ -558,7 +586,7 @@ function ThrowCtl(ev, ai, done) {
     },
     update(dt) {
       const now = performance.now() / 1000;
-      if (phase === 'run') { lastF = runEffort(now); D.runStep(ev, st, lastF, dt); ph += st.v * dt * 1.25; stepAcc += st.v * dt; if (stepAcc > 1.9) { stepAcc = 0; sfx('step'); } if (st.x > LINE + .4) doFoul('Over the line'); }
+      if (phase === 'run') { lastF = runEffort(now, dt); D.runStep(ev, st, lastF, dt); ph += st.v * dt * 1.25; stepAcc += st.v * dt; if (stepAcc > 1.9) { stepAcc = 0; sfx('step'); } if (st.x > LINE + .4) doFoul('Over the line'); }
       else if (phase === 'power') {
         pwT += dt; power = D.tapEffort(tapsN / Math.max(.6, pwT)); lastF = power; spin += dt * (4 + 10 * power); arrow = (arrow + dt * 520) % 360;
         if (pwT > ev.window + .6) doFoul('Too slow: release before the time runs out');
@@ -568,6 +596,21 @@ function ThrowCtl(ev, ai, done) {
       else if (phase === 'land') { st.v *= .9; endT -= dt; if (endT <= 0) { phase = 'done'; done({ perf: foul ? null : mark, foul }); } }
     },
     draw() {
+      if (V3()) {
+        const k = Math.min(1, flight), origin = jav ? LINE : 0; let pose, opts = {}, imp = null;
+        if (phase === 'ready') { pose = jav ? P.stand() : P.crouchThrow(0); if (ev.id === 'sp') opts.shot = 1; if (disc) opts.discus = 1; if (jav) opts.jav = .5; }
+        else if (phase === 'run') { pose = P.carryJav(ph); opts.jav = .35; }
+        else if (phase === 'power') { pose = P.crouchThrow((Math.sin(spin) + 1) / 2); if (ev.id === 'sp') opts.shot = 1; if (disc) opts.discus = 1; }
+        else if (phase === 'angle') { pose = P.release(.2); if (ev.id === 'sp') opts.shot = 1; if (jav) opts.jav = angle * Math.PI / 180; }
+        else pose = foul ? P.slump() : P.release(Math.min(1, k * 4));
+        if (phase === 'flight' || (phase === 'land' && !foul)) {
+          const sx = origin - loss + .5, ex = origin + mark, h0 = ev.id === 'sp' ? 2.1 : 1.8, top = Math.max(2, (mark + loss) * Math.tan((jav ? angle : ev.id === 'sp' ? angle : ev.opt) * Math.PI / 180) * .3);
+          const pt = kk => ({ x: lerp(sx, ex, kk), y: lerp(h0, 0, kk) + Math.sin(Math.PI * kk) * top }), a0 = pt(k), a1 = pt(Math.min(1, k + .01));
+          imp = { x: a0.x, y: Math.max(0, a0.y), ang: Math.atan2(a1.y - a0.y, a1.x - a0.x + 1e-6), trail: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => pt(k * i / 11)) };
+        }
+        G.sc = { kind: 'throw', ev, ai, x: jav ? st.x : 0, pose, opts, spin: phase === 'power' && !jav ? spin : 0, imp, mark: phase === 'land' && !foul ? origin + mark : null, line: LINE, flight: k };
+      }
+      if (!V3()) {
       const k = Math.min(1, flight), origin = jav ? LINE : 0;
       const base = scaleFor(12, 2.6), ppm = phase === 'flight' || phase === 'land' ? base / (1 + Math.min(4.5, mark / 18) * Math.min(1, k * 2)) : base;
       const fl = (phase === 'flight' || phase === 'land') && !foul, focusX = fl ? lerp(origin - loss + .5, origin + mark, k) : (jav ? st.x : 0);
@@ -597,6 +640,7 @@ function ThrowCtl(ev, ai, done) {
         else { const ang = Math.atan2(Math.cos(Math.PI * k) * top * Math.PI, (ex - sx)) || 0, L = Math.max(34, 2.6 * ppm); ctx.strokeStyle = '#e8edf6'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(X0 - Math.cos(ang) * L / 2, Y0 + Math.sin(ang) * L / 2); ctx.lineTo(X0 + Math.cos(ang) * L / 2, Y0 - Math.sin(ang) * L / 2); ctx.stroke(); }
         if (phase === 'land') { ctx.fillStyle = '#ffc93c'; ctx.beginPath(); ctx.moveTo(X(ex), GY - 26); ctx.lineTo(X(ex) + 13, GY - 20); ctx.lineTo(X(ex), GY - 14); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillRect(X(ex) - 1, GY - 26, 2, 28); }
       }
+      }
       hudTop(ev, a, phase === 'land' ? (foul ? 'FOUL' : mark.toFixed(2) + ' m') : '', 'Attempt ' + (G.ctlInfo.round + 1) + ' of 3');
       if (phase === 'run') { meters(lastF); const d = LINE - st.x; text(d > 0 ? d.toFixed(1) + 'm to the line' : 'THROW!', W / 2, INFO_Y, 18, d < 3 ? '#ffc93c' : '#fff'); }
       if (phase === 'power') { meters(power, null, null, 'POWER'); const left = Math.max(0, ev.window - pwT); text(left > 0 ? 'Power ' + Math.round(power * 100) + '%' : 'RELEASE NOW!', W / 2, INFO_Y, 20, left > 0 ? '#fff' : '#ff6b6b'); if (disc) sectorDial(arrow, ev.sector); }
@@ -610,6 +654,8 @@ function ThrowCtl(ev, ai, done) {
 /* ---------- heights: high jump and pole vault (one attempt per controller) ---------- */
 function HeightCtl(ev, ai, bar, done) {
   const a = G.athletes[ai], pv = ev.id === 'pv', st = { x: 0, v: 0, S: 1, t: 0 }, MARK = ev.runup, BARX = MARK + (pv ? 1.2 : 1.0);
+  const ARCH_T = .62;
+  let riseT = 0, archQ = -1;
   let phase = 'ready', ph = 0, e = 0, q1 = 1, q2 = 1, gEff = 0, Hj = 0, ok = false, fly = 0, swingT = 0, prompt = 'TAP ◀ ▶ TO START YOUR RUN-UP', endT = 0, lastF = 0, why = '', stepAcc = 0;
   setFeet(false); setAction(pv ? 'PLANT' : 'JUMP', pv ? 'AT THE BOX' : 'AT THE MARK', true);
   function takeoff() {
@@ -617,22 +663,40 @@ function HeightCtl(ev, ai, bar, done) {
     if (e > (pv ? .4 : .55)) return fail(pv ? 'Missed the box' : 'Ran under the bar');
     q1 = 1 - Math.pow(Math.min(1, Math.abs(e) / (pv ? 1.5 : 1.2)), 2) * (pv ? .45 : .5); gEff = st.v / ev.vmax;
     if (pv) { phase = 'swing'; swingT = 0; setAction('PUSH', 'AT THE TOP'); prompt = 'PUSH WHEN THE METER PEAKS'; setFeet(true); sfx('whoosh'); }
-    else jumpNow();
+    else { phase = 'rise'; fly = 0; riseT = 0; setAction('ARCH', 'OVER THE BAR'); prompt = 'ARCH JUST AS YOU REACH THE BAR'; setFeet(true); sfx('whoosh'); }
   }
-  function jumpNow() { Hj = D.perfFrom(ev, gEff, q1 * q2); ok = Hj >= bar - 1e-9; phase = 'fly'; fly = 0; prompt = ''; setFeet(true); setAction('\u2014', '', true); sfx('whoosh'); }
+  function arch() { const late = Math.max(0, riseT - ARCH_T) / .15, m = late > 0 ? Math.max(0, 1 - late) : Math.sin(Math.PI / 2 * riseT / ARCH_T); q2 = .82 + .18 * m; archQ = m; jumpNow(); }   // a little late still counts, fading over 0.15 s
+  function jumpNow() { const keep = phase === 'rise' ? fly : 0; Hj = D.perfFrom(ev, gEff, q1 * q2); ok = Hj >= bar - 1e-9; phase = 'fly'; fly = keep; prompt = ''; setFeet(true); setAction('\u2014', '', true); if (!keep) sfx('whoosh'); }
   function fail(w) { why = w; ok = false; phase = 'land'; endT = 2; prompt = ''; sfx('foul'); G.toast = { s: 'NO JUMP', sub: w, col: '#ff6b6b', t: 2 }; }
   return {
-    dbg: () => ({ phase, x: st.x, v: st.v, mark: MARK, swingT, ok, Hj, bar }),
+    dbg: () => ({ phase, x: st.x, v: st.v, mark: MARK, swingT, riseT, ok, Hj, bar }),
     onTap() { if (phase === 'ready') { phase = 'run'; prompt = PROMPT.tap; setAction(pv ? 'PLANT' : 'JUMP', pv ? 'AT THE BOX' : 'AT THE MARK'); } },
-    onAction(down) { if (!down) return; if (phase === 'run') takeoff(); else if (phase === 'swing') { const m = Math.sin(Math.PI * Math.min(1, swingT / 1.4)); q2 = .62 + .38 * m; jumpNow(); } },
+    onAction(down) { if (!down) return; if (phase === 'run') takeoff(); else if (phase === 'rise') arch(); else if (phase === 'swing') { const m = Math.sin(Math.PI * Math.min(1, swingT / 1.4)); q2 = .78 + .22 * m; jumpNow(); } },
     update(dt) {
       const now = performance.now() / 1000;
-      if (phase === 'run') { lastF = runEffort(now); D.runStep(ev, st, lastF, dt); ph += st.v * dt * 1.25; stepAcc += st.v * dt; if (stepAcc > 1.9) { stepAcc = 0; sfx('step'); } if (st.x > MARK + .9) fail(pv ? 'Missed the box' : 'Ran under the bar'); }
-      else if (phase === 'swing') { swingT += dt; if (swingT >= 1.4) { q2 = .62; jumpNow(); } }
+      if (phase === 'run') { lastF = runEffort(now, dt); D.runStep(ev, st, lastF, dt); ph += st.v * dt * 1.25; stepAcc += st.v * dt; if (stepAcc > 1.9) { stepAcc = 0; sfx('step'); } if (st.x > MARK + .9) fail(pv ? 'Missed the box' : 'Ran under the bar'); }
+      else if (phase === 'swing') { swingT += dt; if (swingT >= 1.4) { q2 = .78; jumpNow(); } }
+      else if (phase === 'rise') { riseT += dt; fly += dt / 1.1; if (riseT > ARCH_T + .15) arch(); }
       else if (phase === 'fly') { fly += dt / (pv ? 1.6 : 1.1); if (fly >= 1) { phase = 'land'; endT = 1.5; sfx(ok ? 'cheer' : 'clang'); if (!ok) sfx('groan'); G.cheerT = ok ? 2 : 0; } }
       else if (phase === 'land') { endT -= dt; if (endT <= 0) { phase = 'done'; done({ ok, h: Hj, why }); } }
     },
     draw() {
+      if (V3()) {
+        let x = st.x, y = 0, pose, opts = {}, bend = 0, flop = false;
+        if (phase === 'ready') pose = P.stand();
+        else if (phase === 'run') { pose = P.run(ph, st.v / ev.vmax); if (pv) opts.pole = .22; }
+        else if (phase === 'swing') { const k = Math.min(1, swingT / 1.4); x = MARK + .3 - k * .2; y = k * 1.6; pose = P.vault(k); pose.rot = -k * 1.2; opts.pole = .9 + k * .5; bend = Math.sin(Math.PI * Math.min(1, k * 1.3)) ; }
+        else {
+          const k = Math.min(1, fly), sx = pv ? MARK + .3 : MARK, top = (phase === 'rise' ? bar : Math.max(.8, Hj)) + .1, ex = BARX + (pv ? 2.2 : 1.6);
+          x = lerp(sx, ex, k); y = k < .55 ? lerp(pv ? 1.6 : 0, top, Math.sin(Math.PI / 2 * k / .55)) : lerp(top, .7, Math.pow((k - .55) / .45, 1.4));
+          if (phase === 'land') { x = ex; y = .7; pose = ok ? P.cheer(G.t) : P.slump(); }
+          else if (pv) { pose = P.vault(1); pose.hipH = 0; pose.rot = -1.2 - k * 2.2; if (k < .3) { opts.pole = 1.4 - k * 2; opts.poleFree = true; } }
+          else { pose = P.flop(); pose.hipH = 0; flop = true; pose.arch = phase === 'rise' ? 0 : archQ > 0 ? archQ : .4; pose.k = k; }
+          if (why) { x = st.x; y = 0; pose = P.slump(); flop = false; }
+        }
+        G.sc = { kind: 'height', ev, ai, pv, bar, barX: BARX, mark: MARK, barDown: phase === 'land' && !ok && !why, x, y, pose, opts, bend, flop, phase };
+      }
+      if (!V3()) {
       const ppm = scaleFor(pv ? 11 : 9, Math.max(pv ? 4.6 : 2.4, bar + (pv ? 1.3 : 1))), focus = phase === 'run' || phase === 'ready' ? Math.min(st.x, MARK - 2) : MARK, camX = focus - (W * .35) / ppm, X = m => (m - camX) * ppm;
       stadium(camX, ppm, pv ? 'track' : 'track');
       // mat, uprights and bar
@@ -649,8 +713,8 @@ function HeightCtl(ev, ai, bar, done) {
       if (phase === 'ready') pose = P.stand();
       else if (phase === 'run') { pose = P.run(ph, st.v / ev.vmax); if (pv) opts.pole = .22; }
       else if (phase === 'swing') { const k = Math.min(1, swingT / 1.4); x = X(MARK + .3); y = GY - k * 1.4 * ppm; pose = P.vault(k); pose.rot = -k * 1.2; opts.pole = .9 + k * .5; }
-      else if (phase === 'fly' || phase === 'land') {
-        const k = Math.min(1, fly), sx = pv ? MARK + .3 : MARK, top = Math.max(.8, Hj) + .08, ex = BARX + (pv ? 2.2 : 1.6);
+      else if (phase === 'fly' || phase === 'land' || phase === 'rise') {
+        const k = Math.min(1, fly), sx = pv ? MARK + .3 : MARK, top = (phase === 'rise' ? bar : Math.max(.8, Hj)) + .08, ex = BARX + (pv ? 2.2 : 1.6);
         const px = lerp(sx, ex, k), py = k < .55 ? lerp(pv ? 1.4 : 0, top, Math.sin(Math.PI / 2 * k / .55)) : lerp(top, .6, Math.pow((k - .55) / .45, 1.4));
         if (phase === 'land') { x = X(ex); y = GY - .6 * ppm; pose = ok ? P.cheer(G.t) : P.slump(); }
         else { x = X(px); y = GY - py * ppm; pose = pv ? P.vault(1) : P.flop(); pose.hipH = 0; pose.rot = pv ? (-1.2 - k * 2.2) : (-Math.PI / 2 - k * .8); }
@@ -659,9 +723,11 @@ function HeightCtl(ev, ai, bar, done) {
       }
       if (phase === 'swing') { ctx.strokeStyle = '#ffc93c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(X(MARK), GY); ctx.quadraticCurveTo(X(MARK + .9), GY - 1.8 * ppm, x, y - 1.6 * ppm); ctx.stroke(); }
       drawAthlete(x, y, ppm, pose, a, opts);
+      }
       hudTop(ev, a, phase === 'land' ? (ok ? 'CLEARED' : 'MISS') : bar.toFixed(2) + ' m', G.ctlInfo.label);
       if (phase === 'run') { meters(lastF); const d = MARK - st.x; text(d > 0 ? d.toFixed(1) + 'm to the ' + (pv ? 'box' : 'mark') : (pv ? 'PLANT!' : 'JUMP!'), W / 2, INFO_Y, 18, d < 2.5 ? '#ffc93c' : '#fff'); }
       if (phase === 'swing') { const m = Math.sin(Math.PI * Math.min(1, swingT / 1.4)); swingMeter(m); }
+      if (phase === 'rise') { const m = Math.sin(Math.PI / 2 * Math.min(1, riseT / ARCH_T)); swingMeter(m); if (m > .85) text('ARCH NOW!', W / 2, INFO_Y + 26, 22, '#5be08d'); }
       if (prompt) text(prompt, W / 2, PY, Math.min(26, W / 16));
       if (phase === 'land') text(ok ? 'CLEARED ' + bar.toFixed(2) + ' m' : (why || 'BAR DOWN'), W / 2, BIG_Y, Math.min(40, W / 10), ok ? '#5be08d' : '#ff6b6b');
     }
@@ -844,6 +910,7 @@ function nextTurn() {
 }
 
 function startHuman(q) {
+  effort = 0;
   const ev = EVENTS[G.evIdx], a = G.athletes[q.ai], r = a.res[G.evIdx];
   hideAll(); G.mode = 'play'; G.paused = false; $('pad').hidden = false; $('pauseBtn').hidden = false; taps.length = 0;
   if (ev.kind === 'race') { G.ctlInfo = {}; G.ctl = RaceCtl(ev, q.ai, res => { r.perf = res.perf; r.dq = !!res.dq; r.done = true; G.queue.shift(); G.ctl = null; nextTurn(); }); }
@@ -950,8 +1017,15 @@ function frame(ts) {
   if (G.ctl !== lastCtl) { lastCtl = G.ctl; setGround(); }
   if (G.ctl && !G.paused) G.ctl.update(dt);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  if (G.ctl) G.ctl.draw();
-  else { idleX += dt * 1.5; stadium(idleX, scaleFor(14, 2), 'track'); }
+  let drawn = false;
+  if (V3()) {
+    try { ctx.clearRect(0, 0, W, H); G.sc = null; if (G.ctl) G.ctl.draw(); window.Deca3D.render(G.ctl ? G.sc : null, dt, G.athletes, { W, H, GY }); drawn = true; }
+    catch (e) { console.error(e); window.Deca3D.ok = false; document.getElementById('c3').style.display = 'none'; }
+  }
+  if (!drawn) {
+    if (G.ctl) G.ctl.draw();
+    else { idleX += dt * 1.5; stadium(idleX, scaleFor(14, 2), 'track'); }
+  }
   if (G.toast) { G.toast.t -= dt; const a = clamp(G.toast.t * 2, 0, 1); ctx.globalAlpha = a; text(G.toast.s, W / 2, BIG_Y, Math.min(48, W / 9), G.toast.col); if (G.toast.sub) text(G.toast.sub, W / 2, BIG_Y + 36, 16, '#fff'); ctx.globalAlpha = 1; if (G.toast.t <= 0) G.toast = null; }
   requestAnimationFrame(frame);
 }
@@ -962,5 +1036,6 @@ window.__dec = { G, D, startEvent, nextTurn, finishEvent, newGame, tap, action, 
 requestAnimationFrame(frame);
 })();
 </script>
+<script type="module" src="decathlon3d.js"></script>
 </body>
 </html>
