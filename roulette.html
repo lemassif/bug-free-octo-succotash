@@ -215,20 +215,46 @@
     for (let c = 0; c < 3; c++) { cellR(Gt.xn + c * Gt.cw, Gt.yc, Gt.cw, Gt.ch, 'rgba(0,0,0,.22)'); label('2 to 1', Gt.xn + c * Gt.cw + Gt.cw / 2, Gt.yc + Gt.ch / 2, 13, '#ffe39a'); }
     // winning number
     if (S.hl != null) { const c = numCenter(S.hl), rr = S.hl === 0 || S.hl === 37 ? zeroRect(S.hl) : { x: cellPos(S.hl).x, y: cellPos(S.hl).y, w: Gt.cw, h: Gt.rh }; g.strokeStyle = '#ffe39a'; g.lineWidth = 4; g.strokeRect(rr.x + 2, rr.y + 2, rr.w - 4, rr.h - 4); g.fillStyle = 'rgba(255,227,154,.22)'; g.fillRect(rr.x, rr.y, rr.w, rr.h); }
-    // chips: group by spot
-    const spots = new Map(); S.t.bets.forEach(b => { if (!spots.has(b.spec.key)) spots.set(b.spec.key, { spec: b.spec, list: [] }); spots.get(b.spec.key).list.push(b); });
+    // chips: group by spot. After a spin the settled bets stay on the layout so the payouts can be shown.
+    const settled = S.phase === 'result' && S.settled, tt = settled ? (performance.now() - S.settleT) / 1000 : 0;
+    const spots = new Map(); (settled ? S.settled : S.t.bets).forEach(b => { const k = b.spec.key; if (!spots.has(k)) spots.set(k, { spec: b.spec, list: [] }); spots.get(k).list.push(b); });
+    const chip = (x, y, col, txt, alpha, r) => {
+      r = r || 12; g.globalAlpha = alpha;
+      g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.arc(x + 1, y + 2, r, 0, TAU); g.fill();
+      g.fillStyle = col; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+      g.strokeStyle = '#fff'; g.lineWidth = 2; g.setLineDash([3, 3]); g.beginPath(); g.arc(x, y, r * .79, 0, TAU); g.stroke(); g.setLineDash([]);
+      g.strokeStyle = 'rgba(0,0,0,.6)'; g.lineWidth = 1; g.beginPath(); g.arc(x, y, r, 0, TAU); g.stroke();
+      if (txt) label(txt, x, y + .5, txt.length > 2 ? 8 : 10, col === '#26262d' || col === '#7b3fb8' || col === '#d6332f' || col === '#1f9d55' ? '#fff' : '#1a0a10');
+      g.globalAlpha = 1;
+    };
+    let wi = 0;
     spots.forEach(sp => {
       const pos = specPos(sp.spec);
       sp.list.forEach((b, i) => {
-        const x = pos.x + i * 5 - (sp.list.length - 1) * 2.5, y = pos.y - i * 4, col = S.ps[b.p].color;
-        g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.arc(x + 1, y + 2, 12, 0, TAU); g.fill();
-        g.fillStyle = col; g.beginPath(); g.arc(x, y, 12, 0, TAU); g.fill();
-        g.strokeStyle = '#fff'; g.lineWidth = 2; g.setLineDash([3, 3]); g.beginPath(); g.arc(x, y, 9.5, 0, TAU); g.stroke(); g.setLineDash([]);
-        g.strokeStyle = 'rgba(0,0,0,.6)'; g.lineWidth = 1; g.beginPath(); g.arc(x, y, 12, 0, TAU); g.stroke();
-        label(TS.amount(b.amt), x, y + .5, b.amt >= 100 ? 8 : 10, '#1a0a10');
+        let x = pos.x + i * 5 - (sp.list.length - 1) * 2.5, y = pos.y - i * 4, a = 1;
+        if (settled && !b.hit) { const k = Math.min(1, Math.max(0, (tt - .6) / .8)), e = k * k; y -= e * 60; x += (TW / 2 - x) * e * .3; a = 1 - k; if (a <= 0) return; }
+        chip(x, y, S.ps[b.p].color, TS.amount(b.amt), a);
+        if (settled && b.hit) {
+          // the dealer slides a stack of payout chips in beside the winning bet
+          const k = Math.min(1, Math.max(0, (tt - 1.1 - wi * .15) / .55)), e = 1 - (1 - k) * (1 - k); wi++;
+          if (k <= 0) return;
+          const tx = x + 22, ty = y, sx = tx, sy = -30, px = sx + (tx - sx) * e, py = sy + (ty - sy) * e;
+          let left = b.profit; const stack = [];
+          for (const v of [500, 100, 25, 5, 1]) while (left >= v - 1e-9 && stack.length < 9) { stack.push(v); left = Casino.r2(left - v); }
+          if (left > 0 && stack.length < 9) stack.push(1);
+          stack.reverse().forEach((v, j) => chip(px, py - j * 3.4, CHIPC[v], j === stack.length - 1 ? TS.amount(v) : '', 1, 10));
+          if (k >= 1) {
+            const lab = '+' + money(b.profit), w = Math.max(40, lab.length * 7 + 10), ly = py - stack.length * 3.4 - 18, pulse = 1 + .06 * Math.sin(tt * 6);
+            g.save(); g.translate(px, ly); g.scale(pulse, pulse);
+            g.fillStyle = 'rgba(18,6,10,.88)'; g.strokeStyle = '#ffe39a'; g.lineWidth = 1.5; g.beginPath(); g.roundRect ? g.roundRect(-w / 2, -9, w, 18, 9) : g.rect(-w / 2, -9, w, 18); g.fill(); g.stroke();
+            g.restore(); label(lab, px, ly + .5, 11, '#7dffa0');
+          }
+        }
       });
     });
   }
+  const CHIPC = { 1: '#cfd6e4', 5: '#d6332f', 25: '#1f9d55', 100: '#26262d', 500: '#7b3fb8' };
+  function animResult() { if (S.phase !== 'result') return; drawTable(); if ((performance.now() - S.settleT) / 1000 < 4) requestAnimationFrame(animResult); }
 
   /* hit-testing: tap a number, a line between numbers, a corner, a street or an outside bet */
   function zeroHit(x, bottom) {
@@ -287,6 +313,7 @@
     render();
   }
   async function spin() {
+    if (S.phase === 'result') { clearTimeout(S.timer); beginBetting(); return; }   // skip the payout display
     if (S.phase !== 'bet') return;
     const t = S.t;
     if (!t.bets.some(b => S.ps[b.p].human)) { Casino.toast('Place at least one bet first. Tap the table.'); return; }
@@ -296,15 +323,18 @@
     settle(res.n);
   }
   function settle(n) {
-    const out = R.settle(S.t, n); S.hl = n;
+    const out = R.settle(S.t, n); S.hl = n; S.settled = out.results; S.settleT = performance.now();
     S.ps.forEach(p => Casino.touch(p)); Casino.save();
     $('status').textContent = '';
     $('result').append(h('div', { class: 'n ' + R.color(n) }, R.label(n)), h('small', null, (R.color(n) === 'green' ? 'Zero' : R.color(n)) + (n && n !== 37 ? ' · ' + (n % 2 ? 'odd' : 'even') : '')));
     const anyWin = out.net.some(v => v > 0), big = out.net.some(v => v >= 175);
-    sfx(big ? 'big' : anyWin ? 'win' : 'lose'); if (anyWin) sfx('chips');
-    S.phase = 'result'; render(); drawWheel();
+    sfx(big ? 'big' : anyWin ? 'win' : 'lose'); if (anyWin) setTimeout(() => sfx('chips'), 1100);
+    S.phase = 'result'; render(); drawWheel(); requestAnimationFrame(animResult);
+    // say who won what
+    const wins = []; out.results.filter(r => r.hit).forEach(r => { const w = wins.find(q => q.p === r.p); if (w) w.amt = Casino.r2(w.amt + r.profit); else wins.push({ p: r.p, amt: r.profit, spec: r.spec }); });
+    $('status').textContent = wins.length ? wins.slice(0, 3).map(w => S.ps[w.p].name + (S.ps[w.p].name === 'You' ? ' win ' : ' wins ') + money(w.amt)).join(' · ') + (wins.length > 3 ? ' · and more' : '') : 'No winners this spin';
     out.net.forEach((v, i) => { const el = document.querySelector('.seat[data-i="' + i + '"]'); if (el && out.results.some(r => r.p === i)) Casino.pop(el, signed(v), v > 0 ? 'win' : 'lose'); });
-    S.timer = setTimeout(() => { if (S.phase === 'result') { beginBetting(); if (S.auto) autoSpinSoon(); } }, 3200);
+    S.timer = setTimeout(() => { if (S.phase === 'result') { beginBetting(); if (S.auto) autoSpinSoon(); } }, 6200);
   }
   function autoSpinSoon() { S.timer = setTimeout(() => { if (S.phase === 'bet' && S.auto && !document.querySelector('.modal')) spin(); }, 4200); }
 
@@ -357,12 +387,12 @@
     const bet = S.phase === 'bet', ap = S.ps[S.active];
     $('tray').innerHTML = ''; $('tray').append(Casino.chipTray(S.chip, v => { S.chip = v; sfx('click'); renderDock(); }));
     $('who2').innerHTML = ''; $('who2').append(ap && ap.human ? h('span', null, 'Betting as ', h('b', null, ap.name), ' · ', h('b', null, money(R.total(S.t, S.active))), ' on the table · chip ', h('b', null, money(S.chip))) : 'Pick a human seat to place bets');
-    ['bUndo', 'bRebet', 'bExtra', 'bClear', 'bDouble'].forEach(id => $(id).disabled = !bet); $('bSpin').disabled = !bet;
+    ['bUndo', 'bRebet', 'bExtra', 'bClear', 'bDouble'].forEach(id => $(id).disabled = !bet); $('bSpin').disabled = !bet && S.phase !== 'result';
     $('bAuto').setAttribute('aria-pressed', S.auto);
     $('hint').textContent = 'Tap a number to bet straight up. Tap the line between numbers for a split, a corner where lines cross, the strip beside the rows for a street or six line.';
     $('bKind').textContent = (S.type === 'american' ? 'American · 00 · 5.26% edge' : 'European · single zero · 2.70% edge');
     if (bet && !$('status').textContent) $('status').textContent = 'Place your bets';
-    if (!bet && S.phase !== 'spin') $('status').textContent = '';
+    if (!bet && S.phase !== 'spin' && S.phase !== 'result') $('status').textContent = '';
   }
   function render() { renderHist(); renderSeats(); renderDock(); drawTable(); drawWheel(); }
 

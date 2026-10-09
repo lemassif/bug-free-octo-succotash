@@ -8,7 +8,7 @@
 > | **Ferrow Light** | [`ferrow-light.html`](ferrow-light.html) | a four-chapter Zork-style text adventure |
 > | **Mulligan Cup** | [`golf.html`](golf.html) | eighteen-hole golf from behind the ball — see below |
 > | **Giraffatron** | [`giraffe.html`](giraffe.html) | skateboarding, skiing, flying laser giraffe — see below |
-> | **Lucky Seven Casino** | [`casino.html`](casino.html) | craps, blackjack and roulette with several players — see below |
+> | **Lucky Seven Casino** | [`casino.html`](casino.html) | craps, blackjack, roulette, pai gow and hold'em with several players — see below |
 > | **Decathlon** | [`decathlon.html`](decathlon.html) | all ten track and field events for one to five athletes — see below |
 > | **Powder Cup** | [`winter.html`](winter.html) | ski and snowboard: races, moguls, halfpipe and big air — see below |
 >
@@ -126,8 +126,22 @@ purchases. Open `casino.html` for the lobby.
   a street or a six line, plus dozens, columns and even-money bets. Basket,
   First four and the European call bets (Voisins, Orphelins, Tiers, Jeu zéro)
   live under Special. Everyone bets on the same spin.
+- **Face Up Pai Gow** (`paigow.html`): seven cards each from a deck with one
+  joker. The dealer's hand is dealt face up and set the house way first, so you
+  can set yours knowing what to beat (the Best play button finds the strongest
+  setting). Even money with no commission, ties go to the dealer, and every
+  main bet pushes when the dealer has an ace-high pai gow. Optional $5 Fortune
+  bonus pays 2 to 1 for a straight up to 8,000 to 1 for a seven-card straight
+  flush.
+- **Texas Hold'em** (`holdem.html`): no-limit, blinds $5/$10, two to six
+  players. Your stack is your casino bankroll. Side pots and split pots are
+  handled for you. Computer players estimate their odds by simulation and bluff
+  now and then. With several humans, the table asks everyone else to look away
+  before showing each player their cards.
+- Roulette pays out on the layout: after the ball lands, losing chips are swept
+  away and a stack of payout chips slides in beside each winning bet.
 - **Honest odds.** The rules engines (`craps-engine.js`, `blackjack-engine.js`,
-  `roulette-engine.js`) are plain, DOM-free JavaScript. Every craps and
+  `roulette-engine.js`, `poker-engine.js`) are plain, DOM-free JavaScript. Every craps and
   roulette bet reproduces its published house edge exactly, and perfect basic
   strategy at the blackjack table measures about 0.4% over millions of hands.
 
