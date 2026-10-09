@@ -63,9 +63,10 @@
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     text-align: center; gap: 14px;
-    background: radial-gradient(120% 120% at 50% 35%, rgba(20,20,40,.72), rgba(6,6,14,.92));
+    background: radial-gradient(120% 120% at 50% 35%, rgba(20,20,40,.9), rgba(6,6,14,.98));
     border-radius: 10px;
     padding: 20px;
+    bottom: auto; min-height: 100%; z-index: 5;
   }
   #overlay.hidden { display: none; }
   #overlay h1 {
@@ -88,6 +89,12 @@
     transition: transform .05s, box-shadow .05s;
   }
   #overlay button:active { transform: translateY(4px); box-shadow: 0 2px 0 #b26a1f, 0 4px 10px rgba(0,0,0,.4); }
+  #levels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; width: min(100%, 330px); }
+  #overlay #levels button { padding: 8px 0; font-size: 16px; border-radius: 10px; box-shadow: 0 4px 0 #b26a1f; }
+  #overlay #levels button.t2 { background: linear-gradient(180deg, #9ff0b0, #31d67a); box-shadow: 0 4px 0 #1d7a45; }
+  #overlay #levels button.t3 { background: linear-gradient(180deg, #9fdcff, #3fa0ff); box-shadow: 0 4px 0 #1f5a9e; }
+  #overlay #levels button.t4 { background: linear-gradient(180deg, #ffb0d8, #d94fb0); box-shadow: 0 4px 0 #8a2470; }
+  #overlay .lvl-note { font-size: 12px; opacity: .75; max-width: 36ch; min-height: 2.9em; }
   #pause-btn {
     position: absolute; top: 8px; right: 8px;
     width: 40px; height: 40px; border-radius: 10px;
@@ -155,6 +162,7 @@
         </p>
         <p class="keys" style="display:block">On phone, use the four corner buttons below.</p>
         <button id="start-btn">PLAY</button>
+        <div id="picker"></div>
         <p style="font-size:12px;opacity:.6;margin-top:2px"><a href="index.html" style="color:#ffd34d">← Menu</a> &nbsp;·&nbsp; <a href="miner.html" style="color:#ffd34d">Miner 2049er →</a></p>
       </div>
     </div>
@@ -197,22 +205,56 @@
   const onPyramid = (r, c) => r >= 0 && r < ROWS && c >= 0 && c <= r;
 
   // ---- Levels ----------------------------------------------------------
-  // hops: number of taps needed to reach target. reversible: hopping again undoes it.
-  const LEVELS = [
-    { base:'#2f45d6', target:'#ffd23f', hops:1, reversible:false, ballEvery:2400, ballSpeed:520, coilyAt:4500, coilySpeed:560, discs:[{side:'left',row:3},{side:'right',row:5}] },
-    { base:'#8a2fd6', target:'#31d67a', hops:1, reversible:false, ballEvery:2100, ballSpeed:480, coilyAt:3800, coilySpeed:500, discs:[{side:'left',row:2},{side:'right',row:4}] },
-    { base:'#1f8ad6', mid:'#d64fb0', target:'#ffd23f', hops:2, reversible:false, ballEvery:2000, ballSpeed:460, coilyAt:3500, coilySpeed:470, discs:[{side:'left',row:4},{side:'right',row:3}] },
-    { base:'#d6472f', target:'#42e0ff', hops:1, reversible:true, ballEvery:1900, ballSpeed:440, coilyAt:3200, coilySpeed:440, discs:[{side:'left',row:3},{side:'right',row:5}] },
-    { base:'#2f45d6', mid:'#ff8a3d', target:'#31d67a', hops:2, reversible:false, ballEvery:1700, ballSpeed:410, coilyAt:2800, coilySpeed:410, discs:[{side:'left',row:2},{side:'right',row:5}] },
-    { base:'#ff5d8f', target:'#66f4ff', hops:1, reversible:false, ballEvery:1600, ballSpeed:390, coilyAt:2600, coilySpeed:390, discs:[{side:'left',row:5},{side:'right',row:2}] },
-    { base:'#2ec4b6', mid:'#ff9f1c', target:'#e71d36', hops:2, reversible:false, ballEvery:1500, ballSpeed:370, coilyAt:2400, coilySpeed:360, discs:[{side:'left',row:3},{side:'right',row:5}] },
-    { base:'#7c5cff', target:'#79ff7a', hops:1, reversible:true, ballEvery:1400, ballSpeed:350, coilyAt:2200, coilySpeed:340, discs:[{side:'left',row:2},{side:'right',row:4}] },
-    { base:'#ffd166', mid:'#ef476f', target:'#06d6a0', hops:2, reversible:true, ballEvery:1300, ballSpeed:330, coilyAt:2000, coilySpeed:320, discs:[{side:'left',row:4},{side:'right',row:2}] },
-    { base:'#0f172a', mid:'#f97316', target:'#22c55e', hops:2, reversible:true, ballEvery:1200, ballSpeed:300, coilyAt:1800, coilySpeed:290, discs:[{side:'left',row:5},{side:'right',row:3}] },
+  // 20 hand-tuned levels in 4 tiers of 5. Each step up makes the enemies faster
+  // and more frequent; each tier changes how cubes flip.
+  //   hops: hops needed to finish a cube.  back: hopping a finished cube knocks it back one step.
+  //   ballEvery / ballSpeed / coilyAt / coilySpeed / samEvery are milliseconds (smaller = harder).
+  const TIERS = [
+    { name: 'Rookie',  hops: [1, 1, 1, 2, 2], back: [0, 0, 0, 0, 0] },
+    { name: 'Hopper',  hops: [1, 1, 2, 2, 2], back: [1, 1, 0, 0, 1] },
+    { name: 'Expert',  hops: [2, 2, 3, 3, 3], back: [1, 1, 0, 0, 0] },
+    { name: 'Master',  hops: [3, 3, 3, 3, 3], back: [1, 1, 1, 1, 1] },
   ];
-  function levelDef(i) { return LEVELS[Math.min(i, LEVELS.length - 1)]; }
+  const PALS = [
+    ['#2f45d6', '#d64fb0', '#ff8a3d', '#ffd23f'], ['#8a2fd6', '#2ec4b6', '#ff5d8f', '#31d67a'],
+    ['#1f8ad6', '#ff9f1c', '#e71d36', '#ffd23f'], ['#d6472f', '#7c5cff', '#ffd166', '#42e0ff'],
+    ['#2f45d6', '#ff8a3d', '#06d6a0', '#ffe27a'], ['#ff5d8f', '#ffd23f', '#2f45d6', '#66f4ff'],
+    ['#2ec4b6', '#ff9f1c', '#8a2fd6', '#e71d36'], ['#7c5cff', '#ff5d8f', '#1f8ad6', '#79ff7a'],
+    ['#ef476f', '#ffd166', '#118ab2', '#06d6a0'], ['#3b4a6b', '#f97316', '#a855f7', '#22c55e'],
+  ];
+  const DISC_ROWS = [[3, 5], [2, 4], [4, 3], [3, 5], [2, 5], [5, 2], [3, 5], [2, 4], [4, 2], [5, 3]];
+  const LEVELS = [];
+  for (let i = 0; i < 20; i++) {
+    const tier = TIERS[Math.floor(i / 5)], k = i % 5, f = i / 19;     // f: 0 at level 1, 1 at level 20
+    const hops = tier.hops[k], pal = PALS[i % PALS.length], d = DISC_ROWS[i % DISC_ROWS.length];
+    const ease = v => Math.round(v);
+    LEVELS.push({
+      tier: tier.name, hops, reversible: !!tier.back[k],
+      base: pal[0], mid: pal[1], mid2: pal[2], target: pal[3],
+      ballEvery: ease(2400 - 1450 * f), ballSpeed: ease(520 - 250 * f), maxBalls: 2 + Math.floor(i / 5),
+      coilyAt: ease(4500 - 3200 * f), coilySpeed: ease(560 - 300 * f),
+      samEvery: i >= 4 ? ease(11000 - 6000 * (i - 4) / 15) : 0,        // Sam turns cubes back, from level 5
+      greenEvery: 14000 + i * 400,                                     // the green ball freezes everyone
+      discs: i >= 15 ? [{ side: i % 2 ? 'left' : 'right', row: d[i % 2] }] : [{ side: 'left', row: d[0] }, { side: 'right', row: d[1] }],
+    });
+  }
+  // past level 20 the game keeps going, a little faster every level
+  function levelDef(i) {
+    if (i < LEVELS.length) return LEVELS[i];
+    const L = LEVELS[LEVELS.length - 1], m = Math.max(.6, 1 - .04 * (i - LEVELS.length + 1));
+    return Object.assign({}, L, { ballEvery: L.ballEvery * m, ballSpeed: Math.max(200, L.ballSpeed * m), coilyAt: L.coilyAt * m, coilySpeed: Math.max(200, L.coilySpeed * m), samEvery: L.samEvery * m });
+  }
+  function levelNote(i) {
+    const d = levelDef(i), bits = [];
+    bits.push(d.hops === 1 ? 'one hop per cube' : d.hops + ' hops per cube');
+    if (d.reversible) bits.push('hop a finished cube and it goes back');
+    if (d.samEvery) bits.push('Sam turns cubes back');
+    if (d.discs.length === 1) bits.push('only one disc');
+    return d.tier + ' · ' + bits.join(' · ');
+  }
+  function levelBits(i) { return levelNote(i).split(' · ').slice(1).join(' · '); }
   function paletteFor(def) {
-    return def.hops === 1 ? [def.base, def.target] : [def.base, def.mid, def.target];
+    return def.hops === 1 ? [def.base, def.target] : def.hops === 2 ? [def.base, def.mid, def.target] : [def.base, def.mid, def.mid2, def.target];
   }
 
   // ---- Game state ------------------------------------------------------
@@ -224,7 +266,7 @@
   let high = +(localStorage.getItem('cubert_high') || 0);
   let cubes = [];             // {row,col,stage}
   let balls = [], discs = [], coily = null, player = null;
-  let ballTimer = 0, coilyTimer = 0, stateTimer = 0;
+  let ballTimer = 0, coilyTimer = 0, stateTimer = 0, samTimer = 0, greenTimer = 0, freezeT = 0, introT = 0;
   let inputQueue = null;
   let shake = 0;
 
@@ -253,14 +295,15 @@
     discs = def.discs.map(d => ({ side: d.side, row: d.row, used: false, phase: Math.random() * 6.28 }));
     ballTimer = def.ballEvery * 0.6;
     coilyTimer = def.coilyAt;
+    samTimer = def.samEvery; greenTimer = def.greenEvery; freezeT = 0;
     inputQueue = null;
-    mode = 'play';
+    mode = 'play'; introT = 1400;
     if (!keepScore) { /* score persists across levels */ }
     updateHUD();
   }
 
-  function newGame() {
-    score = 0; level = 0; lives = START_LIVES;
+  function newGame(startAt) {
+    score = 0; level = startAt || 0; lives = START_LIVES;
     startLevel(false);
     hideOverlay();
   }
@@ -314,10 +357,10 @@
   function flipCube(cube) {
     const def = levelDef(level);
     const prev = cube.stage;
-    if (def.reversible) cube.stage = cube.stage === 0 ? 1 : 0;
-    else cube.stage = Math.min(cube.stage + 1, def.hops);
-    if (cube.stage !== prev && cube.stage === def.hops) score += 25;
-    else if (cube.stage !== prev) score += 5;
+    if (cube.stage < def.hops) cube.stage++;
+    else if (def.reversible) cube.stage--;
+    if (cube.stage > prev && cube.stage === def.hops) score += 25;
+    else if (cube.stage > prev) score += 5;
     beep(520 + cube.stage * 120, 0.05, 'square', 0.05);
     updateHUD();
   }
@@ -354,9 +397,9 @@
   }
 
   // ---- Enemies ---------------------------------------------------------
-  function spawnBall() {
+  function spawnBall(kind) {
     const col = Math.random() < 0.5 ? 0 : 1;
-    const b = makeEntity(1, col, 'ball');
+    const b = makeEntity(1, col, kind || 'ball');
     b.hopTimer = 300;
     balls.push(b);
   }
@@ -366,6 +409,7 @@
     const [nr, nc] = DIRS[dir](b.row, b.col);
     beginHop(b, nr, nc, () => {
       if (!onPyramid(nr, nc)) { b.alive = false; return; }
+      if (b.kind === 'sam') { const c = cubeAt(nr, nc); if (c.stage > 0) { c.stage = 0; beep(240, .06, 'triangle', .04); } }
       collideCheck();
     });
   }
@@ -413,7 +457,13 @@
   function collideCheck() {
     if (mode !== 'play' || !player.alive || player.state === 'disc') return;
     const hit = (e) => e && e.alive && e.row === player.row && e.col === player.col && e.state !== 'egg-safe';
-    for (const b of balls) if (hit(b)) return playerHit();
+    for (const b of balls) if (hit(b)) {
+      if (b.kind === 'sam') { b.alive = false; score += 300; beep(990, .12, 'square', .05); updateHUD(); continue; }
+      if (b.kind === 'green') { b.alive = false; score += 100; freezeT = 3500; beep(1200, .3, 'sine', .05, 600); updateHUD(); continue; }
+      if (freezeT > 0) continue;
+      return playerHit();
+    }
+    if (freezeT > 0) return;   // frozen enemies can't hurt you
     if (coily && coily.state !== 'egg' && hit(coily)) return playerHit();
   }
 
@@ -436,6 +486,7 @@
     const def = levelDef(level);
     coilyTimer = def.coilyAt;
     ballTimer = def.ballEvery;
+    samTimer = Math.max(samTimer, 2500); freezeT = 0;
     player = makeEntity(0, 0, 'player');
     inputQueue = null;
     mode = 'play';
@@ -459,7 +510,7 @@
       '<h2>GAME OVER</h2>' +
       '<p>You reached <b>Level ' + (level + 1) + '</b> with <b>' + score + '</b> points.</p>' +
       (score >= high ? '<p style="color:#31d67a"><b>New high score!</b></p>' : '') +
-      '<button id="start-btn">PLAY AGAIN</button>'
+      '<button id="start-btn">PLAY AGAIN</button><div id="picker"></div>'
     );
     bindStart();
   }
@@ -508,6 +559,7 @@
     if (shake > 0) shake = Math.max(0, shake - dt * 0.05);
 
     if (mode === 'play') {
+      if (introT > 0) { introT -= dt; return; }
       updateAnims(dt);
       const def = levelDef(level);
 
@@ -515,14 +567,17 @@
       if (!player.anim && player.alive && inputQueue) {
         const d = inputQueue; inputQueue = null; tryPlayerMove(d);
       }
+      if (freezeT > 0) { freezeT -= dt; balls = balls.filter(b => b.alive); return; }
 
       // spawn / step balls
       ballTimer -= dt;
-      if (ballTimer <= 0) { spawnBall(); ballTimer = def.ballEvery; }
+      if (ballTimer <= 0) { if (balls.filter(b => b.kind === 'ball').length < def.maxBalls) spawnBall(); ballTimer = def.ballEvery; }
+      if (def.samEvery) { samTimer -= dt; if (samTimer <= 0) { if (!balls.some(b => b.kind === 'sam')) spawnBall('sam'); samTimer = def.samEvery; } }
+      greenTimer -= dt; if (greenTimer <= 0) { spawnBall('green'); greenTimer = def.greenEvery; }
       for (const b of balls) {
         if (b.anim) continue;
         b.hopTimer -= dt;
-        if (b.hopTimer <= 0) { b.hopTimer = def.ballSpeed; stepBall(b); }
+        if (b.hopTimer <= 0) { b.hopTimer = b.kind === 'ball' ? def.ballSpeed : 480; stepBall(b); }
       }
       balls = balls.filter(b => b.alive);
 
@@ -640,10 +695,26 @@
     }
   }
 
-  function drawBall(b) {
+  function drawSam(b) {
     if (b.alive && !b.anim) drawShadow(b);
+    const x = b.x, y = b.y;
+    ctx.fillStyle = '#1f9e4a'; ctx.beginPath(); ctx.ellipse(x - 6, y + 9, 5, 3, 0, 0, 6.3); ctx.ellipse(x + 6, y + 9, 5, 3, 0, 0, 6.3); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y - 3, 12, 0, 6.3); ctx.fillStyle = freezeT > 0 ? '#9fdcff' : '#3ddc6e'; ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x - 4, y - 6, 4, 0, 6.3); ctx.arc(x + 4, y - 6, 4, 0, 6.3); ctx.fill();
+    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(x - 3, y - 5, 2, 0, 6.3); ctx.arc(x + 5, y - 5, 2, 0, 6.3); ctx.fill();
+    ctx.fillStyle = '#0d5a28'; ctx.fillRect(x - 10, y - 15, 20, 4);   // little cap
+  }
+  function drawBall(b) {
+    if (b.kind === 'sam') return drawSam(b);
+    if (b.alive && !b.anim) drawShadow(b);
+    if (b.kind === 'green') {
+      const t = performance.now() / 120;
+      ctx.beginPath(); ctx.arc(b.x, b.y - 2, 12, 0, 6.3); ctx.fillStyle = '#39e36b'; ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,' + (.4 + .3 * Math.sin(t)) + ')'; ctx.lineWidth = 3; ctx.stroke();
+      return;
+    }
     const g = ctx.createRadialGradient(b.x - 4, b.y - 8, 2, b.x, b.y - 2, 14);
-    g.addColorStop(0, '#ff7a7a'); g.addColorStop(1, '#c11414');
+    g.addColorStop(0, freezeT > 0 ? '#cfeeff' : '#ff7a7a'); g.addColorStop(1, freezeT > 0 ? '#3f7fd6' : '#c11414');
     ctx.beginPath(); ctx.arc(b.x, b.y - 2, 12, 0, 6.3); ctx.fillStyle = g; ctx.fill();
     ctx.beginPath(); ctx.arc(b.x - 4, b.y - 6, 3, 0, 6.3); ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fill();
   }
@@ -711,6 +782,19 @@
       else if (e.kind === 'coily') drawCoily();
     }
 
+    if (mode === 'play' && introT > 0) {
+      ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillRect(0, H - 120, W, 84);
+      ctx.textAlign = 'center'; ctx.fillStyle = '#ffd23f';
+      ctx.font = '800 32px "Trebuchet MS", sans-serif';
+      ctx.fillText('LEVEL ' + (level + 1) + ' · ' + levelDef(level).tier.toUpperCase(), W / 2, H - 82);
+      const note = levelBits(level); let fs = 26;
+      do { ctx.font = '700 ' + fs + 'px "Trebuchet MS", sans-serif'; } while (ctx.measureText(note).width > W - 40 && --fs > 12);
+      ctx.fillStyle = '#fff'; ctx.fillText(note, W / 2, H - 50);
+    }
+    if (freezeT > 0 && mode === 'play') {
+      ctx.textAlign = 'right'; ctx.fillStyle = '#9fdcff'; ctx.font = '800 16px "Trebuchet MS", sans-serif';
+      ctx.fillText('FREEZE ' + Math.ceil(freezeT / 1000), W - 60, 30);
+    }
     if (mode === 'levelclear') {
       ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(0, H/2 - 46, W, 92);
       ctx.fillStyle = '#ffd23f'; ctx.textAlign = 'center';
@@ -788,13 +872,24 @@
 
   function bindStart() {
     const b = document.getElementById('start-btn');
-    if (b) b.addEventListener('click', () => { if (actx) actx.resume(); newGame(); });
+    if (b) b.addEventListener('click', () => { if (actx) actx.resume(); newGame(0); });
+    const pk = document.getElementById('picker');
+    if (!pk) return;
+    pk.innerHTML = '<p style="font-size:13px;opacity:.85;margin:4px 0 8px">Or start on any level:</p><div id="levels"></div><p class="lvl-note" id="lvl-note">Levels 1 to 5 Rookie · 6 to 10 Hopper · 11 to 15 Expert · 16 to 20 Master</p>';
+    const grid = document.getElementById('levels'), note = document.getElementById('lvl-note');
+    for (let i = 0; i < LEVELS.length; i++) {
+      const btn = document.createElement('button'); btn.textContent = i + 1; btn.className = 't' + (1 + Math.floor(i / 5));
+      btn.addEventListener('pointerenter', () => { note.textContent = 'Level ' + (i + 1) + ': ' + levelNote(i); });
+      btn.addEventListener('click', () => { if (actx) actx.resume(); newGame(i); });
+      grid.appendChild(btn);
+    }
   }
   function bindResume() {
     const b = document.getElementById('start-btn');
     if (b) b.addEventListener('click', () => { paused = false; hideOverlay(); });
   }
 
+  window.__cb = { LEVELS, levelDef, newGame, get mode() { return mode; }, get level() { return level; }, get cubes() { return cubes; }, get balls() { return balls; }, get freezeT() { return freezeT; } };
   // ---- Boot ------------------------------------------------------------
   updateHUD();
   bindStart();

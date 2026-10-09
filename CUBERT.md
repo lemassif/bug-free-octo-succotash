@@ -54,9 +54,21 @@ arrow keys (or W A S D) are rotated 45°:
 ## Rules
 
 - **Flip every cube** — land on each cube to change its top color. When they all
-  reach the target color, the level is cleared. On later levels a cube needs two
-  hops (through an intermediate color), and some levels are *reversible* —
-  hopping a finished cube again undoes it, so watch your step.
+  reach the target color, the level is cleared.
+- **20 levels, pick any one.** The title screen has a PLAY button for level 1
+  and a grid to start on any level from 1 to 20. Past level 20 the game keeps
+  going and keeps speeding up.
+
+  | Levels | Tier   | What changes |
+  |--------|--------|--------------|
+  | 1–5    | Rookie | One hop per cube, then two. Sam shows up on level 5. |
+  | 6–10   | Hopper | Hopping a finished cube knocks it back a step; more red balls. |
+  | 11–15  | Expert | Two, then three hops per cube; up to 4 red balls at once. |
+  | 16–20  | Master | Three hops, finished cubes knock back, 5 red balls, only one disc. |
+
+  Every level is a little faster than the one before: red balls drop more
+  often and hop faster, Slinky hatches sooner and chases faster, and Sam comes
+  more often.
 - **Don't jump off** — leaping past the edge of the pyramid costs a life…
 - **…unless you catch a rescue disc.** A spinning disc floats beside each side of
   the pyramid. Hop off the edge next to one and it flies you back to the top. If
@@ -66,6 +78,9 @@ arrow keys (or W A S D) are rotated 45°:
   - **Red balls** bounce down the pyramid at random. Touching one costs a life.
   - **Slinky** (the purple snake) hatches from a bouncing egg, then relentlessly
     chases you. Touching it costs a life — lure it off a disc edge to beat it.
+  - **Sam** (the little green guy, level 5 and up) hops down the pyramid and
+    turns cubes back to the starting color. Catch him for 300 points.
+  - **Green ball** — catch it to freeze every enemy for 3.5 seconds (100 points).
 - You start with **5 lives** and earn a bonus life for every level you clear. Losing one clears the board of enemies for a brief
   breather; your cube progress is kept.
 - High score is saved in your browser's local storage.
@@ -78,6 +93,8 @@ arrow keys (or W A S D) are rotated 45°:
 | Flip a cube to the target     | 25            |
 | Ride a rescue disc            | 50            |
 | Lure Slinky off a disc edge   | 500           |
+| Catch Sam                     | 300           |
+| Catch the green ball          | 100           |
 | Clear a level                 | 200 + 100/level |
 
 Five levels are included, each with its own color scheme and rising difficulty.

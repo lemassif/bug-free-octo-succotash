@@ -3,7 +3,7 @@
 >
 > | Game | File | Description |
 > |------|------|-------------|
-> | **Cubert** | [`cubert.html`](cubert.html) | cube-hopping isometric arcade — see [`CUBERT.md`](CUBERT.md) |
+> | **Cubert** | [`cubert.html`](cubert.html) | cube-hopping isometric arcade with 20 levels you can start from — see [`CUBERT.md`](CUBERT.md) |
 > | **Miner 2049er** | [`miner.html`](miner.html) | platformer (documented below) |
 > | **Ferrow Light** | [`ferrow-light.html`](ferrow-light.html) | a four-chapter Zork-style text adventure |
 > | **Mulligan Cup** | [`golf.html`](golf.html) | eighteen-hole golf from behind the ball — see below |
