@@ -215,8 +215,8 @@ function predictBall() {   // where the free ball will be over the next 2 second
   }
 }
 function kickBall(p, vx, vy, vz) {
-  const b = G.ball; b.owner = null; b.vx = vx; b.vy = vy; b.vz = vz; b.z = Math.max(b.z, BR + .01); p.hands = false;
-  p.noTouch = .3; p.anim = 'kick'; p.animT = 0; G.lastTouch = p; p.mustPass = false; sfx('kick', Math.min(1, hyp(vx, vy) / 25));
+  const b = G.ball, thrown = p.hands; b.owner = null; b.vx = vx; b.vy = vy; b.vz = vz; b.z = Math.max(b.z, BR + .01); p.hands = false;
+  p.noTouch = .3; p.anim = thrown && p.role !== 'GK' ? 'throw' : 'kick'; p.animT = 0; G.lastTouch = p; p.mustPass = false; sfx('kick', Math.min(1, hyp(vx, vy) / 25));
 }
 function updateBall(dt) {
   const b = G.ball, o = b.owner;
@@ -248,7 +248,7 @@ function netStop(b) {   // keep the ball inside the net after a goal
 }
 function goalLine(px, py) {
   const b = G.ball;
-  if (G.mode !== 'play') return;
+  if (G.mode !== 'play' || (b.owner && b.owner.mustPass)) return;
   // posts and crossbar
   if (Math.abs(px) < PL && Math.abs(b.x) >= PL) {
     const s = sgn(b.x), f = (s * PL - px) / ((b.x - px) || 1e-6), y = py + (b.y - py) * f, z = b.z;
@@ -330,7 +330,7 @@ function startRestart() {
   let taker;
   if (rs.type === 'goalkick') taker = G.players.find(p => p.team === rs.team && p.role === 'GK');
   else taker = G.players.filter(p => p.team === rs.team && p.role !== 'GK').sort((a, c) => dist(a, b) - dist(c, b))[0];
-  if (rs.type === 'throw') { taker.x = rs.x; taker.y = rs.y + sgn(rs.y) * .3; taker.face = rs.y > 0 ? -Math.PI / 2 : Math.PI / 2; taker.hands = true; taker.anim = 'throw'; }
+  if (rs.type === 'throw') { taker.x = rs.x; taker.y = rs.y - sgn(rs.y) * .3; taker.face = rs.y > 0 ? -Math.PI / 2 : Math.PI / 2; taker.hands = true; taker.anim = 'throw'; }
   else if (rs.type === 'corner') { taker.x = rs.x + sgn(rs.x) * .5; taker.y = rs.y + sgn(rs.y) * .4; taker.face = Math.atan2(-rs.y, -rs.x * .3); }
   else { taker.x = rs.x - d * .6; taker.y = 0; taker.face = rs.team === 0 ? 0 : Math.PI; }
   taker.vx = taker.vy = 0; b.owner = taker; taker.mustPass = true; taker.holdT = 0; G.lastTouch = taker;
