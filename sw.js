@@ -1,5 +1,5 @@
 /* Retro Arcade service worker — caches the whole arcade for offline play. */
-const CACHE = 'arcade-v15';
+const CACHE = 'arcade-v16';
 const ASSETS = [
   './',
   './index.html',
@@ -15,6 +15,8 @@ const ASSETS = [
   './decathlon3d.js',
   './winter.html',
   './winter-engine.js',
+  './logic.html',
+  './logic-engine.js',
   './casino.html',
   './casino.css',
   './casino-core.js',

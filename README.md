@@ -1,4 +1,4 @@
-> This repo is a small **retro arcade** with eight self-contained browser games.
+> This repo is a small **retro arcade** with nine self-contained browser games.
 > Open [`index.html`](index.html) for the **menu**, then pick a game:
 >
 > | Game | File | Description |
@@ -11,6 +11,7 @@
 > | **Lucky Seven Casino** | [`casino.html`](casino.html) | craps, blackjack, roulette, pai gow and hold'em with several players — see below |
 > | **Decathlon** | [`decathlon.html`](decathlon.html) | all ten track and field events for one to five athletes — see below |
 > | **Powder Cup** | [`winter.html`](winter.html) | ski and snowboard: races, moguls, halfpipe and big air — see below |
+> | **Brain Box** | [`logic.html`](logic.html) | logic puzzles: clue grids, sudoku, picture cross and queens — see below |
 >
 > Every page cross-links, so you can hop between the menu and any game.
 >
@@ -289,3 +290,26 @@ Touch controls appear automatically on phones and tablets.
 Two hand-built levels are included — "First Shaft" and "Crossing Caverns".
 The level maps live in the `LEVELS` array near the top of the script and are
 easy to edit or extend (see the tile legend in the comments).
+
+---
+
+# Brain Box
+
+Four kinds of logic puzzles, each at five levels: **Kids, Easy, Medium, Hard
+and Expert**. Every puzzle is generated fresh, has exactly one answer, and can
+be solved by reasoning alone. The generator checks this before you ever see it.
+
+| Puzzle | How it works | Sizes |
+|--------|--------------|-------|
+| **Logic Grid** | Clues like "Theo finished 2nd" and "The cat owner is younger than Ava". Work out who has which pet, color, snack, sport, age or finishing place. Tap a square for ×, again for ●; a ● crosses out the rest of its row and column. Tap a clue to cross it off. | 3 people, 2 categories up to 5 people, 3 categories |
+| **Sudoku** | Each row, column and box holds every number once. Notes mode for pencil marks. Hard needs pairs and pointing; Expert needs more. | 4×4, 6×6, 9×9 |
+| **Picture Cross** | Number clues give the runs of filled squares in each row and column, in order. Drag to paint, switch to × to mark empty squares. Clues dim when a line is satisfied. | 5×5 to 15×15 |
+| **Queens** | One ♛ in every row, column and colored region, and no two queens touching, even at a corner. | 5×5 to 9×9 |
+
+- **Undo, Check, Hint and New** on every puzzle. Check shows how many marks
+  are wrong; Hint fixes a mistake or fills in one correct square.
+- A timer runs while you play, and solved counts and best times are saved per
+  puzzle type and level. Leave mid-puzzle and **Continue** picks it up later.
+- The generators and solvers live in `logic-engine.js`, which has no DOM and
+  can be tested in Node.
+

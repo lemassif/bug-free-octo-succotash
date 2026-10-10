@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b0d1c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Brain Box</title>
+<style>
+  :root {
+    --bg: #0b0d1c; --panel: #151a33; --panel2: #1d2345; --line: rgba(255,255,255,.14); --ink: #eef1ff; --mute: #9aa3c7;
+    --gold: #ffd34d; --good: #4fe08a; --bad: #ff5d6c; --accent: #6ec6ff;
+    --grid: #5fd4c4; --sudoku: #6ea8ff; --nonogram: #ff7ab8; --queens: #b98cff;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; -webkit-text-size-adjust: 100%; }
+  body { padding: max(10px, env(safe-area-inset-top)) 10px max(14px, env(safe-area-inset-bottom)); }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .screen { display: none; }
+  .screen.on { display: block; }
+
+  /* ---------- home ---------- */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .top a, .iconbtn { color: var(--mute); text-decoration: none; font-size: 14px; background: none; border: 0; padding: 8px 4px; }
+  h1 { margin: 6px 0 2px; text-align: center; font-size: clamp(36px, 11vw, 64px); letter-spacing: 3px; font-weight: 900;
+    background: linear-gradient(180deg, #fff3b0, #ffd34d 45%, #ff8a3d); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .tag { text-align: center; color: var(--mute); margin: 0 0 18px; font-size: 15px; }
+  .types { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .type { text-align: left; background: linear-gradient(160deg, var(--panel2), var(--panel)); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: grid; grid-template-columns: 74px 1fr; gap: 14px; align-items: center; }
+  .type:active { transform: scale(.985); }
+  .type .ico { width: 74px; height: 74px; border-radius: 14px; background: rgba(255,255,255,.05); display: grid; place-items: center; }
+  .type h2 { margin: 0 0 3px; font-size: 21px; letter-spacing: .5px; }
+  .type p { margin: 0; color: var(--mute); font-size: 14px; line-height: 1.35; }
+  .type .meta { margin-top: 6px; font-size: 12px; color: var(--gold); letter-spacing: .5px; }
+  .resume { display: inline-block; margin-top: 6px; font-size: 12px; color: var(--good); }
+
+  /* ---------- level picker ---------- */
+  .sheet { position: fixed; inset: 0; background: rgba(5,6,14,.72); display: none; align-items: flex-end; justify-content: center; z-index: 20; }
+  .sheet.on { display: flex; }
+  .sheet .box { width: min(100%, 520px); background: var(--panel); border: 1px solid var(--line); border-radius: 22px 22px 0 0; padding: 18px 16px max(18px, env(safe-area-inset-bottom)); }
+  @media (min-width: 700px) { .sheet { align-items: center; } .sheet .box { border-radius: 22px; } }
+  .sheet h3 { margin: 0 0 4px; font-size: 22px; }
+  .sheet .how { color: var(--mute); font-size: 14px; line-height: 1.45; margin: 0 0 12px; }
+  .lv { display: grid; grid-template-columns: 1fr auto; align-items: center; width: 100%; text-align: left; background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; }
+  .lv b { font-size: 17px; } .lv small { color: var(--mute); font-size: 12px; display: block; margin-top: 2px; }
+  .lv .st { color: var(--gold); font-size: 13px; text-align: right; }
+  .lv.cont { border-color: var(--good); }
+  .close { width: 100%; background: none; border: 0; color: var(--mute); padding: 10px; }
+
+  /* ---------- play ---------- */
+  .bar { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .bar .ttl { flex: 1; text-align: center; line-height: 1.1; }
+  .bar .ttl b { display: block; font-size: 17px; }
+  .bar .ttl span { font-size: 12px; color: var(--mute); }
+  .clock { font-variant-numeric: tabular-nums; color: var(--gold); font-weight: 800; min-width: 52px; text-align: right; }
+  .tools { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin: 10px 0; }
+  .tool { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 9px 13px; font-size: 14px; font-weight: 700; min-width: 64px; }
+  .tool.on { background: var(--gold); color: #1a1300; border-color: var(--gold); }
+  .tool:disabled { opacity: .4; }
+  .board { display: flex; justify-content: center; }
+  .msg { text-align: center; color: var(--mute); font-size: 13px; min-height: 18px; margin: 4px 0; }
+  .msg.bad { color: var(--bad); } .msg.good { color: var(--good); }
+  .busy { text-align: center; color: var(--mute); padding: 60px 0; }
+
+  /* sudoku */
+  .sg { display: grid; background: #0d1124; border: 3px solid #c7cff5; border-radius: 6px; touch-action: manipulation; user-select: none; }
+  .sc { display: grid; place-items: center; background: #1a2042; color: #9fd0ff; font-weight: 700; position: relative; border-right: 1px solid #3a4478; border-bottom: 1px solid #3a4478; }
+  .sc.giv { color: var(--ink); background: #232a52; }
+  .sc.rule-r { border-right: 3px solid #c7cff5; } .sc.rule-b { border-bottom: 3px solid #c7cff5; }
+  .sc.peer { background: #222a58; } .sc.same { background: #34406f; } .sc.sel { background: #4b5bb0; }
+  .sc.bad { color: var(--bad); }
+  .sc .notes { position: absolute; inset: 2px; display: grid; font-size: 9px; color: #b8c1ea; font-weight: 600; }
+  .sc .notes i { font-style: normal; display: grid; place-items: center; }
+  .pad { display: grid; gap: 6px; margin: 10px auto 0; max-width: 460px; }
+  .pad button { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; font-size: 22px; font-weight: 800; padding: 10px 0; }
+  .pad button.done { opacity: .35; }
+
+  /* nonogram */
+  .ng { display: grid; user-select: none; touch-action: none; }
+  .ng .cl { color: #cdd5ff; font-size: 12px; font-weight: 700; display: flex; align-items: flex-end; justify-content: center; gap: 1px; padding: 2px 0; line-height: 1.1; }
+  .ng .cl.col { flex-direction: column; justify-content: flex-end; align-items: center; }
+  .ng .cl.row { justify-content: flex-end; align-items: center; gap: 5px; padding-right: 5px; }
+  .ng .cl.ok { color: #59618a; }
+  .ng .nc { background: #e9ecfb; border-right: 1px solid #aab2d6; border-bottom: 1px solid #aab2d6; display: grid; place-items: center; color: #8b93b8; font-weight: 900; }
+  .ng .nc.f { background: #1d2348; }
+  .ng .nc.x::after { content: '×'; font-size: 80%; }
+  .ng .nc.r5 { border-right: 2px solid #4a5280; } .ng .nc.b5 { border-bottom: 2px solid #4a5280; }
+  .ng .nc.hl { box-shadow: inset 0 0 0 2px var(--nonogram); }
+  .ng.won .nc.f { background: var(--nonogram); }
+
+  /* queens */
+  .qg { display: grid; border: 3px solid #0d1124; border-radius: 6px; overflow: hidden; touch-action: manipulation; user-select: none; }
+  .qc { display: grid; place-items: center; font-size: 22px; color: #1b1530; position: relative; }
+  .qc.bt { border-top: 2.5px solid #12101e; } .qc.bl { border-left: 2.5px solid #12101e; }
+  .qc.x::after { content: '×'; font-size: 60%; opacity: .55; font-weight: 800; }
+  .qc.q::after { content: '♛'; }
+  .qc.clash::after { color: #c3001b; }
+
+  /* logic grid */
+  .clues { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; }
+  .clues h4 { margin: 0 0 6px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--mute); font-weight: 700; }
+  .clues ol { margin: 0; padding-left: 22px; }
+  .clues li { padding: 4px 0; font-size: 15px; line-height: 1.35; }
+  .clues li.used { color: #5f678f; text-decoration: line-through; }
+  .gscroll { overflow-x: auto; max-width: 100%; }
+  .lg { border-collapse: collapse; margin: 0 auto; user-select: none; touch-action: manipulation; }
+  .lg th { font-size: 12px; font-weight: 700; color: #d6dcff; padding: 0; }
+  .lg th.cat { font-size: 11px; color: var(--grid); letter-spacing: 1px; text-transform: uppercase; }
+  .lg th.vh { writing-mode: vertical-rl; transform: rotate(180deg); text-align: left; padding: 4px 0; white-space: nowrap; height: 76px; }
+  .lg th.rh { text-align: right; padding-right: 6px; white-space: nowrap; }
+  .lg td.c { background: #eef0fb; border: 1px solid #aeb5d6; text-align: center; color: #9aa1c4; font-weight: 900; cursor: pointer; }
+  .lg td.c.blk-r { border-right: 2.5px solid #2b3260; } .lg td.c.blk-b { border-bottom: 2.5px solid #2b3260; }
+  .lg td.c.x::after { content: '×'; }
+  .lg td.c.o { color: #0b6b3a; } .lg td.c.o::after { content: '●'; }
+  .lg td.c.wrong { background: #ff9aa6; }
+  .lg td.c.hl { background: #fff6cf; }
+  .lg td.void { background: transparent; border: 0; }
+
+  /* win */
+  .win { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(5,6,14,.7); z-index: 30; padding: 20px; }
+  .win.on { display: flex; }
+  .win .box { background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 22px; text-align: center; width: min(100%, 360px); }
+  .win h2 { margin: 0 0 6px; font-size: 30px; color: var(--gold); }
+  .win p { margin: 4px 0; color: var(--mute); }
+  .win .big { font-size: 34px; font-weight: 900; color: var(--ink); }
+  .btn { display: block; width: 100%; border: 0; border-radius: 999px; padding: 13px; margin-top: 10px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;
+    background: linear-gradient(180deg, #ffe27a, #ffb43d); color: #1a1300; box-shadow: 0 5px 0 #b26a1f; }
+  .btn.ghost { background: var(--panel2); color: var(--ink); box-shadow: none; border: 1px solid var(--line); }
+  .confetti { position: fixed; top: -12px; width: 9px; height: 14px; z-index: 31; pointer-events: none; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== home ===== -->
+  <section class="screen on" id="home">
+    <div class="top"><a href="index.html">← Arcade</a><span></span></div>
+    <h1>BRAIN BOX</h1>
+    <p class="tag">Four kinds of logic puzzles, five levels each. Every puzzle has one answer, and you can always reach it by reasoning. No guessing needed.</p>
+    <div class="types" id="types"></div>
+  </section>
+
+  <!-- ===== play ===== -->
+  <section class="screen" id="play">
+    <div class="bar">
+      <button class="iconbtn" id="back">← Puzzles</button>
+      <div class="ttl"><b id="ptitle">Sudoku</b><span id="psub">Easy</span></div>
+      <span class="clock" id="clock">0:00</span>
+    </div>
+    <div class="tools" id="tools"></div>
+    <div class="msg" id="msg"></div>
+    <div id="area"></div>
+  </section>
+</div>
+
+<div class="sheet" id="sheet"><div class="box">
+  <h3 id="shTitle"></h3>
+  <p class="how" id="shHow"></p>
+  <div id="shLevels"></div>
+  <button class="close" id="shClose">Cancel</button>
+</div></div>
+
+<div class="win" id="win"><div class="box">
+  <h2>Solved!</h2>
+  <div class="big" id="winTime">0:00</div>
+  <p id="winSub"></p>
+  <button class="btn" id="winNext">Next puzzle</button>
+  <button class="btn ghost" id="winHome">All puzzles</button>
+</div></div>
+
+<script src="logic-engine.js"></script>
+<script>
+"use strict";
+(function () {
+  const L = window.Logic, $ = id => document.getElementById(id);
+  const LV_NAMES = { kids: 'Kids', easy: 'Easy', medium: 'Medium', hard: 'Hard', expert: 'Expert' };
+  const INFO = {
+    grid: { col: 'var(--grid)', blurb: 'Read the clues and work out who has which pet, color, sport and more.',
+      how: 'Each person matches exactly one item in every category. Tap a square once for × (no), twice for ● (yes). Placing a ● crosses out the rest of its row and column for you. Tap a clue to cross it off when you have used it.' },
+    sudoku: { col: 'var(--sudoku)', blurb: 'Fill the grid so every row, column and box has each number once.',
+      how: 'Every row, column and box must contain each number exactly once. Tap a square, then a number. Turn on Notes to pencil in possibilities.' },
+    nonogram: { col: 'var(--nonogram)', blurb: 'Use the number clues to fill in squares and reveal a picture.',
+      how: 'The numbers say how many filled squares sit together in that row or column, in order, with at least one gap between groups. Drag to paint. Switch to × to mark squares you know are empty.' },
+    queens: { col: 'var(--queens)', blurb: 'Place one queen in every row, column and color, with no two touching.',
+      how: 'Put exactly one ♛ in each row, each column and each colored region. Queens may not touch each other, not even at the corners. Tap once for ×, twice for a queen.' },
+  };
+  const ICONS = {
+    grid: '<svg viewBox="0 0 60 60" width="56" height="56"><g fill="none" stroke="#5fd4c4" stroke-width="2"><rect x="6" y="6" width="48" height="48" rx="4"/><path d="M22 6v48M38 6v32M6 22h48M6 38h32"/></g><circle cx="14" cy="14" r="4" fill="#4fe08a"/><path d="M27 10l7 7M34 10l-7 7M43 27l7 7M50 27l-7 7M11 27l7 7M18 27l-7 7" stroke="#ff7a8a" stroke-width="2.4"/><circle cx="46" cy="14" r="0"/><circle cx="30" cy="46" r="4" fill="#4fe08a"/></svg>',
+    sudoku: '<svg viewBox="0 0 60 60" width="56" height="56"><rect x="6" y="6" width="48" height="48" rx="4" fill="#1a2042" stroke="#6ea8ff" stroke-width="2"/><path d="M22 6v48M38 6v48M6 22h48M6 38h48" stroke="#6ea8ff" stroke-width="1.6"/><g font-family="Trebuchet MS" font-weight="800" font-size="12" fill="#fff" text-anchor="middle"><text x="14" y="18">5</text><text x="46" y="18">3</text><text x="30" y="34">7</text><text x="14" y="50">9</text><text x="46" y="50" fill="#9fd0ff">1</text></g></svg>',
+    nonogram: '<svg viewBox="0 0 60 60" width="56" height="56"><rect x="6" y="6" width="48" height="48" rx="4" fill="#e9ecfb"/><g fill="#ff7ab8"><rect x="18" y="14" width="8" height="8"/><rect x="34" y="14" width="8" height="8"/><rect x="10" y="22" width="40" height="8"/><rect x="14" y="30" width="32" height="8"/><rect x="22" y="38" width="16" height="8"/><rect x="26" y="46" width="8" height="4"/></g></svg>',
+    queens: '<svg viewBox="0 0 60 60" width="56" height="56"><g><rect x="6" y="6" width="24" height="24" fill="#b98cff"/><rect x="30" y="6" width="24" height="24" fill="#ffd166"/><rect x="6" y="30" width="24" height="24" fill="#6ec6ff"/><rect x="30" y="30" width="24" height="24" fill="#7ee081"/></g><text x="18" y="25" font-size="18" text-anchor="middle" fill="#1b1530">♛</text><text x="42" y="49" font-size="18" text-anchor="middle" fill="#1b1530">♛</text></svg>',
+  };
+  const QCOLS = ['#b98cff', '#ffd166', '#6ec6ff', '#7ee081', '#ff9f80', '#f7a8e0', '#c9d36a', '#8fe3d9', '#ffb3b3'];
+
+  /* ---------- storage ---------- */
+  const KEY = 'brainbox_v1';
+  let store = { stats: {}, saves: {} };
+  try { store = Object.assign(store, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+  const stat = (t, lv) => ((store.stats[t] = store.stats[t] || {})[lv] = store.stats[t][lv] || { solved: 0, best: 0 });
+  const fmtT = s => { s = Math.floor(s); const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+
+  /* ---------- home ---------- */
+  function renderHome() {
+    const box = $('types'); box.innerHTML = '';
+    for (const t of Object.keys(L.TYPES)) {
+      const solved = Object.values(store.stats[t] || {}).reduce((a, s) => a + s.solved, 0), sv = store.saves[t];
+      const b = document.createElement('button'); b.className = 'type';
+      b.innerHTML = '<div class="ico">' + ICONS[t] + '</div><div><h2 style="color:' + INFO[t].col + '">' + L.TYPES[t].name + '</h2><p>' + INFO[t].blurb + '</p>' +
+        '<div class="meta">' + (solved ? solved + ' solved' : 'Kids to Expert') + '</div>' + (sv ? '<span class="resume">● ' + LV_NAMES[sv.level] + ' puzzle in progress</span>' : '') + '</div>';
+      b.onclick = () => openSheet(t); box.appendChild(b);
+    }
+  }
+  function openSheet(t) {
+    $('shTitle').textContent = L.TYPES[t].name; $('shTitle').style.color = INFO[t].col; $('shHow').textContent = INFO[t].how;
+    const box = $('shLevels'); box.innerHTML = '';
+    const sv = store.saves[t];
+    if (sv) { const b = document.createElement('button'); b.className = 'lv cont'; b.innerHTML = '<div><b>Continue</b><small>' + LV_NAMES[sv.level] + ' · ' + fmtT(sv.time) + ' so far</small></div><div class="st">▶</div>'; b.onclick = () => { closeSheet(); start(t, sv.level, sv.seed, sv); }; box.appendChild(b); }
+    for (const lv of L.LEVELS) {
+      const s = stat(t, lv), b = document.createElement('button'); b.className = 'lv';
+      b.innerHTML = '<div><b>' + LV_NAMES[lv] + '</b><small>' + L.TYPES[t].levels[lv].label.replace(/^\w+ /, '') + '</small></div><div class="st">' + (s.solved ? s.solved + ' solved<br>best ' + fmtT(s.best) : 'new') + '</div>';
+      b.onclick = () => { closeSheet(); start(t, lv, (Math.random() * 1e9) >>> 0); }; box.appendChild(b);
+    }
+    $('sheet').classList.add('on');
+  }
+  function closeSheet() { $('sheet').classList.remove('on'); }
+  $('shClose').onclick = closeSheet; $('sheet').onclick = e => { if (e.target === $('sheet')) closeSheet(); };
+
+  /* ---------- play state ---------- */
+  let G = null, tick = null;
+  function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id)); window.scrollTo(0, 0); }
+  function start(type, level, seed, resume) {
+    show('play'); $('ptitle').textContent = L.TYPES[type].name; $('ptitle').style.color = INFO[type].col; $('psub').textContent = LV_NAMES[level] + ' · puzzle #' + (seed % 100000);
+    $('area').innerHTML = '<div class="busy">Making a fresh puzzle…</div>'; $('tools').innerHTML = ''; msg('');
+    setTimeout(() => {
+      const P = L.make(type, level, seed);
+      if (!P) { $('area').innerHTML = '<div class="busy">Could not build that one. Try again.</div>'; return; }
+      G = { type, level, seed: P.seed, P, time: resume ? resume.time : 0, hints: resume ? resume.hints || 0 : 0, undo: [], won: false, st: resume ? resume.st : null };
+      VIEWS[type].init(G);
+      startClock(); persist();
+    }, 30);
+  }
+  function startClock() {
+    clearInterval(tick); let last = performance.now();
+    tick = setInterval(() => { const now = performance.now(); if (G && !G.won && !document.hidden && $('play').classList.contains('on')) { G.time += (now - last) / 1000; $('clock').textContent = fmtT(G.time); if (Math.floor(G.time) % 5 === 0) persist(); } last = now; }, 500);
+    $('clock').textContent = fmtT(G.time);
+  }
+  function persist() { if (!G || G.won) return; store.saves[G.type] = { level: G.level, seed: G.seed, time: G.time, hints: G.hints, st: G.st }; save(); }
+  function msg(t, cls) { const m = $('msg'); m.textContent = t; m.className = 'msg' + (cls ? ' ' + cls : ''); }
+  function push() { G.undo.push(JSON.stringify(G.st)); if (G.undo.length > 300) G.undo.shift(); }
+  function undo() { if (!G.undo.length || G.won) return; G.st = JSON.parse(G.undo.pop()); VIEWS[G.type].draw(); persist(); msg(''); }
+  function tools(list) {
+    const box = $('tools'); box.innerHTML = '';
+    for (const [label, fn, id] of list) { const b = document.createElement('button'); b.className = 'tool'; b.textContent = label; if (id) b.id = id; b.onclick = fn; box.appendChild(b); }
+  }
+  const common = () => [['Undo', undo], ['Check', () => VIEWS[G.type].check()], ['Hint', () => { if (G.won) return; G.hints++; VIEWS[G.type].hint(); persist(); }], ['New', () => start(G.type, G.level, (Math.random() * 1e9) >>> 0)]];
+  function won() {
+    if (G.won) return; G.won = true; delete store.saves[G.type];
+    const s = stat(G.type, G.level), t = Math.max(1, Math.round(G.time)), best = !s.best || t < s.best;
+    s.solved++; if (best) s.best = t; save();
+    $('winTime').textContent = fmtT(t);
+    $('winSub').textContent = (best && s.solved > 1 ? 'New best time! ' : '') + LV_NAMES[G.level] + ' ' + L.TYPES[G.type].name + (G.hints ? ' · ' + G.hints + ' hint' + (G.hints > 1 ? 's' : '') : ' · no hints');
+    confetti(); setTimeout(() => $('win').classList.add('on'), 650);
+  }
+  function confetti() { const cols = ['#ffd34d', '#ff7ab8', '#6ec6ff', '#4fe08a', '#b98cff']; for (let i = 0; i < 60; i++) { const d = document.createElement('div'); d.className = 'confetti'; d.style.left = Math.random() * 100 + 'vw'; d.style.background = cols[i % 5]; d.style.animationDuration = 1.6 + Math.random() * 1.6 + 's'; d.style.animationDelay = Math.random() * .4 + 's'; document.body.appendChild(d); setTimeout(() => d.remove(), 3800); } }
+  $('winNext').onclick = () => { $('win').classList.remove('on'); start(G.type, G.level, (Math.random() * 1e9) >>> 0); };
+  $('winHome').onclick = () => { $('win').classList.remove('on'); goHome(); };
+  function goHome() { persist(); clearInterval(tick); renderHome(); show('home'); }
+  $('back').onclick = goHome;
+  const fit = (cells, extra) => Math.max(18, Math.min(60, Math.floor((Math.min(window.innerWidth, 760) - 20 - (extra || 0)) / cells)));
+
+  /* =================================================================
+     SUDOKU
+     ================================================================= */
+  const sudoku = {
+    init(G) {
+      const P = G.P; G.st = G.st || { v: P.puzzle.slice(), notes: P.puzzle.map(() => []) }; G.sel = -1; G.notes = false;
+      tools([['Notes: off', () => { G.notes = !G.notes; const b = $('tNotes'); b.textContent = 'Notes: ' + (G.notes ? 'on' : 'off'); b.classList.toggle('on', G.notes); }, 'tNotes'], ...common()]);
+      this.draw();
+    },
+    draw() {
+      const P = G.P, n = P.n, st = G.st, sz = fit(n, 6), area = $('area');
+      const sel = G.sel, selV = sel >= 0 ? st.v[sel] : 0, sr = Math.floor(sel / n), sc = sel % n, box = i => Math.floor(Math.floor(i / n) / P.br) * 100 + Math.floor((i % n) / P.bc);
+      const bad = this.conflicts();
+      let h = '<div class="board"><div class="sg" style="grid-template-columns:repeat(' + n + ',' + sz + 'px);grid-auto-rows:' + sz + 'px;font-size:' + Math.round(sz * .55) + 'px">';
+      for (let i = 0; i < n * n; i++) {
+        const r = Math.floor(i / n), c = i % n, cls = ['sc'];
+        if (P.puzzle[i]) cls.push('giv');
+        if ((c + 1) % P.bc === 0 && c < n - 1) cls.push('rule-r'); if ((r + 1) % P.br === 0 && r < n - 1) cls.push('rule-b');
+        if (sel >= 0) { if (i === sel) cls.push('sel'); else if (selV && st.v[i] === selV) cls.push('same'); else if (r === sr || c === sc || box(i) === box(sel)) cls.push('peer'); }
+        if (bad.has(i) && !P.puzzle[i]) cls.push('bad');
+        let inner = st.v[i] ? st.v[i] : '';
+        if (!st.v[i] && st.notes[i].length) { const k = Math.ceil(Math.sqrt(n)); inner = '<div class="notes" style="grid-template-columns:repeat(' + k + ',1fr);font-size:' + Math.max(8, Math.round(sz / (k + 1.6))) + 'px">' + Array.from({ length: n }, (_, j) => '<i>' + (st.notes[i].includes(j + 1) ? j + 1 : '') + '</i>').join('') + '</div>'; }
+        h += '<div class="' + cls.join(' ') + '" data-i="' + i + '">' + inner + '</div>';
+      }
+      h += '</div></div>';
+      const counts = Array(n + 1).fill(0); st.v.forEach(v => counts[v]++);
+      h += '<div class="pad" style="grid-template-columns:repeat(' + Math.min(n, 9) + ',1fr)">' + Array.from({ length: n }, (_, j) => '<button data-n="' + (j + 1) + '" class="' + (counts[j + 1] >= n ? 'done' : '') + '">' + (j + 1) + '</button>').join('') + '</div>';
+      h += '<div class="tools"><button class="tool" data-n="0">Erase</button></div>';
+      area.innerHTML = h;
+      area.querySelectorAll('.sc').forEach(el => el.onclick = () => { G.sel = +el.dataset.i; this.draw(); });
+      area.querySelectorAll('[data-n]').forEach(el => el.onclick = () => this.put(+el.dataset.n));
+    },
+    put(v) {
+      const P = G.P, i = G.sel; if (G.won || i < 0 || P.puzzle[i]) return;
+      push(); const st = G.st;
+      if (v === 0) { st.v[i] = 0; st.notes[i] = []; }
+      else if (G.notes && !st.v[i]) { const k = st.notes[i].indexOf(v); if (k >= 0) st.notes[i].splice(k, 1); else st.notes[i].push(v); }
+      else { st.v[i] = st.v[i] === v ? 0 : v; st.notes[i] = [];
+        if (st.v[i]) { const n = P.n, r = Math.floor(i / n), c = i % n; for (let j = 0; j < n * n; j++) { const rr = Math.floor(j / n), cc = j % n; if (rr === r || cc === c || (Math.floor(rr / P.br) === Math.floor(r / P.br) && Math.floor(cc / P.bc) === Math.floor(c / P.bc))) { const k = st.notes[j].indexOf(v); if (k >= 0) st.notes[j].splice(k, 1); } } } }
+      msg(''); this.draw(); persist();
+      if (st.v.every((x, j) => x === P.solution[j])) won();
+    },
+    conflicts() {
+      const P = G.P, n = P.n, v = G.st.v, bad = new Set(), U = L.sudokuUnits(n, P.br, P.bc);
+      for (const u of U.units) { const seen = {}; for (const i of u) if (v[i]) (seen[v[i]] = seen[v[i]] || []).push(i); for (const k in seen) if (seen[k].length > 1) seen[k].forEach(i => bad.add(i)); }
+      return bad;
+    },
+    check() { const P = G.P, wrong = G.st.v.reduce((a, x, i) => a + (x && x !== P.solution[i] ? 1 : 0), 0); msg(wrong ? wrong + ' square' + (wrong > 1 ? 's are' : ' is') + ' wrong.' : 'Everything so far is right.', wrong ? 'bad' : 'good'); },
+    hint() {
+      const P = G.P, st = G.st; let cand = st.v.map((x, i) => x && x !== P.solution[i] ? i : -1).filter(i => i >= 0);
+      if (!cand.length) cand = st.v.map((x, i) => x ? -1 : i).filter(i => i >= 0);
+      if (G.sel >= 0 && cand.includes(G.sel)) cand = [G.sel];
+      if (!cand.length) return; push(); const i = cand[Math.floor(Math.random() * cand.length)]; st.v[i] = P.solution[i]; st.notes[i] = []; G.sel = i; msg('Hint: that square is ' + P.solution[i] + '.', 'good'); this.draw();
+      if (st.v.every((x, j) => x === P.solution[j])) won();
+    },
+  };
+  window.addEventListener('keydown', e => {
+    if (!G || G.type !== 'sudoku' || !$('play').classList.contains('on')) return;
+    const n = G.P.n;
+    if (/^[1-9]$/.test(e.key) && +e.key <= n) sudoku.put(+e.key);
+    else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') sudoku.put(0);
+    else if (e.key.startsWith('Arrow')) { if (G.sel < 0) G.sel = 0; const r = Math.floor(G.sel / n), c = G.sel % n, d = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key]; G.sel = ((r + d[0] + n) % n) * n + (c + d[1] + n) % n; sudoku.draw(); e.preventDefault(); }
+    else if (e.key === 'n') $('tNotes').click();
+    else if (e.key === 'z' && (e.ctrlKey || e.metaKey)) undo();
+  });
+
+  /* =================================================================
+     PICTURE CROSS
+     ================================================================= */
+  const nonogram = {
+    init(G) {
+      const P = G.P; G.st = G.st || { c: new Array(P.w * P.h).fill(0) }; G.mode = 1;   // cell: 0 empty, 1 filled, 2 crossed
+      tools([['■ Fill', () => this.setMode(1), 'tFill'], ['× Mark', () => this.setMode(2), 'tX'], ...common()]);
+      this.setMode(1);
+    },
+    setMode(m) { G.mode = m; $('tFill').classList.toggle('on', m === 1); $('tX').classList.toggle('on', m === 2); if (!$('area').querySelector('.ng')) this.draw(); },
+    lineOk(cells, clue) { const r = L.runs(cells.map(v => v === 1 ? 1 : 0)); return r.length === clue.length && r.every((x, i) => x === clue[i]); },
+    draw() {
+      const P = G.P, { w, h } = P, st = G.st;
+      const maxR = Math.max(...P.rows.map(r => r.length)), maxC = Math.max(...P.cols.map(c => c.length));
+      const rowW = Math.max(30, maxR * 13 + 8), sz = fit(w, rowW), area = $('area');
+      let html = '<div class="board"><div class="ng' + (G.won ? ' won' : '') + '" style="grid-template-columns:' + rowW + 'px repeat(' + w + ',' + sz + 'px);grid-template-rows:' + Math.max(28, maxC * 14 + 6) + 'px repeat(' + h + ',' + sz + 'px)"><div></div>';
+      for (let c = 0; c < w; c++) { const ok = this.lineOk(Array.from({ length: h }, (_, r) => st.c[r * w + c]), P.cols[c]); html += '<div class="cl col' + (ok ? ' ok' : '') + '" id="nc' + c + '">' + P.cols[c].map(x => '<span>' + x + '</span>').join('') + '</div>'; }
+      for (let r = 0; r < h; r++) {
+        const ok = this.lineOk(st.c.slice(r * w, r * w + w), P.rows[r]);
+        html += '<div class="cl row' + (ok ? ' ok' : '') + '" id="nr' + r + '">' + P.rows[r].map(x => '<span>' + x + '</span>').join('') + '</div>';
+        for (let c = 0; c < w; c++) { const v = st.c[r * w + c]; html += '<div class="nc' + (v === 1 ? ' f' : v === 2 ? ' x' : '') + ((c + 1) % 5 === 0 && c < w - 1 ? ' r5' : '') + ((r + 1) % 5 === 0 && r < h - 1 ? ' b5' : '') + '" data-i="' + (r * w + c) + '" style="font-size:' + Math.round(sz * .7) + 'px"></div>'; }
+      }
+      html += '</div></div>';
+      area.innerHTML = html;
+      const grid = area.querySelector('.ng'); let paint = null, line = null, origin = -1, changedAny = false;
+      const cellAt = (x, y) => { const el = document.elementFromPoint(x, y); return el && el.classList.contains('nc') ? +el.dataset.i : -1; };
+      const apply = i => {
+        if (i < 0 || G.won) return;
+        // keep a drag in one straight line, like pencil on paper
+        if (origin >= 0 && line === null && i !== origin) line = Math.floor(i / w) === Math.floor(origin / w) ? 'r' : 'c';
+        if (line === 'r' && Math.floor(i / w) !== Math.floor(origin / w)) i = Math.floor(origin / w) * w + i % w;
+        if (line === 'c' && i % w !== origin % w) i = Math.floor(i / w) * w + origin % w;
+        if (st.c[i] === paint) return;
+        if (paint !== 0 && st.c[i] !== 0 && st.c[i] !== paint) return;   // don't paint over the other mark
+        st.c[i] = paint; changedAny = true;
+        const el = grid.querySelector('[data-i="' + i + '"]'); el.className = el.className.replace(/ (f|x)\b/g, '') + (paint === 1 ? ' f' : paint === 2 ? ' x' : '');
+        const r = Math.floor(i / w), c = i % w;
+        $('nr' + r).classList.toggle('ok', this.lineOk(st.c.slice(r * w, r * w + w), P.rows[r]));
+        $('nc' + c).classList.toggle('ok', this.lineOk(Array.from({ length: h }, (_, k) => st.c[k * w + c]), P.cols[c]));
+      };
+      grid.onpointerdown = e => {
+        const i = cellAt(e.clientX, e.clientY); if (i < 0 || G.won) return;
+        e.preventDefault(); push(); paint = st.c[i] === G.mode ? 0 : G.mode; origin = i; line = null; changedAny = false; apply(i);
+        grid.setPointerCapture && grid.setPointerCapture(e.pointerId);
+      };
+      grid.onpointermove = e => { if (paint === null) return; apply(cellAt(e.clientX, e.clientY)); };
+      const end = () => { if (paint === null) return; paint = null; if (!changedAny) G.undo.pop(); persist(); msg(''); this.solvedCheck(); };
+      grid.onpointerup = end; grid.onpointercancel = end;
+    },
+    solvedCheck() {
+      const P = G.P, { w, h } = P, st = G.st;
+      for (let r = 0; r < h; r++) if (!this.lineOk(st.c.slice(r * w, r * w + w), P.rows[r])) return;
+      for (let c = 0; c < w; c++) if (!this.lineOk(Array.from({ length: h }, (_, k) => st.c[k * w + c]), P.cols[c])) return;
+      won(); this.draw();
+    },
+    check() { const P = G.P, wrong = G.st.c.reduce((a, v, i) => a + ((v === 1 && !P.solution[i]) || (v === 2 && P.solution[i]) ? 1 : 0), 0); msg(wrong ? wrong + ' square' + (wrong > 1 ? 's are' : ' is') + ' marked wrong.' : 'No mistakes so far.', wrong ? 'bad' : 'good'); },
+    hint() {
+      const P = G.P, st = G.st; let cand = st.c.map((v, i) => (v === 1 && !P.solution[i]) || (v === 2 && P.solution[i]) ? i : -1).filter(i => i >= 0);
+      if (!cand.length) cand = st.c.map((v, i) => v === 0 && P.solution[i] ? i : -1).filter(i => i >= 0);
+      if (!cand.length) return; push(); const i = cand[Math.floor(Math.random() * cand.length)]; st.c[i] = P.solution[i] ? 1 : 2;
+      msg('Hint: row ' + (Math.floor(i / P.w) + 1) + ', column ' + (i % P.w + 1) + '.', 'good'); this.draw();
+      const el = $('area').querySelector('[data-i="' + i + '"]'); if (el) el.classList.add('hl');
+      this.solvedCheck();
+    },
+  };
+
+  /* =================================================================
+     QUEENS
+     ================================================================= */
+  const queens = {
+    init(G) { const P = G.P; G.st = G.st || { c: new Array(P.n * P.n).fill(0) }; tools(common()); this.draw(); },   // 0 empty, 1 ×, 2 queen
+    clashes() {
+      const P = G.P, n = P.n, qs = []; G.st.c.forEach((v, i) => { if (v === 2) qs.push(i); });
+      const bad = new Set();
+      for (let a = 0; a < qs.length; a++) for (let b = a + 1; b < qs.length; b++) {
+        const i = qs[a], j = qs[b], ri = Math.floor(i / n), ci = i % n, rj = Math.floor(j / n), cj = j % n;
+        if (ri === rj || ci === cj || P.regions[i] === P.regions[j] || (Math.abs(ri - rj) <= 1 && Math.abs(ci - cj) <= 1)) { bad.add(i); bad.add(j); }
+      }
+      return { qs, bad };
+    },
+    draw() {
+      const P = G.P, n = P.n, sz = fit(n, 6), { bad } = this.clashes();
+      let h = '<div class="board"><div class="qg" style="grid-template-columns:repeat(' + n + ',' + sz + 'px);grid-auto-rows:' + sz + 'px">';
+      for (let i = 0; i < n * n; i++) {
+        const r = Math.floor(i / n), c = i % n, v = G.st.c[i], cls = ['qc'];
+        if (r > 0 && P.regions[i] !== P.regions[i - n]) cls.push('bt'); if (c > 0 && P.regions[i] !== P.regions[i - 1]) cls.push('bl');
+        if (v === 1) cls.push('x'); if (v === 2) cls.push('q'); if (bad.has(i)) cls.push('clash');
+        h += '<div class="' + cls.join(' ') + '" data-i="' + i + '" style="background:' + QCOLS[P.regions[i] % QCOLS.length] + ';font-size:' + Math.round(sz * .62) + 'px"></div>';
+      }
+      h += '</div></div>';
+      $('area').innerHTML = h;
+      $('area').querySelectorAll('.qc').forEach(el => el.onclick = () => { if (G.won) return; push(); const i = +el.dataset.i; G.st.c[i] = (G.st.c[i] + 1) % 3; msg(''); this.draw(); persist(); this.solvedCheck(); });
+    },
+    solvedCheck() { const { qs, bad } = this.clashes(); if (qs.length === G.P.n && !bad.size) won(); },
+    check() {
+      const P = G.P, n = P.n, wrong = G.st.c.reduce((a, v, i) => a + ((v === 2 && P.solution[Math.floor(i / n)] !== i % n) || (v === 1 && P.solution[Math.floor(i / n)] === i % n) ? 1 : 0), 0);
+      msg(wrong ? wrong + ' mark' + (wrong > 1 ? 's are' : ' is') + ' wrong.' : 'No mistakes so far.', wrong ? 'bad' : 'good');
+    },
+    hint() {
+      const P = G.P, n = P.n, st = G.st;
+      const wrongQ = st.c.map((v, i) => v === 2 && P.solution[Math.floor(i / n)] !== i % n ? i : -1).filter(i => i >= 0);
+      push();
+      if (wrongQ.length) { st.c[wrongQ[0]] = 1; msg('Hint: that queen can\'t stay there.', 'good'); }
+      else { const rows = P.solution.map((c, r) => st.c[r * n + c] === 2 ? -1 : r).filter(r => r >= 0); if (!rows.length) return; const r = rows[Math.floor(Math.random() * rows.length)]; st.c[r * n + P.solution[r]] = 2; msg('Hint: a queen goes in row ' + (r + 1) + '.', 'good'); }
+      this.draw(); this.solvedCheck();
+    },
+  };
+
+  /* =================================================================
+     LOGIC GRID
+     ================================================================= */
+  const grid = {
+    init(G) {
+      const P = G.P; G.st = G.st || { m: {}, used: [] };   // marks: key "rc:cc:ri:ci" -> 1 (×) or 2 (●)
+      tools(common()); this.draw();
+    },
+    // row block categories: people (-1), then the last category back to the second; column blocks: categories 0..K-1
+    layout() { const K = G.P.cats.length, rows = [-1]; for (let c = K - 1; c >= 1; c--) rows.push(c); return { rows, cols: (rc, j) => { const cs = []; for (let c = 0; c < K; c++) if (rc === -1 || c < rc) cs.push(c); return cs; } }; },
+    owner(cat, v) { return cat < 0 ? v : G.P.solution[cat].indexOf(v); },
+    truth(rc, cc, ri, ci) { return this.owner(rc, ri) === this.owner(cc, ci); },
+    label(cat, v) { return cat < 0 ? G.P.people[v] : G.P.cats[cat].vals[v]; },
+    draw() {
+      const P = G.P, n = P.n, K = P.cats.length, lay = this.layout(), st = G.st;
+      const maxLab = Math.max(...P.people.map(s => s.length), ...P.cats.flatMap(c => c.vals.map(v => String(v).length)));
+      const labW = Math.min(96, maxLab * 7.5 + 10), sz = Math.max(24, fit(K * n, labW + 18));
+      let h = '<div class="clues"><h4>Clues</h4><ol>' + P.clues.map((c, i) => '<li data-k="' + i + '" class="' + (st.used.includes(i) ? 'used' : '') + '">' + c.text + '</li>').join('') + '</ol></div>';
+      h += '<div class="gscroll"><table class="lg"><tr><th></th><th></th>';
+      for (let c = 0; c < K; c++) h += '<th class="cat" colspan="' + n + '">' + P.cats[c].label + '</th>';
+      h += '</tr><tr><th></th><th></th>';
+      for (let c = 0; c < K; c++) for (let v = 0; v < n; v++) h += '<th class="vh" style="width:' + sz + 'px">' + P.cats[c].vals[v] + '</th>';
+      h += '</tr>';
+      lay.rows.forEach((rc, bi) => {
+        const cs = lay.cols(rc);
+        for (let ri = 0; ri < n; ri++) {
+          h += '<tr>';
+          if (ri === 0) h += '<th class="cat vh" rowspan="' + n + '" style="height:auto;width:18px">' + (rc < 0 ? 'Name' : P.cats[rc].label) + '</th>';
+          h += '<th class="rh" style="height:' + sz + 'px;max-width:' + labW + 'px">' + this.label(rc, ri) + '</th>';
+          for (let cc = 0; cc < K; cc++) for (let ci = 0; ci < n; ci++) {
+            if (!cs.includes(cc)) { h += '<td class="void"></td>'; continue; }
+            const k = rc + ':' + cc + ':' + ri + ':' + ci, v = st.m[k] || 0;
+            h += '<td class="c' + (v === 1 ? ' x' : v === 2 ? ' o' : '') + (ci === n - 1 && cc < K - 1 ? ' blk-r' : '') + (ri === n - 1 && bi < lay.rows.length - 1 ? ' blk-b' : '') + '" data-k="' + k + '" style="width:' + sz + 'px;height:' + sz + 'px;font-size:' + Math.round(sz * .6) + 'px"></td>';
+          }
+          h += '</tr>';
+        }
+      });
+      h += '</table></div>';
+      $('area').innerHTML = h;
+      $('area').querySelectorAll('li[data-k]').forEach(el => el.onclick = () => { const i = +el.dataset.k, j = st.used.indexOf(i); if (j >= 0) st.used.splice(j, 1); else st.used.push(i); el.classList.toggle('used'); persist(); });
+      $('area').querySelectorAll('td.c').forEach(el => el.onclick = () => this.tap(el.dataset.k));
+    },
+    tap(k) {
+      if (G.won) return; push();
+      const st = G.st, v = ((st.m[k] || 0) + 1) % 3, [rc, cc, ri, ci] = k.split(':').map(Number), n = G.P.n;
+      if (v) st.m[k] = v; else delete st.m[k];
+      if (v === 2) for (let j = 0; j < n; j++) { const a = rc + ':' + cc + ':' + ri + ':' + j, b = rc + ':' + cc + ':' + j + ':' + ci; if (j !== ci && !st.m[a]) st.m[a] = 1; if (j !== ri && !st.m[b]) st.m[b] = 1; }
+      msg(''); this.draw(); persist(); this.solvedCheck();
+    },
+    solvedCheck() {
+      const P = G.P, n = P.n, K = P.cats.length;
+      for (let c = 0; c < K; c++) for (let p = 0; p < n; p++) for (let v = 0; v < n; v++) { const on = G.st.m['-1:' + c + ':' + p + ':' + v] === 2; if (on !== (P.solution[c][p] === v)) return; }
+      won();
+    },
+    check() {
+      let wrong = 0; const els = $('area').querySelectorAll('td.c');
+      els.forEach(el => { const [rc, cc, ri, ci] = el.dataset.k.split(':').map(Number), v = G.st.m[el.dataset.k]; const bad = (v === 2 && !this.truth(rc, cc, ri, ci)) || (v === 1 && this.truth(rc, cc, ri, ci)); el.classList.toggle('wrong', bad); if (bad) wrong++; });
+      msg(wrong ? wrong + ' mark' + (wrong > 1 ? 's are' : ' is') + ' wrong (shown in red).' : 'No mistakes so far.', wrong ? 'bad' : 'good');
+    },
+    hint() {
+      const P = G.P, n = P.n, K = P.cats.length, st = G.st;
+      // fix a wrong mark first, otherwise reveal a missing ● for a person
+      for (const k of Object.keys(st.m)) { const [rc, cc, ri, ci] = k.split(':').map(Number); if ((st.m[k] === 2) !== this.truth(rc, cc, ri, ci) && (st.m[k] === 2 || st.m[k] === 1 && this.truth(rc, cc, ri, ci))) { push(); delete st.m[k]; msg('Hint: removed a wrong mark (' + this.label(rc, ri) + ' / ' + this.label(cc, ci) + ').', 'good'); this.draw(); return; } }
+      const opts = []; for (let c = 0; c < K; c++) for (let p = 0; p < n; p++) { const k = '-1:' + c + ':' + p + ':' + P.solution[c][p]; if (st.m[k] !== 2) opts.push(k); }
+      if (!opts.length) return; const k = opts[Math.floor(Math.random() * opts.length)]; G.undo.push(JSON.stringify(st)); st.m[k] = 1; this.tap(k); G.undo.pop();
+      const [, cc, ri, ci] = k.split(':').map(Number); msg('Hint: ' + P.people[ri] + ' goes with ' + P.cats[cc].vals[ci] + '.', 'good');
+      const el = $('area').querySelector('[data-k="' + k + '"]'); if (el) el.classList.add('hl');
+    },
+  };
+
+  const VIEWS = { sudoku, nonogram, queens, grid };
+  window.addEventListener('resize', () => { if (G && $('play').classList.contains('on') && !$('area').querySelector('.busy')) VIEWS[G.type].draw(); });
+  window.__bb = { get G() { return G; }, start, VIEWS, store, L };
+  renderHome();
+})();
+</script>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }</script>
+</body>
+</html>
