@@ -1,4 +1,4 @@
-> This repo is a small **retro arcade** with nine self-contained browser games.
+> This repo is a small **retro arcade** with ten self-contained browser games.
 > Open [`index.html`](index.html) for the **menu**, then pick a game:
 >
 > | Game | File | Description |
@@ -11,6 +11,7 @@
 > | **Lucky Seven Casino** | [`casino.html`](casino.html) | craps, blackjack, roulette, pai gow and hold'em with several players — see below |
 > | **Decathlon** | [`decathlon.html`](decathlon.html) | all ten track and field events for one to five athletes — see below |
 > | **Powder Cup** | [`winter.html`](winter.html) | ski and snowboard: races, moguls, halfpipe and big air — see below |
+> | **Super Strikers** | [`soccer.html`](soccer.html) | 3D five-a-side soccer with goal celebrations — see below |
 > | **Brain Box** | [`logic.html`](logic.html) | logic puzzles: clue grids, sudoku, picture cross and queens — see below |
 >
 > Every page cross-links, so you can hop between the menu and any game.
@@ -315,4 +316,31 @@ be solved by reasoning alone. The generator checks this before you ever see it.
   puzzle type and level. Leave mid-puzzle and **Continue** picks it up later.
 - The generators and solvers live in `logic-engine.js`, which has no DOM and
   can be tested in Node.
+
+---
+
+# Super Strikers
+
+Five-a-side 3D soccer built for young players (the Easy level is tuned for a
+7-year-old) that still gives grown-ups a game on Hard.
+
+- **Real 3D players** with jointed arms and legs, full kits, shirt numbers and
+  names, running, dribbling, kicking, slide tackling and goalkeepers who dive.
+  Your name goes on the back of the #10 shirt.
+- **Controls:** slide a thumb on the left half of the screen to run. **PASS**
+  passes toward the stick (or switches player when you don't have the ball).
+  Hold **SHOOT** to power up and let go to shoot; push the stick up or down to
+  pick a corner. Without the ball, SHOOT slide tackles. Keyboard: arrows or
+  WASD, Space/J to pass, hold K to shoot, P to pause.
+- **Proper football:** close dribbling with touches every stride, passes that
+  lead your teammate, posts and crossbar, throw-ins, corners, goal kicks and
+  kick-offs, and computer teammates who make runs and cover.
+- **Celebrations:** after you score, pick one: **SIUUU** (run, leap, spin in
+  the air and land arms out, with the shout), **knee slide**, **airplane**,
+  **backflip** or **dance**. The camera swings in close and the crowd jumps.
+- Six teams, three difficulty levels and 2, 4 or 6 minute matches. Wins and
+  goals are saved on the device.
+- Upright phones get a behind-the-play camera; sideways phones and computers
+  get the TV view from the touchline. `soccer3d.js` draws everything with
+  three.js; without WebGL the match still plays on a top-down pitch.
 

@@ -57,6 +57,7 @@
   .art { width: 100%; height: 132px; border-radius: 12px; display: block; }
   .name { font-size: clamp(20px, 5vw, 26px); font-weight: 800; letter-spacing: 1px; }
   .name.cubert { color: #ff9a4d; }
+  .name.strikers { color: #7ee081; font-style: italic; letter-spacing: 2px; }
   .name.brainbox { color: #ffd34d; letter-spacing: 2px; }
   .name.miner { color: #ffd34d; }
   .name.ferrow { color: #f0b763; letter-spacing: 3px; }
@@ -76,7 +77,7 @@
 </head>
 <body>
   <h1>RETRO ARCADE</h1>
-  <p class="sub">Nine hand-built games · works on desktop &amp; iPhone</p>
+  <p class="sub">Ten hand-built games · works on desktop &amp; iPhone</p>
 
   <div class="games">
     <a class="card" href="cubert.html">
@@ -343,6 +344,31 @@
       </svg>
       <span class="name brainbox">BRAIN BOX</span>
       <span class="desc">Logic puzzles: clue grids, sudoku, picture cross and queens, from Kids to Expert. Fresh puzzles every time, each with one answer.</span>
+      <span class="play">PLAY &#9654;</span>
+    </a>
+    <a class="card" href="soccer.html">
+      <!-- Super Strikers: a striker volleying into the top corner of a net -->
+      <svg class="art" viewBox="0 0 300 132" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs><linearGradient id="ssk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a6fd0"/><stop offset="1" stop-color="#8cc6f5"/></linearGradient></defs>
+        <rect width="300" height="132" rx="12" fill="url(#ssk)"/>
+        <path d="M0 52 L300 40 L300 62 L0 70 Z" fill="#5d6b82"/><g fill="#ffd23f"><circle cx="20" cy="58" r="2"/><circle cx="60" cy="56" r="2"/><circle cx="110" cy="54" r="2"/><circle cx="160" cy="52" r="2"/><circle cx="210" cy="50" r="2"/><circle cx="260" cy="48" r="2"/></g>
+        <g fill="#e8323c"><circle cx="40" cy="60" r="2"/><circle cx="85" cy="58" r="2"/><circle cx="135" cy="56" r="2"/><circle cx="185" cy="54" r="2"/><circle cx="235" cy="52" r="2"/><circle cx="285" cy="50" r="2"/></g>
+        <path d="M0 70 L300 62 L300 132 L0 132 Z" fill="#33923e"/><path d="M60 132 L120 66 M150 132 L180 64 M240 132 L240 63" stroke="#3a9c45" stroke-width="22"/>
+        <g transform="translate(200,70)"><path d="M0 0 L70 -3 L70 34 L0 38 Z" fill="none" stroke="#fff" stroke-width="3"/><path d="M0 0 L12 -10 L80 -12 L70 -3 M80 -12 L80 26 L70 34" fill="none" stroke="#fff" stroke-width="2" opacity=".8"/>
+          <g stroke="#fff" stroke-width=".8" opacity=".5"><path d="M10 0 L10 37 M20 -1 L20 37 M30 -1 L30 36 M40 -2 L40 36 M50 -2 L50 35 M60 -3 L60 35 M0 10 L70 8 M0 20 L70 18 M0 30 L70 27"/></g></g>
+        <circle cx="262" cy="74" r="6" fill="#fff" stroke="#16181f" stroke-width="1.5"/><path d="M262 70 l3 2 l-1 4 l-4 0 l-1 -4 Z" fill="#16181f"/>
+        <path d="M150 92 Q 205 50 256 72" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 5" opacity=".8"/>
+        <g transform="translate(120,100) rotate(-12)" stroke-linecap="round">
+          <path d="M-6 6 L-16 28 M6 6 L26 10" stroke="#f1c7a0" stroke-width="7"/><path d="M-16 28 l-6 2 M26 10 l7 -1" stroke="#111" stroke-width="7"/>
+          <path d="M-6 6 L-9 18 M6 6 L14 9" stroke="#e8323c" stroke-width="8"/>
+          <rect x="-11" y="-26" width="22" height="32" rx="8" fill="#e8323c"/><rect x="-11" y="2" width="22" height="9" rx="4" fill="#fff"/>
+          <path d="M-9 -20 L-24 -32 M9 -20 L22 -6" stroke="#e8323c" stroke-width="7"/><circle cx="-26" cy="-34" r="3.5" fill="#f1c7a0"/><circle cx="24" cy="-4" r="3.5" fill="#f1c7a0"/>
+          <circle cx="0" cy="-34" r="8" fill="#f1c7a0"/><path d="M-8 -36 Q0 -46 8 -36 L8 -38 Q0 -48 -8 -38 Z" fill="#2a1a10"/>
+          <text x="0" y="-6" text-anchor="middle" font-family="Arial Black,Arial" font-size="12" font-weight="900" fill="#fff">10</text>
+        </g>
+      </svg>
+      <span class="name strikers">SUPER STRIKERS</span>
+      <span class="desc">3D soccer, five a side. Dribble, pass and shoot with your name on the #10 shirt, then celebrate: SIUUU, knee slide, airplane, backflip or dance.</span>
       <span class="play">PLAY &#9654;</span>
     </a>
   </div>
