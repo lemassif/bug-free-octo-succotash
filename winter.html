@@ -239,58 +239,157 @@ function mountains(off) {
 /* ================================================================
    Riders
    ================================================================ */
+/* Riders are drawn from body parts: tapered limbs between joints, knees solved with
+   two-bone IK, layered jacket, baggy pants, gloves, boots, helmet and goggles. */
+const KIT = {   // pants and goggle lens to go with each jacket color
+  '#ff3d6e': { pants: '#2b3047', lens: ['#ffcf4d', '#ff6a3d'], skin: '#f1c7a0' },
+  '#3da5ff': { pants: '#e8e1cf', lens: ['#9df0ff', '#4b6bff'], skin: '#c98e62' },
+  '#ffc23d': { pants: '#2f4a3a', lens: ['#ff8fd0', '#7a3dff'], skin: '#e8b48a' },
+  '#4fe08a': { pants: '#3a3150', lens: ['#ffe07a', '#ff3d6e'], skin: '#8d5a3b' },
+};
+const kitFor = col => KIT[col] || { pants: '#2b3047', lens: ['#ffcf4d', '#ff6a3d'], skin: '#f1c7a0' };
+function tint(hex, amt) { const n = parseInt(hex.slice(1), 16), f = v => Math.max(0, Math.min(255, Math.round(v + amt))); return 'rgb(' + f(n >> 16) + ',' + f((n >> 8) & 255) + ',' + f(n & 255) + ')'; }
+function limb(a, b, w0, w1, col) {   // tapered capsule from a to b
+  const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+  ctx.fillStyle = col; ctx.beginPath();
+  ctx.moveTo(a[0] + nx * w0 / 2, a[1] + ny * w0 / 2); ctx.lineTo(b[0] + nx * w1 / 2, b[1] + ny * w1 / 2);
+  ctx.arc(b[0], b[1], w1 / 2, Math.atan2(ny, nx), Math.atan2(ny, nx) + Math.PI, true);
+  ctx.lineTo(a[0] - nx * w0 / 2, a[1] - ny * w0 / 2);
+  ctx.arc(a[0], a[1], w0 / 2, Math.atan2(-ny, -nx), Math.atan2(-ny, -nx) + Math.PI, true); ctx.fill();
+}
+function ik(h, f, l1, l2, dir) {   // knee/elbow between h and f, bending toward dir (+1 = +x side)
+  const dx = f[0] - h[0], dy = f[1] - h[1], d = Math.min(Math.hypot(dx, dy), l1 + l2 - 1e-3) || 1e-3;
+  const a = Math.acos(clamp((l1 * l1 + d * d - l2 * l2) / (2 * l1 * d), -1, 1)), base = Math.atan2(dy, dx), ang = base - dir * a;
+  return [h[0] + Math.cos(ang) * l1, h[1] + Math.sin(ang) * l1];
+}
+function glove(p, r, col) { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, TAU); ctx.fill(); }
+function goggles(cx, cy, w, h, lens, strap) {
+  ctx.fillStyle = strap; rr(cx - w * .62, cy - h * .32, w * 1.24, h * .64, h * .3); ctx.fill();
+  const g = ctx.createLinearGradient(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2); g.addColorStop(0, lens[0]); g.addColorStop(1, lens[1]);
+  ctx.fillStyle = '#111827'; rr(cx - w / 2 - 1, cy - h / 2 - 1, w + 2, h + 2, h * .45); ctx.fill();
+  ctx.fillStyle = g; rr(cx - w / 2, cy - h / 2, w, h, h * .42); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.55)'; rr(cx - w * .36, cy - h * .32, w * .3, h * .2, h * .1); ctx.fill();
+}
 // side view (halfpipe, big air, mogul jumps). ang: body tilt (rad), spin: degrees around the vertical axis
 function drawRiderSide(x, y, u, ang, spin, o) {
   ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
   const c = Math.cos(spin * D2R); ctx.scale((c < 0 ? -1 : 1) * Math.max(.3, Math.abs(c)), 1);
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  const cr = o.crouch || 0, grab = o.grab, hipY = -u * (.92 - .3 * cr - (grab ? .18 : 0)), shY = hipY - u * .62, col = o.color;
-  // board or skis
-  if (o.equip === 'board') { ctx.fillStyle = '#1b2b44'; rr(-u * .82, -u * .07, u * 1.64, u * .11, u * .05); ctx.fill(); ctx.fillStyle = col; ctx.fillRect(-u * .6, -u * .05, u * 1.2, u * .03); }
-  else { ctx.strokeStyle = '#1b2b44'; ctx.lineWidth = u * .07; ctx.beginPath(); ctx.moveTo(-u * .85, -u * .02); ctx.lineTo(u * .8, -u * .02); ctx.quadraticCurveTo(u * .98, -u * .02, u * 1, -u * .14); ctx.stroke(); ctx.strokeStyle = col; ctx.lineWidth = u * .03; ctx.beginPath(); ctx.moveTo(-u * .7, -u * .02); ctx.lineTo(u * .6, -u * .02); ctx.stroke(); }
-  // legs
-  ctx.strokeStyle = '#26324a'; ctx.lineWidth = u * .17;
-  const kneeX = u * (.2 + .25 * cr + (grab ? .2 : 0)), kneeY = (hipY - u * .08) / 2;
-  ctx.beginPath(); ctx.moveTo(-u * .16, hipY); ctx.lineTo(-u * .16 + kneeX, kneeY); ctx.lineTo(-u * .16, -u * .1); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(u * .16, hipY); ctx.lineTo(u * .16 + kneeX, kneeY); ctx.lineTo(u * .16, -u * .1); ctx.stroke();
-  // torso
-  ctx.strokeStyle = col; ctx.lineWidth = u * .3; ctx.beginPath(); ctx.moveTo(0, hipY); ctx.lineTo(u * (.12 + .2 * cr + (grab ? .2 : 0)), shY); ctx.stroke();
-  const sx = u * (.12 + .2 * cr + (grab ? .2 : 0));
-  // arms
-  ctx.strokeStyle = col; ctx.lineWidth = u * .11;
-  if (grab) { ctx.beginPath(); ctx.moveTo(sx, shY + u * .05); ctx.lineTo(u * .45, -u * .12); ctx.stroke(); ctx.beginPath(); ctx.moveTo(sx, shY + u * .05); ctx.lineTo(-u * .35, shY - u * .1); ctx.stroke(); }
-  else { ctx.beginPath(); ctx.moveTo(sx, shY + u * .05); ctx.lineTo(sx + u * .42, shY + u * .32); ctx.stroke(); ctx.beginPath(); ctx.moveTo(sx, shY + u * .05); ctx.lineTo(sx - u * .4, shY + u * .3); ctx.stroke();
-    if (o.equip !== 'board') { ctx.strokeStyle = '#c9d6ea'; ctx.lineWidth = u * .035; ctx.beginPath(); ctx.moveTo(sx + u * .42, shY + u * .32); ctx.lineTo(sx + u * .1, -u * .05); ctx.stroke(); } }
-  // head with helmet and goggles
-  const hx = sx + u * .05, hy = shY - u * .22;
-  ctx.fillStyle = '#f1c7a0'; ctx.beginPath(); ctx.arc(hx, hy, u * .17, 0, TAU); ctx.fill();
-  ctx.fillStyle = o.helmet || '#ffffff'; ctx.beginPath(); ctx.arc(hx, hy - u * .02, u * .19, Math.PI * 1.05, Math.PI * 2.02); ctx.fill();
-  ctx.fillStyle = '#ffb000'; rr(hx - u * .02, hy - u * .06, u * .2, u * .1, u * .04); ctx.fill();
+  const col = o.color, K = kitFor(col), cr = clamp(o.crouch || 0, 0, 1), grab = !!o.grab, pants = K.pants, pantsD = tint(pants, -40), jacketD = tint(col, -45);
+  const TH = .45 * u, SH = .45 * u;
+  if (o.equip === 'board') {
+    // board with sidecut, rocker and a top sheet
+    ctx.fillStyle = '#16213a'; ctx.beginPath(); ctx.moveTo(-u * .86, -u * .1); ctx.quadraticCurveTo(-u * .95, -u * .02, -u * .8, u * .02); ctx.lineTo(u * .8, u * .02); ctx.quadraticCurveTo(u * .95, -u * .02, u * .86, -u * .1); ctx.quadraticCurveTo(0, -u * .04, -u * .86, -u * .1); ctx.fill();
+    ctx.fillStyle = col; ctx.fillRect(-u * .62, -u * .065, u * 1.24, u * .025); ctx.fillStyle = '#ffffff'; ctx.fillRect(-u * .1, -u * .065, u * .2, u * .025);
+    const hipY = -u * (.86 - .32 * cr - (grab ? .26 : 0)), hip = [0, hipY], feet = [[-u * .27, -u * .1], [u * .27, -u * .1]];
+    // legs: snowboarders face the camera, knees bend out over the feet
+    for (const sd of [-1, 1]) { const hp = [sd * u * .1, hipY], ft = feet[sd < 0 ? 0 : 1], k0 = ik(hp, ft, TH, SH, sd > 0 ? 1 : -1);
+      // knees bend toward the camera, so most of the bend is foreshortened rather than bowed out
+      const mx = (hp[0] + ft[0]) / 2, my = (hp[1] + ft[1]) / 2, kn = [mx + (k0[0] - mx) * .35, my + (k0[1] - my) * .35];
+      limb(hp, kn, u * .22, u * .2, sd < 0 ? pantsD : pants); limb(kn, [ft[0], ft[1] - u * .06], u * .2, u * .19, sd < 0 ? pantsD : pants);
+      ctx.fillStyle = '#2a2f3d'; rr(ft[0] - u * .1, ft[1] - u * .1, u * .2, u * .11, u * .04); ctx.fill();   // boot
+      ctx.fillStyle = '#4b5568'; ctx.fillRect(ft[0] - u * .11, ft[1] - u * .015, u * .22, u * .03); }       // binding
+    // jacket
+    const lean = (grab ? .25 : .08 + .12 * cr), sh = [hip[0] + Math.sin(lean) * u * .58, hipY - Math.cos(lean) * u * .58];
+    ctx.save(); ctx.translate(hip[0], hipY); ctx.rotate(lean);
+    ctx.fillStyle = pants; rr(-u * .19, -u * .04, u * .38, u * .14, u * .06); ctx.fill();                  // waist
+    ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-u * .2, u * .06); ctx.lineTo(-u * .23, -u * .5); ctx.quadraticCurveTo(0, -u * .66, u * .23, -u * .5); ctx.lineTo(u * .2, u * .06); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = jacketD; ctx.fillRect(-u * .2, -u * .02, u * .4, u * .07);                             // hem
+    ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillRect(-u * .22, -u * .36, u * .44, u * .05);            // chest stripe
+    ctx.strokeStyle = jacketD; ctx.lineWidth = u * .02; ctx.beginPath(); ctx.moveTo(0, -u * .56); ctx.lineTo(0, u * .04); ctx.stroke();
+    ctx.restore();
+    // arms
+    const S0 = [sh[0] - u * .21, sh[1] + u * .07], S1 = [sh[0] + u * .21, sh[1] + u * .07];
+    let H0 = [-u * (.55 - .1 * cr), sh[1] + u * (.5 + .1 * cr)], H1 = [u * (.55 - .1 * cr), sh[1] + u * (.45 + .1 * cr)];
+    if (grab) { H1 = [u * .12, -u * .14]; H0 = [-u * .58, sh[1] - u * .05]; }
+    for (const [S2, H2, d, dark] of [[S0, H0, -1, true], [S1, H1, 1, false]]) { const e = ik(S2, H2, u * .3, u * .29, d > 0 ? -1 : 1); limb(S2, e, u * .15, u * .13, dark ? jacketD : col); limb(e, H2, u * .13, u * .11, dark ? jacketD : col); glove(H2, u * .075, '#20263a'); }
+    // head: neck gaiter, face, helmet, goggles
+    const hc = [sh[0] + Math.sin(lean) * u * .2, sh[1] - Math.cos(lean) * u * .2];
+    ctx.fillStyle = jacketD; rr(hc[0] - u * .09, hc[1] + u * .05, u * .18, u * .1, u * .04); ctx.fill();
+    ctx.fillStyle = K.skin; ctx.beginPath(); ctx.ellipse(hc[0], hc[1], u * .12, u * .14, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = o.helmet || '#f4f6fb'; ctx.beginPath(); ctx.arc(hc[0], hc[1] - u * .02, u * .15, Math.PI * 1.02, Math.PI * 1.98); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.beginPath(); ctx.ellipse(hc[0] - u * .05, hc[1] - u * .12, u * .05, u * .02, -.4, 0, TAU); ctx.fill();
+    goggles(hc[0], hc[1] - u * .01, u * .2, u * .085, K.lens, '#1d2433');
+  } else {
+    // skis: profile, rider faces +x
+    ctx.fillStyle = '#16213a'; ctx.beginPath(); ctx.moveTo(-u * .92, -u * .02); ctx.lineTo(u * .78, -u * .02); ctx.quadraticCurveTo(u * 1.0, -u * .02, u * 1.04, -u * .17); ctx.quadraticCurveTo(u * .96, u * .03, u * .78, u * .03); ctx.lineTo(-u * .92, u * .03); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = col; ctx.fillRect(-u * .7, -u * .015, u * 1.3, u * .02);
+    const a = .32 + .45 * cr + (grab ? .5 : 0), b = .25 + 1.05 * cr + (grab ? .9 : 0), t = .3 + .5 * cr + (grab ? .3 : 0);
+    const legs = [];
+    for (const off of [u * .05, 0]) {
+      const ank = [off, -u * .2], kn = [ank[0] + Math.sin(a) * SH, ank[1] - Math.cos(a) * SH], hp = [kn[0] - Math.sin(b) * TH, kn[1] - Math.cos(b) * TH];
+      legs.push({ ank, kn, hp });
+    }
+    const L0 = legs[0], L1 = legs[1];
+    // far leg, then boots, near leg
+    limb(L0.hp, L0.kn, u * .21, u * .19, pantsD); limb(L0.kn, L0.ank, u * .19, u * .17, pantsD);
+    for (const lg of legs) { ctx.save(); ctx.translate(lg.ank[0], 0); ctx.fillStyle = lg === L0 ? '#3b4252' : '#4b5568'; ctx.beginPath(); ctx.moveTo(-u * .1, -u * .02); ctx.lineTo(u * .16, -u * .02); ctx.lineTo(u * .1, -u * .12); ctx.lineTo(u * .08, -u * .3); ctx.lineTo(-u * .08, -u * .3); ctx.closePath(); ctx.fill(); ctx.restore(); }
+    limb(L1.hp, L1.kn, u * .22, u * .2, pants); limb(L1.kn, [L1.ank[0] + u * .03, L1.ank[1] - u * .06], u * .2, u * .18, pants);
+    // torso leaning forward
+    const hip = L1.hp, sh = [hip[0] + Math.sin(t) * u * .58, hip[1] - Math.cos(t) * u * .58];
+    ctx.save(); ctx.translate(hip[0], hip[1]); ctx.rotate(t);
+    ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-u * .15, u * .06); ctx.quadraticCurveTo(-u * .2, -u * .3, -u * .14, -u * .6); ctx.quadraticCurveTo(u * .04, -u * .68, u * .15, -u * .55); ctx.quadraticCurveTo(u * .18, -u * .25, u * .14, u * .06); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = jacketD; ctx.fillRect(-u * .15, -u * .01, u * .3, u * .07);
+    ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillRect(-u * .17, -u * .38, u * .34, u * .05);
+    ctx.restore();
+    // arms forward, poles planted behind
+    const S2 = [sh[0], sh[1] + u * .08];
+    let Hd = [S2[0] + u * .42, S2[1] + u * .36];
+    if (grab) Hd = [u * .3, -u * .1];
+    const e = ik(S2, Hd, u * .3, u * .29, 1);
+    if (!grab) { ctx.strokeStyle = '#c9d6ea'; ctx.lineWidth = u * .035; ctx.beginPath(); ctx.moveTo(Hd[0], Hd[1] - u * .05); ctx.lineTo(Hd[0] - u * .6, -u * .02); ctx.stroke(); ctx.fillStyle = '#c9d6ea'; ctx.beginPath(); ctx.ellipse(Hd[0] - u * .55, -u * .08, u * .06, u * .015, .5, 0, TAU); ctx.fill(); }
+    limb(S2, e, u * .15, u * .13, jacketD); limb(e, Hd, u * .13, u * .11, jacketD); glove(Hd, u * .075, '#20263a');
+    // head in profile
+    const hc = [sh[0] + Math.sin(t) * u * .19, sh[1] - Math.cos(t) * u * .19];
+    ctx.fillStyle = K.skin; ctx.beginPath(); ctx.arc(hc[0], hc[1], u * .125, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(hc[0] + u * .11, hc[1] + u * .01); ctx.lineTo(hc[0] + u * .17, hc[1] + u * .05); ctx.lineTo(hc[0] + u * .11, hc[1] + u * .07); ctx.fill();   // nose
+    ctx.fillStyle = o.helmet || '#f4f6fb'; ctx.beginPath(); ctx.arc(hc[0] - u * .01, hc[1] - u * .015, u * .15, Math.PI * .95, Math.PI * 2.05); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.beginPath(); ctx.ellipse(hc[0] - u * .06, hc[1] - u * .11, u * .05, u * .02, -.3, 0, TAU); ctx.fill();
+    goggles(hc[0] + u * .08, hc[1] - u * .01, u * .1, u * .08, K.lens, '#1d2433');
+    // near arm with pole
+    const S3 = [sh[0] - u * .02, sh[1] + u * .1]; let H3 = [S3[0] + u * .38, S3[1] + u * .4]; if (grab) H3 = [u * .12, -u * .08];
+    const e3 = ik(S3, H3, u * .3, u * .29, 1);
+    if (!grab) { ctx.strokeStyle = '#dbe5f5'; ctx.lineWidth = u * .04; ctx.beginPath(); ctx.moveTo(H3[0], H3[1] - u * .05); ctx.lineTo(H3[0] - u * .55, -u * .02); ctx.stroke(); }
+    limb(S3, e3, u * .16, u * .14, col); limb(e3, H3, u * .14, u * .12, col); glove(H3, u * .08, '#20263a');
+  }
   ctx.restore();
 }
 // from behind (races, moguls). th: heading (rad, + = to the right), lean: -1..1
 function drawRiderBack(x, y, u, th, lean, o) {
   ctx.save(); ctx.translate(x, y); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  const col = o.color, tuck = o.tuck ? 1 : 0;
+  const col = o.color, K = kitFor(col), tuck = o.tuck ? 1 : 0, pants = K.pants, pantsD = tint(pants, -40), jacketD = tint(col, -45), board = o.equip === 'board';
   // skis or board on the snow
   ctx.save(); ctx.rotate(th * .8);
-  if (o.equip === 'board') { ctx.fillStyle = '#1b2b44'; rr(-u * .55, -u * .1, u * 1.1, u * .2, u * .1); ctx.fill(); ctx.fillStyle = col; ctx.fillRect(-u * .4, -u * .03, u * .8, u * .05); }
-  else { for (const dx of [-.16, .16]) { ctx.fillStyle = '#1b2b44'; ctx.beginPath(); ctx.moveTo(u * (dx - .05), u * .22); ctx.lineTo(u * (dx + .05), u * .22); ctx.lineTo(u * (dx + .025), -u * .62); ctx.lineTo(u * (dx - .025), -u * .62); ctx.closePath(); ctx.fill(); } }
+  if (board) { ctx.fillStyle = '#16213a'; rr(-u * .58, -u * .1, u * 1.16, u * .2, u * .1); ctx.fill(); ctx.fillStyle = col; ctx.fillRect(-u * .44, -u * .03, u * .88, u * .05); }
+  else for (const dx of [-.15, .15]) { ctx.fillStyle = '#16213a'; ctx.beginPath(); ctx.moveTo(u * (dx - .055), u * .24); ctx.lineTo(u * (dx + .055), u * .24); ctx.lineTo(u * (dx + .03), -u * .66); ctx.quadraticCurveTo(u * dx, -u * .74, u * (dx - .03), -u * .66); ctx.closePath(); ctx.fill(); ctx.fillStyle = col; ctx.fillRect(u * (dx - .012), -u * .5, u * .024, u * .6); }
   ctx.restore();
   ctx.rotate(-lean * .32);
-  const hipY = -u * (.85 - .32 * tuck), shY = hipY - u * (.6 - .2 * tuck);
-  ctx.strokeStyle = '#26324a'; ctx.lineWidth = u * .2;
-  const fx = o.equip === 'board' ? .28 : .16;
-  ctx.beginPath(); ctx.moveTo(-u * fx, 0); ctx.lineTo(-u * .14, hipY * .5); ctx.lineTo(-u * .12, hipY); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(u * fx, 0); ctx.lineTo(u * .14, hipY * .5); ctx.lineTo(u * .12, hipY); ctx.stroke();
-  ctx.fillStyle = col; rr(-u * .27, shY, u * .54, hipY - shY + u * .06, u * .12); ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillRect(-u * .2, shY + u * .14, u * .4, u * .07);
-  ctx.strokeStyle = col; ctx.lineWidth = u * .12;
-  ctx.beginPath(); ctx.moveTo(-u * .24, shY + u * .08); ctx.lineTo(-u * (.42 - .15 * tuck), shY + u * (.42 - .1 * tuck)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(u * .24, shY + u * .08); ctx.lineTo(u * (.42 - .15 * tuck), shY + u * (.42 - .1 * tuck)); ctx.stroke();
-  if (o.equip !== 'board') { ctx.strokeStyle = '#c9d6ea'; ctx.lineWidth = u * .04; for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(s * u * (.42 - .15 * tuck), shY + u * (.42 - .1 * tuck)); ctx.lineTo(s * u * (.5 + .2 * tuck), -u * .02 + (tuck ? -u * .25 : 0)); ctx.stroke(); } }
-  ctx.fillStyle = o.helmet || '#ffffff'; ctx.beginPath(); ctx.arc(0, shY - u * .16, u * .2, 0, TAU); ctx.fill();
-  ctx.fillStyle = col; ctx.fillRect(-u * .2, shY - u * .2, u * .4, u * .06);
+  const hipY = -u * (.86 - .34 * tuck), fx = board ? .3 : .15;
+  // legs: knees forward (away from us) so from behind they look shorter and bent out a little
+  for (const sd of [-1, 1]) {
+    const hp = [sd * u * .12, hipY], ft = [sd * u * fx, -u * .08], k0 = ik(hp, ft, u * .45 * (1 - .25 * tuck), u * .45 * (1 - .2 * tuck), sd > 0 ? 1 : -1);
+    const mx = (hp[0] + ft[0]) / 2, my = (hp[1] + ft[1]) / 2, kn = [mx + (k0[0] - mx) * .3, my + (k0[1] - my) * .3];
+    limb(hp, kn, u * .23, u * .21, sd < 0 ? pants : pantsD); limb(kn, ft, u * .21, u * .2, sd < 0 ? pants : pantsD);
+    ctx.fillStyle = board ? '#2a2f3d' : '#4b5568'; rr(ft[0] - u * .09, ft[1] - u * .1, u * .18, u * .14, u * .04); ctx.fill();
+  }
+  // jacket from behind with a hood and a color yoke
+  const shY = hipY - u * (.6 - .18 * tuck);
+  ctx.fillStyle = pants; rr(-u * .22, hipY - u * .06, u * .44, u * .14, u * .06); ctx.fill();
+  ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-u * .24, hipY + u * .05); ctx.lineTo(-u * .28, shY + u * .1); ctx.quadraticCurveTo(-u * .26, shY - u * .02, -u * .12, shY - u * .04); ctx.lineTo(u * .12, shY - u * .04); ctx.quadraticCurveTo(u * .26, shY - u * .02, u * .28, shY + u * .1); ctx.lineTo(u * .24, hipY + u * .05); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = jacketD; ctx.beginPath(); ctx.moveTo(-u * .27, shY + u * .16); ctx.lineTo(u * .27, shY + u * .16); ctx.lineTo(u * .28, shY + u * .1); ctx.quadraticCurveTo(u * .26, shY - u * .02, u * .12, shY - u * .04); ctx.lineTo(-u * .12, shY - u * .04); ctx.quadraticCurveTo(-u * .26, shY - u * .02, -u * .28, shY + u * .1); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillRect(-u * .24, shY + u * .24, u * .48, u * .05);
+  ctx.fillStyle = jacketD; ctx.beginPath(); ctx.ellipse(0, shY + u * .02, u * .13, u * .07, 0, 0, TAU); ctx.fill();   // hood
+  // arms and poles
+  for (const sd of [-1, 1]) {
+    const S2 = [sd * u * .25, shY + u * .1], Hd = [sd * u * (.44 - .14 * tuck), shY + u * (.46 - .14 * tuck)], e = ik(S2, Hd, u * .28, u * .27, sd > 0 ? 1 : -1);
+    if (!board) { ctx.strokeStyle = '#dbe5f5'; ctx.lineWidth = u * .04; ctx.beginPath(); ctx.moveTo(Hd[0], Hd[1]); ctx.lineTo(sd * u * (.5 + .25 * tuck), -u * .02 + (tuck ? -u * .3 : 0)); ctx.stroke(); }
+    limb(S2, e, u * .15, u * .13, col); limb(e, Hd, u * .13, u * .11, col); glove(Hd, u * .075, '#20263a');
+  }
+  // helmet from behind with the goggle strap
+  const hy = shY - u * .17;
+  ctx.fillStyle = o.helmet || '#f4f6fb'; ctx.beginPath(); ctx.arc(0, hy, u * .17, 0, TAU); ctx.fill();
+  ctx.fillStyle = K.lens[1]; ctx.fillRect(-u * .17, hy - u * .01, u * .34, u * .06);
+  ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.ellipse(-u * .06, hy - u * .1, u * .06, u * .025, -.4, 0, TAU); ctx.fill();
   ctx.restore();
 }
 const riderLook = p => ({ color: p.color, equip: p.equip, helmet: p.helmet });
@@ -500,7 +599,7 @@ function SideJump(p, cfg, onDone) {
       if (phase === 'in') bodyAng = -Math.atan2(ground(x + .2) - ground(x - .2), .4);
       const sp = phase === 'air' ? air.spin : 0;
       ctx.save(); ctx.translate(SX(x), SY(y)); ctx.restore();
-      drawRiderSide(SX(x), SY(y), Math.max(u * cfg.rider, Math.min(W, H) * .085), bodyAng, sp, Object.assign({ grab: phase === 'air' && air.grabbing, crouch: cr }, look));
+      drawRiderSide(SX(x), SY(y), Math.max(u * cfg.rider, Math.min(W, H) * .11), bodyAng, sp, Object.assign({ grab: phase === 'air' && air.grabbing, crouch: cr }, look));
       if (phase === 'air') { const lab = air.label(); if (lab) text(lab, W / 2, HUDB + 40, 22, '#ffe07a'); text((apex > 0 ? 'Height ' + apex.toFixed(1) + ' m' : ''), W / 2, HUDB + 66, 13, '#fff'); }
       if (phase === 'in') text(x > -5 ? 'POP!' : 'Press POP at the lip for extra air', W / 2, HUDB + 40, x > -5 ? 30 : 15, x > -5 ? '#ffc93c' : '#fff');
     }
@@ -616,25 +715,47 @@ function mound(P, x, y, sc, active, side, e) {
    ================================================================ */
 function PipeCtl(ev, pi, done) {
   const p = G.players[pi], look = riderLook(p), PP = S.PIPE, st = { s: .01, v: 0 }, tricks = [];
-  let phase = 'ready', hits = 0, air = null, ax = 0, ay = 0, avy = 0, aT = 0, aDur = 1, apex = 0, sinceAir = 0, wall = 1, pumped = false, pumpFb = null, endT = 0, crashT = 0, score = 0, tumble = 0;
+  let phase = 'ready', hits = 0, air = null, ax = 0, ay = 0, avy = 0, aT = 0, aDur = 1, apex = 0, sinceAir = 0, wall = 1, pumped = false, pumpHold = false, holdT = 0, extendT = 0, pumpSide = 0, pumpFb = null, lastGain = 0, endT = 0, crashT = 0, score = 0, tumble = 0;
   setPad({ B: { t: 'DROP IN' } });
-  const padPipe = () => setPad({ L: {}, R: {}, A: {}, B: { t: 'PUMP', s: 'IN THE MIDDLE' } });
+  const padPipe = () => setPad({ L: {}, R: {}, A: {}, B: { t: 'PUMP', s: 'HOLD · LET GO ON THE WALL' } });
+  const kmh = v => Math.round(Math.abs(v) * 3.6);
+  /* Real pumping: crouch (hold) on the way down, extend (let go) while riding up the transition.
+     Extending low on the wall adds the most speed; too high adds little; on the flat it does nothing. */
+  function releasePump() {
+    if (!pumpHold) return; pumpHold = false; extendT = .35;
+    const q = S.pipeAt(clamp(st.s, 0, PP.L)), upWall = Math.abs(q.x) > PP.F && Math.sign(st.v) === Math.sign(q.x);
+    if (pumped) return;
+    if (holdT < .15) { pumpFb = { s: 'HOLD LONGER', t: .8, col: '#ffd27a' }; return; }
+    if (!upWall) { pumpFb = { s: Math.abs(q.x) <= PP.F ? 'TOO EARLY · LET GO ON THE WALL' : 'TOO EARLY', t: .9, col: '#ff9a9a' }; return; }
+    let dv, label;
+    if (q.y < .8) { dv = 1.5; label = 'GOOD PUMP'; }
+    else if (q.y <= 2.6) { dv = 2.0; label = 'PERFECT PUMP'; }
+    else if (q.y <= 4.6) { dv = 1.5 - (q.y - 2.6) * .45; label = 'LATE PUMP'; }
+    else { pumpFb = { s: 'TOO LATE', t: .9, col: '#ff9a9a' }; return; }
+    const before = kmh(st.v); st.v += Math.sign(st.v) * dv; pumped = true; lastGain = kmh(st.v) - before;
+    pumpFb = { s: label + '  +' + lastGain + ' km/h', t: 1.1, col: label === 'PERFECT PUMP' ? '#5be08d' : label === 'GOOD PUMP' ? '#bff27a' : '#ffd27a' };
+    sfx(label === 'PERFECT PUMP' ? 'perfect' : 'good');
+  }
   return {
     dbg: () => ({ phase, s: st.s, v: st.v, hits, x: ax, y: ay, apex, tricks: tricks.length, score, air: air && { spin: air.spin, flip: air.flip } }),
     onPress(k) {
       if (phase === 'ready' && k === 'B') { phase = 'ride'; st.v = 8.4; padPipe(); sfx('go'); return; }
-      if (phase === 'ride' && k === 'B' && !pumped) { const x = Math.abs(S.pipeAt(st.s).x); if (x < PP.F) { pumped = true; const q = x < .9 ? 1.6 : 1.0; st.v += Math.sign(st.v) * q; pumpFb = { s: q > 1.2 ? 'PERFECT PUMP' : 'PUMP', t: .6, col: q > 1.2 ? '#5be08d' : '#ffd27a' }; sfx(q > 1.2 ? 'perfect' : 'good'); } }
+      if (phase === 'ride' && k === 'B') { pumpHold = true; holdT = 0; }
     },
+    onRelease(k) { if (k === 'B' && phase === 'ride') releasePump(); },
     update(dt) {
       if (pumpFb) { pumpFb.t -= dt; if (pumpFb.t <= 0) pumpFb = null; }
       if (phase === 'ride') {
         S.pipeStep(st, dt); const pt = S.pipeAt(clamp(st.s, 0, PP.L)); sinceAir += dt;
-        if (sinceAir > 7) { phase = 'end'; endT = 2.4; score = S.pipeScore(tricks); G.toast = { s: 'OUT OF SPEED', sub: 'Pump in the middle to keep your speed up', col: '#ffd27a', t: 2.4 }; setPad({}); return; }
-        if (Math.abs(pt.x) > PP.F + 1) pumped = false;
+        if (sinceAir > 7) { phase = 'end'; endT = 2.4; score = S.pipeScore(tricks); G.toast = { s: 'OUT OF SPEED', sub: 'Hold PUMP on the way down, let go on the wall', col: '#ffd27a', t: 2.4 }; setPad({}); return; }
+        if (pumpHold) holdT += dt; if (extendT > 0) extendT -= dt;
+        // a new pump is allowed each time you cross the middle
+        const sd = Math.sign(pt.x); if (Math.abs(pt.x) < PP.F && sd && sd !== pumpSide) { pumpSide = sd; pumped = false; }
         if (crashT > 0) crashT -= dt;
         if (st.s <= 0 || st.s >= PP.L) {
           if (hits >= PP.hits) { phase = 'end'; endT = 2.4; score = S.pipeScore(tricks); sfx('cheer'); setPad({}); return; }
           wall = st.s <= 0 ? -1 : 1; const up = Math.min(Math.abs(st.v), PP.maxUp);
+          if (pumpHold) { pumpHold = false; pumpFb = { s: 'TOO LATE', t: .9, col: '#ff9a9a' }; }
           sinceAir = 0; phase = 'air'; air = Air(p); ax = wall * PP.W; ay = PP.H; avy = up; aT = 0; aDur = 2 * up / 9.81; apex = 0; hits++; setPad(AIR_PAD);
         }
         if (hits >= PP.hits && Math.abs(st.v) < 2.5 && Math.abs(pt.x) < PP.F) { phase = 'end'; endT = 2.4; score = S.pipeScore(tricks); sfx('cheer'); setPad({}); }
@@ -646,7 +767,7 @@ function PipeCtl(ev, pi, done) {
           const t = air.result(apex); tricks.push(t); trickPopup(t, Math.round(t.pts * S.EXEC[t.land]) + ' pts');
           const vin = Math.abs(avy) * (t.land === 'clean' ? .98 : t.land === 'sketchy' ? .8 : .35);
           sfx(t.land === 'crash' ? 'crash' : 'land'); if (t.land === 'crash') { crashT = 1.2; tumble = 0; } else if (t.pts > 40) sfx('cheer');
-          st.s = wall < 0 ? .001 : PP.L - .001; st.v = -wall * vin; phase = 'ride'; padPipe(); air = null;
+          st.s = wall < 0 ? .001 : PP.L - .001; st.v = -wall * vin; phase = 'ride'; padPipe(); air = null; pumped = false; pumpSide = 0; pumpHold = !!held.B; holdT = 0;
         }
         wind(.5);
       } else if (phase === 'end') { endT -= dt; if (endT <= 0) { phase = 'done'; wind(0); done({ perf: score, tricks }); } }
@@ -672,7 +793,12 @@ function PipeCtl(ev, pi, done) {
       ctx.strokeStyle = '#2f6fd6'; ctx.lineWidth = 3; for (const sd of [-1, 1]) { ctx.beginPath(); ctx.moveTo(X(sd * PP.W), Y(PP.H)); ctx.lineTo(X(sd * (PP.W + 1.2)), Y(PP.H)); ctx.stroke(); }
       ctx.strokeStyle = 'rgba(47,111,214,.35)'; ctx.setLineDash([4, 6]); ctx.beginPath(); for (let s = 0; s <= PP.L; s += .3) { const q = S.pipeAt(s); ctx.lineTo(X(q.x), Y(q.y) + 4); } ctx.stroke(); ctx.setLineDash([]);
       // pump zone marker
-      if (phase === 'ride' && hits < PP.hits) { ctx.fillStyle = pumped ? 'rgba(91,224,141,.25)' : 'rgba(255,201,60,.3)'; ctx.fillRect(X(-PP.F), Y(0) - 4, u * 2 * PP.F, 8); ctx.fillStyle = pumped ? 'rgba(91,224,141,.5)' : 'rgba(255,201,60,.6)'; ctx.fillRect(X(-.9), Y(0) - 4, u * 1.8, 8); }
+      if (phase === 'ride' && hits < PP.hits && !pumped) {
+        // the wall you are heading toward: yellow = let go here, green = perfect
+        const dir = Math.sign(st.v) || 1, seg = (y0, y1, col) => { ctx.strokeStyle = col; ctx.lineWidth = 9; ctx.lineCap = 'round'; ctx.beginPath();
+          for (let k = 0; k <= 12; k++) { const yy = y0 + (y1 - y0) * k / 12, b = Math.acos(1 - yy / PP.R), xx = dir * (PP.F + PP.R * Math.sin(b)); const nx = -Math.sin(b) * dir, ny = Math.cos(b); ctx.lineTo(X(xx) + nx * 5, Y(yy) - ny * 5); } ctx.stroke(); };
+        seg(.05, 4.6, 'rgba(255,201,60,.55)'); seg(.8, 2.6, 'rgba(91,224,141,.85)'); ctx.lineCap = 'butt';
+      }
       // height ruler above the lip
       for (let m = 2; m <= 8; m += 2) { const rx = Math.min(X(PP.W + .6), W - 30); ctx.fillStyle = 'rgba(10,28,51,.35)'; ctx.fillRect(rx, Y(PP.H + m) - 1, 8, 2); text(m + 'm', rx + 10, Y(PP.H + m), 10, '#0a1c33', 'left', 800, false); }
       // rider
@@ -683,12 +809,14 @@ function PipeCtl(ev, pi, done) {
         text('+' + (ay - PP.H).toFixed(1) + ' m', X(ax) - wall * 40, Y(ay) - 20, 13, '#ffffff');
       } else if (phase !== 'ready') {
         const q = S.pipeAt(clamp(st.s, 0, PP.L));
-        drawRiderSide(X(q.x), Y(q.y), u * 1.9, crashT > 0 ? tumble * 8 : -q.ang, st.v >= 0 ? 0 : 180, Object.assign({ crouch: Math.abs(q.x) < PP.F ? .55 : .25 }, look));
+        drawRiderSide(X(q.x), Y(q.y), u * 1.9, crashT > 0 ? tumble * 8 : -q.ang, st.v >= 0 ? 0 : 180, Object.assign({ crouch: pumpHold ? .85 : extendT > 0 ? .05 : .35 }, look));
+        // speedometer
+        text(kmh(st.v) + ' km/h', X(q.x), Y(q.y) - u * 2.6, 13, '#0a1c33', 'center', 800, false);
       } else { const q = S.pipeAt(0); drawRiderSide(X(q.x) - u * .9, Y(PP.H), u * 1.9, 0, 0, Object.assign({ crouch: .2 }, look)); }
       hudTop(ev.name, p, (phase === 'end' || phase === 'done' ? score : S.pipeScore(tricks)).toFixed(1), 'Hit ' + Math.min(hits + (phase === 'air' ? 0 : 1), PP.hits) + ' of ' + PP.hits);
       if (pumpFb) text(pumpFb.s, W / 2, Y(1.6), 18, pumpFb.col);
       tricks.slice(-4).forEach((t, i) => text(t.land === 'crash' ? 'Crash' : t.name, 14, HUDB + 64 + i * 18, 12, t.land === 'crash' ? '#ff9a9a' : t.land === 'sketchy' ? '#ffd27a' : '#0a1c33', 'left', 800, false));
-      if (phase === 'ready') { text('HALFPIPE', W / 2, Y(PP.H + 6), Math.min(56, W / 7), '#ffc93c'); text('Press PUMP in the flat middle for more speed and air', W / 2, Y(PP.H + 6) + 40, 14, '#0a1c33', 'center', 800, false); text('In the air: ◀ ▶ spin, FLIP, GRAB. Land straight!', W / 2, Y(PP.H + 6) + 60, 14, '#0a1c33', 'center', 800, false); }
+      if (phase === 'ready') { text('HALFPIPE', W / 2, Y(PP.H + 6), Math.min(56, W / 7), '#ffc93c'); text('Hold PUMP as you drop in, let go on the green part of the wall', W / 2, Y(PP.H + 6) + 40, 14, '#0a1c33', 'center', 800, false); text('In the air: ◀ ▶ spin, FLIP, GRAB. Land straight!', W / 2, Y(PP.H + 6) + 60, 14, '#0a1c33', 'center', 800, false); }
       if (phase === 'end') text(score.toFixed(1) + ' points', W / 2, Y(PP.H + 5), Math.min(52, W / 8), '#ffc93c');
     }
   };
@@ -767,7 +895,7 @@ const HOW = {
   downhill: [['ICE', 'b', 'The course is slick and icy: your skis slide sideways when you turn, so start every turn early. Shiny blue bands are sheet ice. Big jumps on the way.']],
   slalom: [['FAST', 'b', 'Flat and fast, with gates every few metres. Quick, short turns, and don’t hold a turn too long.']],
   moguls: [['◀ ▶', 'b', 'Tap in the arrow’s direction as each bump reaches you. Perfect timing builds a streak and more speed.'], ['AIR', 'a', 'Two kickers: press POP at the lip, then spin, flip and grab. Judges score turns 60%, air 20% and speed 20%.']],
-  halfpipe: [['PUMP', 'b', 'Press PUMP in the flat middle of the pipe to gain speed. More speed means bigger air.'], ['AIR', 'a', 'Hold ◀ or ▶ to spin (360, 720, 1080, 1440), FLIP to flip, GRAB to grab. Let go in time to land straight. Repeated tricks score half.']],
+  halfpipe: [['PUMP', 'b', 'Like real riders: hold PUMP to crouch as you drop toward the flat, then let go to stand up as you ride up the wall. Letting go on the green part adds the most speed, and more speed means bigger air. Without pumping you slow down.'], ['AIR', 'a', 'Hold ◀ or ▶ to spin (360, 720, 1080, 1440), FLIP to flip, GRAB to grab. Let go in time to land straight. Repeated tricks score half.']],
   bigair: [['POP', 'b', 'Drop in, press POP right at the lip for extra height.'], ['AIR', 'a', 'Three jumps, best two count. Spin, flip and grab: a double cork 1440 or a triple cork 1800 wins it, if you land it.']]
 };
 function howFor(ev) { const h = (ev.kind === 'race' ? HOW.race.concat(HOW[ev.id] || []) : HOW[ev.id]) || []; return '<div class="how">' + h.map(([k, c, s]) => '<div><b class="' + c + '">' + k + '</b><span>' + esc(s) + '</span></div>').join('') + '</div>'; }
@@ -886,7 +1014,7 @@ function frame(ts) {
 window.addEventListener('resize', resize); window.addEventListener('orientationchange', () => setTimeout(resize, 150));
 resize(); FONT = getComputedStyle(document.body).fontFamily; refreshTitle();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => { }));
-window.__pc = { G, S, held, press, startEvent, nextTurn, go, get W() { return W; } };
+window.__pc = { G, S, held, press, startEvent, nextTurn, go, get W() { return W; }, drawRiderSide, drawRiderBack, ctx: () => ctx };
 requestAnimationFrame(frame);
 })();
 </script>

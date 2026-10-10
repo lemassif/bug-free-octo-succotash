@@ -202,7 +202,10 @@ event) or any single event.
 - **Moguls:** tap ◀ or ▶ as each bump arrives, in the arrow's direction, then
   throw tricks off the two kickers. Judged like the real thing: turns 60%,
   air 20%, speed 20%.
-- **Halfpipe:** pump in the flat middle for speed, then six hits. **Big air:**
+- **Halfpipe:** pump like a real rider: hold PUMP to crouch as you drop toward
+  the flat, then let go to stand up as you ride up the wall. Letting go on the
+  green part of the wall adds the most speed, a speedometer shows the gain,
+  and without pumping you slow down. Six hits. **Big air:**
   one huge jump, three tries, best two count.
 - **Tricks:** in the air hold ◀ or ▶ to spin (180 to 1440 and beyond), FLIP
   to flip and GRAB to grab, and let go in time to land straight. Tricks get
