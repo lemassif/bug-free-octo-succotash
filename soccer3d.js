@@ -94,10 +94,10 @@ function start() {
   {
     const standMat = lam(0x5d6b82), roofMat = lam(0xe9eef6), people = [[], [], [], []], dummy = new THREE.Object3D();
     const kitCols = [0xe8323c, 0x2f6fd6, 0xffd23f, 0x1fa354, 0xffffff, 0x7c4dff, 0xff8a3d, 0x1d2433];
-    const stand = (len, cx, cz, ry, deep) => {
+    const stand = (len, cx, cz, ry, deep, open) => {
       const g = new THREE.Group(); g.position.set(cx, 0, cz); g.rotation.y = ry; scene.add(g);
       const tier = new THREE.Mesh(new THREE.BoxGeometry(len, 1, deep), standMat); tier.position.set(0, 4.2, -deep / 2); tier.rotation.x = .44; tier.receiveShadow = true; g.add(tier);
-      const roof = new THREE.Mesh(new THREE.BoxGeometry(len, .4, deep * .8), roofMat); roof.position.set(0, 13, -deep * .6); roof.rotation.x = -.1; g.add(roof);
+      if (!open) { const roof = new THREE.Mesh(new THREE.BoxGeometry(len, .4, deep * .8), roofMat); roof.position.set(0, 13, -deep * .6); roof.rotation.x = -.1; g.add(roof); }
       g.updateMatrixWorld(true);
       for (let r = 0; r < 12; r++) for (let k = 0; k < Math.floor(len / .75); k++) {
         if (((r * 7 + k * 13) % 9) === 0) continue;
@@ -106,7 +106,7 @@ function start() {
         people[(r + k) % 4].push({ m, c: kitCols[(r * 3 + k * 5 + (k >> 2)) % kitCols.length] });
       }
     };
-    stand(2 * PL + 10, 0, -PW - 6, 0, 18); stand(2 * PL + 10, 0, PW + 6, Math.PI, 18); stand(2 * PW + 10, -PL - 7, 0, Math.PI / 2, 16); stand(2 * PW + 10, PL + 7, 0, -Math.PI / 2, 16);
+    stand(2 * PL + 10, 0, -PW - 6, 0, 18); stand(2 * PL + 10, 0, PW + 6, Math.PI, 18, true); stand(2 * PW + 10, -PL - 7, 0, Math.PI / 2, 16); stand(2 * PW + 10, PL + 7, 0, -Math.PI / 2, 16);
     const geo = new THREE.BoxGeometry(.45, .75, .35), cc = new THREE.Color();
     for (const list of people) {
       const im = new THREE.InstancedMesh(geo, lam(0xffffff), list.length); list.forEach((p, i) => { im.setMatrixAt(i, p.m); im.setColorAt(i, cc.set(p.c)); });
@@ -317,11 +317,11 @@ function start() {
         }
       } else { pos = tmpP.set(p.x - 3, 4.5, p.y + 9); look = tmpL.set(p.x, 1, p.y); rate = 2; }
     } else if (portrait) {
-      const fx = clamp(b.x, -PL + 4, PL - 6), fz = b.y * .85;
+      const fx = clamp(b.x, -PL + 8, PL - 6), fz = clamp(b.y * .85, -PW + 3, PW - 3);
       pos = tmpP.set(fx - 15, 11.5, fz); look = tmpL.set(fx + 9, 0, fz);
     } else {
-      const fx = clamp(b.x * .95, -PL + 8, PL - 8), fz = clamp(b.y * .55, -PW * .5, PW * .5);
-      pos = tmpP.set(fx, 15, fz + 25); look = tmpL.set(fx, 0, fz - 3);
+      const fx = clamp(b.x * .95, -PL + 8, PL - 8), fz = clamp(b.y * .55, -PW * .5, PW * .3);
+      pos = tmpP.set(fx, 16, Math.min(fz + 24, PW + 9)); look = tmpL.set(fx, 0, fz - 3);
     }
     if (!camInit) { camPos.copy(pos); camLook.copy(look); camInit = true; }
     const kk = 1 - Math.exp(-dt * rate); camPos.lerp(pos, kk); camLook.lerp(look, 1 - Math.exp(-dt * rate * 1.6));
