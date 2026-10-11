@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png" type="image/png">
-<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="app.css?v=1.6.0">
 <title>Chance Academy — Science, Numbers &amp; Reading</title>
 </head>
 <body>
@@ -59,7 +59,7 @@
       <span class="tile-icon">🗣️</span><span class="tile-label">Word Wall</span>
     </button>
     <button class="tile tile-hw" data-go="homework">
-      <span class="tile-icon">📸</span><span class="tile-label">Homework</span>
+      <span class="tile-icon">📸</span><span class="tile-label">Scan Homework</span>
       <span class="tile-count" id="tileHwCount" hidden>0</span>
     </button>
   </nav>
@@ -175,24 +175,42 @@
 
 <div class="confetti" id="confetti" aria-hidden="true"></div>
 
-<script src="data/curriculum.js"></script>
-<script src="data/unit1-space.js"></script>
-<script src="data/unit2-woods.js"></script>
-<script src="data/unit3-forces.js"></script>
-<script src="data/grade2.js"></script>
-<script src="js/phonics.js"></script>
-<script src="js/updater.js"></script>
-<script src="js/homework.js"></script>
-<script src="js/recordings.js"></script>
-<script src="js/voice.js"></script>
-<script src="js/evaluate.js"></script>
-<script src="js/progress.js"></script>
-<script src="js/rewards.js"></script>
-<script src="js/stations.js"></script>
-<script src="js/grownup.js"></script>
-<script src="js/studio.js"></script>
-<script src="js/hwui.js"></script>
-<script src="js/app.js"></script>
-<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }</script>
+<script src="data/curriculum.js?v=1.6.0"></script>
+<script src="data/unit1-space.js?v=1.6.0"></script>
+<script src="data/unit2-woods.js?v=1.6.0"></script>
+<script src="data/unit3-forces.js?v=1.6.0"></script>
+<script src="js/phonics.js?v=1.6.0"></script>
+<script src="js/updater.js?v=1.6.0"></script>
+<script src="js/homework.js?v=1.6.0"></script>
+<script src="js/scan.js?v=1.6.0"></script>
+<script src="js/recordings.js?v=1.6.0"></script>
+<script src="js/voice.js?v=1.6.0"></script>
+<script src="js/evaluate.js?v=1.6.0"></script>
+<script src="js/progress.js?v=1.6.0"></script>
+<script src="js/rewards.js?v=1.6.0"></script>
+<script src="js/stations.js?v=1.6.0"></script>
+<script src="js/grownup.js?v=1.6.0"></script>
+<script src="js/studio.js?v=1.6.0"></script>
+<script src="js/hwui.js?v=1.6.0"></script>
+<script src="js/app.js?v=1.6.0"></script>
+<script>
+/* When a new version finishes installing, switch to it. Only if a
+   version was already running (the very first install also fires
+   controllerchange), and never in the middle of a lesson — then it
+   waits until he is back on the home screen. */
+if ('serviceWorker' in navigator) {
+  var hadController = !!navigator.serviceWorker.controller, switching = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function () {
+    if (!hadController) { hadController = true; return; }
+    if (switching) return;
+    switching = true;
+    if (window.App && App.reloadWhenHome) App.reloadWhenHome();
+    else location.reload();
+  });
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script>
 </body>
 </html>

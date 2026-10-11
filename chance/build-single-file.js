@@ -32,10 +32,10 @@ const SCRIPTS = [
   'data/unit1-space.js',
   'data/unit2-woods.js',
   'data/unit3-forces.js',
-  'data/grade2.js',
   'js/phonics.js',
   'js/updater.js',
   'js/homework.js',
+  'js/scan.js',
   'js/recordings.js',
   'js/voice.js',
   'js/evaluate.js',
@@ -97,6 +97,20 @@ if (verMatch) {
   };
   fs.writeFileSync(vfile, JSON.stringify(next, null, 2) + '\n');
   console.log('  version.json -> ' + next.version);
+}
+
+/* Stamp the version onto every local file address in index.html.
+   A new page then asks for js/app.js?v=1.6.0 — an address the
+   browser has never stored — so it can never be handed yesterday's
+   script. This is what makes "Update the app" reliable. */
+if (verMatch) {
+  const ipath = path.join(ROOT, 'index.html');
+  const before = fs.readFileSync(ipath, 'utf8');
+  const after = before
+    .replace(/(<script src="(?:js|data)\/[^"?]+\.js)(?:\?v=[^"]*)?"/g, '$1?v=' + verMatch[1] + '"')
+    .replace(/(<link rel="stylesheet" href="app\.css)(?:\?v=[^"]*)?"/g, '$1?v=' + verMatch[1] + '"');
+  if (after !== before) fs.writeFileSync(ipath, after);
+  console.log('  index.html file addresses stamped with ?v=' + verMatch[1]);
 }
 
 const out = parts.join('\n');

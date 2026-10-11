@@ -22,7 +22,17 @@ window.App = (function () {
   /* ---------------------------- routing --------------------------- */
   var currentScreen = null;
 
+  /* A new version is ready. Reload into it now if he is on the home
+     screen; otherwise wait until he next gets there, so a lesson is
+     never cut off halfway. */
+  var reloadPending = false;
+  function reloadWhenHome() {
+    if (currentScreen === 'home' || !currentScreen) { location.reload(); return; }
+    reloadPending = true;
+  }
+
   function go(name, arg) {
+    if (name === 'home' && reloadPending) { location.reload(); return; }
     currentScreen = name;
     Voice.stop();
     hideCoach();
@@ -549,11 +559,6 @@ window.App = (function () {
   }
 
   function boot() {
-    /* Reading level: grade 2 unless a grown-up has stepped him back. */
-    var savedLevel = null;
-    try { savedLevel = parseInt(localStorage.getItem('chance.readingLevel'), 10); } catch (e) {}
-    Curriculum.setReadingLevel(savedLevel || 2);
-
     ['home', 'mission', 'map', 'rewards', 'wordwall', 'grownup', 'studio', 'homework', 'hwedit'].forEach(function (k) {
       screens[k] = $('screen-' + k);
     });
@@ -609,7 +614,7 @@ window.App = (function () {
     go: go, setActions: setActions, showCoach: showCoach, hideCoach: hideCoach,
     setThinkMeter: setThinkMeter, setPips: setPips, setReplay: setReplay, burst: burst,
     stationFinished: stationFinished, startMission: startMission,
-    homeworkFinished: homeworkFinished, showPhoto: showPhoto,
+    homeworkFinished: homeworkFinished, showPhoto: showPhoto, reloadWhenHome: reloadWhenHome,
     sheet: sheet, closeSheet: closeSheet, shareSheet: shareSheet,
     ui: { el: el, big: big, h3: h3, p: p, row: row, btn: btn }
   };

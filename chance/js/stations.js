@@ -75,9 +75,8 @@ window.Stations = (function () {
       // read the whole item aloud, then let him answer. meta.spoken
       // lets a caller supply a say-able version — "7 times 8" reads
       // properly where the written "7 × 8" would not.
-      var spoken = [item.story, meta.spoken || item.q].filter(Boolean).concat(order.map(function (c, i) {
-        return (i + 1) + '. ' + c.t;
-      }));
+      var spoken = [item.story, meta.spoken || item.q].filter(Boolean).concat(
+        item.silentChoices ? [] : order.map(function (c, i) { return (i + 1) + '. ' + c.t; }));
       App.setReplay(function () { Voice.stop(); Voice.sayLines(spoken); });
       Voice.sayLines(spoken).then(function () { t0 = Date.now(); });
 
@@ -566,7 +565,10 @@ window.Stations = (function () {
       head.appendChild(ht);
       stage.appendChild(head);
 
-      showPhotos(stage);   // the worksheet stays up, every question
+      /* The worksheet stays up for every question — except the
+         spelling test, where a photo of the spelling list would be a
+         photo of every answer. */
+      if (item.kind !== 'spell') showPhotos(stage);
 
       App.setActions([]);
 
@@ -584,7 +586,8 @@ window.Stations = (function () {
       ask(item, {
         itemId: pack.id + '-' + item.id,
         station: 'homework',
-        domain: item.kind === 'math' ? 'homework-math' : 'homework-question',
+        domain: item.kind === 'math' ? 'homework-math'
+              : (item.kind === 'spell' ? 'homework-spelling' : 'homework-question'),
         dayId: pack.id,
         spoken: item.spoken
       }).then(function () { i++; nextItem(); });

@@ -114,6 +114,11 @@ window.Evaluate = (function () {
       say: "That word starts the same, but look at the middle sounds. Let's sound the whole word out.",
       fix: 'Touch each sound chunk while saying it.'
     },
+    'sound-spelling': {
+      label: 'Spells it the way it sounds',
+      say: "That's how it sounds, but this word uses a special spelling. Look closely at the letters in the middle.",
+      fix: 'Practice the word family together: light, night, right, bright.'
+    },
     'vowel-swap': {
       label: 'Swaps the vowel sound',
       say: "Check the vowel in the middle. That one little letter changes the whole word.",

@@ -122,24 +122,62 @@ clothes:
 
 ---
 
-## Photograph his real homework and study it in the app
+## Scan his homework and turn it into a lesson
 
-The worksheet that comes home on Friday can become practice in the app.
+Tap **📸 Scan Homework** on the home screen. The big yellow button opens the
+iPad's camera.
 
-**Grown-Ups → 📸 Homework from school → New worksheet**, then:
+1. **Take a picture** of the worksheet: flat, in good light, filling the screen.
+2. **The app reads the words off the page by itself** in about 3 to 10 seconds.
+   The reading happens on the iPad. Nothing is uploaded, and it works without
+   wifi once it has been used once.
+   - If the page has a numbered list ("1. light 2. night …"), it takes just
+     those words, in the teacher's order, even when the list runs in two
+     columns. The title, "Name / Date" and the instructions are skipped.
+   - Math problems on the page ("7 x 8 =") are picked up as well.
+3. **A grown-up checks the list.** Each word has a tick box and can be edited.
+   - Untick anything that isn't a homework word, and fix any misread word.
+   - Use *Add a word…* for any word it missed.
+   - Words it wasn't sure about are marked *unsure* and arrive unticked.
+   - Check the math signs: it sometimes reads ÷ as +.
+4. Tap **▶️ Start the lesson** to begin.
 
-1. **📷 Take a photo** — opens the camera straight away on the iPad. Add as
-   many pages as you like. Photos are shrunk to 1600px on the way in, so a
-   whole term of homework does not fill the device.
-2. **Type the problems off the page** into one box, separated by commas:
-   `7x8, 6x7, 24/3, 15-8`. Each one becomes a complete question in about a
-   second.
-3. Optionally add **spelling words** (one per line) and **any other question**
-   with your own right and wrong answers.
+The lesson Chance gets:
 
-Then Chance taps **📸 Homework** on the home screen, sees his actual worksheet
-at the top of the screen the whole time, and works through it with the same
-owl, the same coaching, the same stars.
+| Part | What he does |
+|---|---|
+| **Read it** | Each word appears with the worksheet photo above it. The owl sounds it out in chunks and he says it into the microphone. |
+| **Spell it** | A spelling test. The owl says *"Which is the right way to spell: night?"* and he picks from three spellings: the right one and two realistic mistakes (*nite*, *nihgt*). The photo is hidden for this part, because the list would give the answers away. The wrong spellings are **never read aloud**, so he isn't trained on them. |
+| **Math** | Any problems from the page, with the same tagged wrong answers as the course. |
+
+The wrong spellings come from the mistakes second-graders actually make, not
+random letter swaps:
+- writing it how it sounds: *lite*, *bote*, *fone*
+- mixing up vowel teams: *rain → rayn*
+- dropping a silent letter: *nock*, *rite*
+- getting a double letter wrong
+- swapping letters in the tricky middle
+
+Picking the sound-it-out spelling gets its own coaching from the owl: *"That's
+how it sounds, but this word uses a special spelling. Look closely at the
+letters in the middle."* It also shows up in the Thinking Report as **Spells it
+the way it sounds**.
+
+**What it reads well:** printed worksheets, which is what spelling lists almost
+always are. **What it reads badly:** handwriting. If a page won't scan, tap
+*Type the words instead*.
+
+Each scanned lesson is saved under **Homework to study again**, so he can
+repeat Monday's list on Thursday before the test.
+
+### Building a worksheet by hand (Grown-Ups → 📸 Homework from school)
+
+For anything the scanner can't handle, the hand-built path still exists:
+
+1. Photograph the pages.
+2. Type the problems in one box: `7x8, 6x7, 24/3, 15-8`.
+3. Add spelling words (one per line) and any other question, with your own
+   right and wrong answers.
 
 ### The part that makes this worth doing
 
@@ -202,6 +240,16 @@ away when it's quiet.
 The app caches itself so it works with no signal. That is the right call at the
 creek and the wrong one the day a fix is published — otherwise the iPad happily
 runs the old copy forever.
+
+**Updates now arrive by themselves.** From version 1.6 the app checks the
+server every time it opens (it falls back to the saved copy only when there is
+no signal). When a new version has downloaded, it reloads itself the next time
+Chance is on the home screen, never in the middle of a question. In practice,
+close the app and open it again and the new version is there.
+
+Before 1.6, the iPad could keep running old code even after reporting that it
+had updated. That is how the first-grade words survived the grade-2 change.
+If the iPad still shows old content, do the update by hand once:
 
 **Grown-Ups → ⬆️ Update the app → Check for an update.** It says plainly
 whether anything is new, and updating throws away the cached copy and reloads.
@@ -268,7 +316,7 @@ one up automatically — or you can choose it under Grown-Ups → Settings.
 
 ## Reading level: Grade 2
 
-Chance is going into second grade, so the Read & Say words default to a
+Chance is going into second grade, so the Read & Say words are a
 **second-grade set**, built against the second-grade reading standard
 (Common Core RF.2.3). Each week covers one skill:
 
@@ -292,9 +340,9 @@ because reading in syllables is the second-grade skill. Every word is still tied
 to that day's science, and every day's sentence and reading question were
 rewritten to use the new words.
 
-**Too hard?** Grown-Ups → Settings → *Reading level* steps back to the
-first-grade set (short words, one sound at a time). Nothing else changes — the
-science, math and his progress are the same at either level.
+The first-grade words are gone from the app entirely; there is no setting
+that brings them back. For extra practice on an easier day, scan the words he
+brings home from school (see *Scan his homework*).
 
 ---
 
@@ -461,7 +509,10 @@ Use **Share** when you want the picture to go with it — iOS will not let a
 Everything lives in `localStorage` on that one iPad. No account, no login, no
 server, no analytics, nothing uploaded. Nothing leaves the device unless
 somebody taps Share. Speech synthesis is built into iOS and runs offline; only
-the microphone check needs a connection on some devices.
+the microphone check needs a connection on some devices. Homework photos are
+read on the iPad by a text reader that ships inside the app
+(`chance/vendor/tesseract/`, the open-source Tesseract engine). The photo is
+never sent anywhere.
 
 ---
 
@@ -494,8 +545,10 @@ kind.
 |---|---|
 | `chance/js/voice.js` | voice selection, slow narration, phoneme stretching, microphone listening, pronunciation matching — plays a real recording when one exists, synthesizes when it doesn't |
 | `chance/js/phonics.js` | the grapheme table: how every letter chunk gets said out loud, plus the audit that keeps it correct |
-| `chance/js/homework.js` | homework photos and the question generator |
-| `chance/js/hwui.js` | the two homework screens |
+| `chance/js/homework.js` | homework photos, the question generator, realistic misspellings, and building a lesson from scanned words |
+| `chance/js/scan.js` | reads the words and math off a homework photo, on the device |
+| `chance/js/hwui.js` | the homework screens: camera, the grown-up word check, the hand-built editor |
+| `chance/vendor/tesseract/` | the text-recognition engine and its English data (Apache-2.0; licence files beside it) |
 | `chance/js/updater.js` | version check and the in-app update |
 | `chance/js/recordings.js` | stores your recorded lines in IndexedDB, keyed by the text of the line; export/import |
 | `chance/js/studio.js` | the recording booth |
@@ -506,6 +559,7 @@ kind.
 | `chance/js/grownup.js` | the Thinking Report and settings |
 | `chance/js/app.js` | icon home screen, routing, sheets |
 | `chance/test/regress.js` | the regression suite — see below |
+| `chance/test/scan.js` | photo → words → lesson, end to end |
 
 ## Running the tests
 
@@ -513,6 +567,7 @@ kind.
 npx http-server -p 8099 -s .        # from the repo root
 node chance/test/regress.js         # the multi-file app
 node chance/test/sound.js           # the sound-reliability checks
+node chance/test/scan.js            # scan a worksheet photo into a lesson
 BASE=http://127.0.0.1:8099/dist/chance-academy.html node chance/test/regress.js
 ```
 
