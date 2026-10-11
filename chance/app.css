@@ -241,6 +241,24 @@ button { font-family: inherit; font-size: inherit; border: 0; background: none; 
 .btn-big.compact.hushed {
   background: var(--sun); border-color: var(--sun-deep); color: #4a3200;
 }
+/* Stop reads as stop: a red edge he can find without reading the word */
+.btn-big.compact.stop { border-color: #f2a3a3; color: #9b1c1c; }
+
+/* The Stop that floats up on any screen outside a lesson whenever the
+   app is talking, and leaves when it is quiet. Top-centre, so it never
+   covers a tile he is about to tap. */
+.float-stop {
+  position: fixed; z-index: 75;
+  top: max(12px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 22px; min-height: 58px; border-radius: 999px;
+  background: #fff; border: 3px solid #e04848; color: #9b1c1c;
+  font-size: 19px; font-weight: 800;
+  box-shadow: 0 10px 26px rgba(15, 42, 74, .25);
+  animation: pop2 .18s ease-out;
+}
+.float-stop[hidden] { display: none; }
+.float-stop span:first-child { font-size: 24px; }
 
 /* ------------------------------- COACH ------------------------------ */
 /* An author `display` beats the UA stylesheet's [hidden] rule, so the

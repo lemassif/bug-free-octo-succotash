@@ -43,12 +43,24 @@ window.Homework = (function () {
         if (!d.objectStoreNames.contains(PACKS)) d.createObjectStore(PACKS, { keyPath: 'id' });
         if (!d.objectStoreNames.contains(PHOTOS)) d.createObjectStore(PHOTOS, { keyPath: 'id' });
       };
-      req.onsuccess = function () { db = req.result; resolve(db); };
+      req.onsuccess = function () {
+        db = req.result;
+        // iOS closes connections while the app is in the background
+        db.onclose = function () { db = null; };
+        db.onversionchange = function () { try { db.close(); } catch (e) {} db = null; };
+        resolve(db);
+      };
       req.onerror = function () { reject(req.error); };
     });
   }
   function store(name, mode) {
-    return open().then(function (d) { return d.transaction(name, mode).objectStore(name); });
+    return open().then(function (d) {
+      try { return d.transaction(name, mode).objectStore(name); }
+      catch (e) {
+        db = null;   // connection was closed under us — reconnect once
+        return open().then(function (d2) { return d2.transaction(name, mode).objectStore(name); });
+      }
+    });
   }
   function put(name, rec) {
     return store(name, 'readwrite').then(function (s) {

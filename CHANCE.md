@@ -170,6 +170,33 @@ the 60-day course — it is extra, not a substitute.
 
 ---
 
+## No sound?
+
+Every lesson is read aloud, so silence is the worst thing that can go wrong — and
+from the outside every cause looks the same. Three ways to fix it, fastest first:
+
+1. **Tap 🔊** (top corner of any lesson). It wakes the voice up before replaying.
+2. **Grown-Ups → 🔈 No sound? → Fix the sound.** Repairs the voice, says a test
+   sentence, and tells you what it found.
+3. **Check the iPad itself**, which the app can't see or change: the silent-mode
+   bell in Control Center (swipe down from the top-right — the voice obeys it even
+   when videos still play), the volume buttons, and Bluetooth headphones.
+
+Version 1.5 fixed four bugs that could each make the sound vanish on its own:
+one failed line silenced every line after it; iOS paused the voice when the app
+went to the background and nothing ever un-paused it; audio was only unlocked on
+the very first tap; and Stop let lines that were already queued keep playing.
+`chance/test/sound.js` reproduces each one with a fake iPad speech engine.
+
+## Stop
+
+**🛑 Stop** silences the talking instantly. Inside a lesson it sits in the bottom
+bar next to Home. Everywhere else — the Word Wall, the menu, the grown-up area —
+a 🛑 Stop button floats up at the top the moment the app starts talking, and goes
+away when it's quiet.
+
+---
+
 ## Updating the app
 
 The app caches itself so it works with no signal. That is the right call at the
@@ -219,7 +246,7 @@ front of him.
 Recordings are matched to the *text* of a line, so a line recorded once plays
 everywhere it appears. The 🔤 **Letter sounds** group is the highest-value
 recording in the whole app: a synthesizer physically cannot say an isolated
-/f/, but you can. Record the 175 letter chunks once and every word in all 60
+/f/, but you can. Record the letter sounds once (83 at the grade-2 level) and every word in all 60
 days that uses them is fixed — and phonics sounds are stored separately from
 words, so your stretched-out "sss" never gets confused with the word "sun."
 
@@ -236,6 +263,38 @@ Accessibility → Spoken Content → Voices → English**, and download a *Premi
 or *Enhanced* voice (Ava, Allison, and Samantha are the warmest). They are a
 large improvement over the compact default, they're free, and the app will pick
 one up automatically — or you can choose it under Grown-Ups → Settings.
+
+---
+
+## Reading level: Grade 2
+
+Chance is going into second grade, so the Read & Say words default to a
+**second-grade set**, built against the second-grade reading standard
+(Common Core RF.2.3). Each week covers one skill:
+
+| Week | Skill | Examples |
+|---|---|---|
+| 1 | long and short vowels in two-syllable words | sunset, sunrise, rotate |
+| 2 | vowel teams ai, ay, ee, ea, oa, igh | halfway, between, float |
+| 3 | r-controlled vowels in longer words | orbit, farther, Saturn |
+| 4 | suffixes -er, -est, -ful, -less, -ly | powerful, quickly, weightless |
+| 5 | -ed and -ing, with doubling and dropping e | hopping, hiding, swimming |
+| 6 | oi, oy and ou | moist, enjoy, cloud |
+| 7 | oo, au and aw | brook, launched, jaws |
+| 8 | soft c, soft g, and -le endings | giant, gentle, nibble |
+| 9 | prefixes un- and re-, three-letter blends | unload, restart, scratch |
+| 10 | two-syllable words ending in -er, -le, -y | lever, handle, pulley |
+| 11 | silent letters kn, wr, mb, and ph that says f | knob, wrap, thumb, photo |
+| 12 | compound words | footbridge, sailboat, notebook |
+
+Words are split **by syllable** (*pow · er · ful*) rather than letter by letter,
+because reading in syllables is the second-grade skill. Every word is still tied
+to that day's science, and every day's sentence and reading question were
+rewritten to use the new words.
+
+**Too hard?** Grown-Ups → Settings → *Reading level* steps back to the
+first-grade set (short words, one sound at a time). Nothing else changes — the
+science, math and his progress are the same at either level.
 
 ---
 
@@ -453,6 +512,7 @@ kind.
 ```
 npx http-server -p 8099 -s .        # from the repo root
 node chance/test/regress.js         # the multi-file app
+node chance/test/sound.js           # the sound-reliability checks
 BASE=http://127.0.0.1:8099/dist/chance-academy.html node chance/test/regress.js
 ```
 

@@ -63,7 +63,9 @@ window.Grownup = (function () {
 
     if (!log.length) {
       body.appendChild(el('p', null, 'No sessions yet. Once Chance finishes a mission, this page fills in with what his answers reveal about how he is thinking.'));
-      body.appendChild(homeworkBlock());
+      body.appendChild(soundBlock());
+      body.appendChild(soundBlock());
+    body.appendChild(homeworkBlock());
       body.appendChild(voiceBlock());
       body.appendChild(updateBlock());
       body.appendChild(settingsBlock());
@@ -271,6 +273,49 @@ window.Grownup = (function () {
     return wrap;
   }
 
+  /* --------------------------- no sound? -------------------------- */
+  /* Silence is the worst failure this app can have — every lesson is
+     read aloud — and from the outside every cause looks the same. So
+     this does the repair, then says what it can see, then lists the
+     iPad settings the app has no way to see or change. */
+  function soundBlock() {
+    var wrap = el('div', 'report-item');
+    wrap.appendChild(el('b', null, '🔈  No sound?'));
+    var status = el('span', null, 'Tap Fix the sound. It wakes the voice back up and says a test sentence.');
+    wrap.appendChild(status);
+
+    var r = el('div', 'row');
+    r.appendChild(App.ui.btn('🔧', 'Fix the sound', function () {
+      Voice.repair();
+      status.textContent = 'Listening for the test sentence…';
+      Voice.say('Hi Chance. If you can hear me, the sound is working.').then(function () {
+        var d = Voice.diagnose();
+        var lines = [];
+        if (!d.available) {
+          lines.push('This browser has no voice at all. Open the app in Safari.');
+        } else {
+          lines.push('Voice: ' + d.voice + (d.voices ? '' : ' (no voices loaded yet — try again in a moment)') + '.');
+          if (d.paused) lines.push('The voice was paused by the iPad; it has been told to resume.');
+          if (d.stalls) lines.push('The voice engine is stuck. Close the app fully and reopen it (swipe up from the bottom, then swipe the app away).');
+          lines.push('If you heard the sentence, you are done. If not, check the list below.');
+        }
+        status.textContent = lines.join(' ');
+      });
+    }));
+    wrap.appendChild(r);
+
+    var list = el('div');
+    list.style.cssText = 'font-size:15px;color:var(--ink-soft);margin-top:8px;line-height:1.6;';
+    [
+      '🔔 Silent mode: swipe down from the top-right corner. If the bell is crossed out, tap it. The voice obeys silent mode even when videos still play.',
+      '🔊 Volume: press the volume-up button on the side of the iPad while the app is open.',
+      '🎧 Headphones: if Bluetooth headphones are connected, the sound may be going to them.',
+      '🔄 Still nothing: swipe up from the bottom, swipe the app away, and open it again.'
+    ].forEach(function (t) { list.appendChild(el('div', null, t)); });
+    wrap.appendChild(list);
+    return wrap;
+  }
+
   /* ------------------- photograph his real homework --------------- */
   function homeworkBlock() {
     var s = Homework.stats();
@@ -353,6 +398,25 @@ window.Grownup = (function () {
     nameInput.addEventListener('change', function () { Progress.setName(nameInput.value.trim()); });
     nameField.appendChild(nameInput);
     wrap.appendChild(nameField);
+
+    // reading level
+    var lField = el('label', 'field', 'Reading level for the Read & Say words');
+    var lvl = el('select');
+    [[2, 'Grade 2 — two-syllable words, vowel teams, prefixes and suffixes'],
+     [1, 'Grade 1 — short words, one sound at a time']].forEach(function (o) {
+      var op = el('option', null, o[1]);
+      op.value = String(o[0]);
+      if (Curriculum.readingLevel() === o[0]) op.selected = true;
+      lvl.appendChild(op);
+    });
+    lvl.addEventListener('change', function () {
+      Curriculum.setReadingLevel(parseInt(lvl.value, 10));
+      Voice.say(Curriculum.readingLevel() === 2
+        ? 'Reading words set to second grade.'
+        : 'Reading words set to first grade.');
+    });
+    lField.appendChild(lvl);
+    wrap.appendChild(lField);
 
     // voice
     var vField = el('label', 'field', 'Computer voice — used only for lines you have not recorded yourself');

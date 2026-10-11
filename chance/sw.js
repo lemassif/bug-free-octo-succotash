@@ -5,7 +5,7 @@
    Speech synthesis is built into iOS and works offline too; only
    the microphone check needs a connection on some devices. */
 
-const CACHE = 'chance-academy-v1.4.0';
+const CACHE = 'chance-academy-v1.5.0';
 const ASSETS = [
   './',
   './index.html',
@@ -19,6 +19,7 @@ const ASSETS = [
   './data/unit1-space.js',
   './data/unit2-woods.js',
   './data/unit3-forces.js',
+  './data/grade2.js',
   './js/phonics.js',
   './js/updater.js',
   './js/homework.js',
@@ -52,6 +53,11 @@ self.addEventListener('activate', (e) => {
 // background refresh so edits to the curriculum show up next launch.
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  // the update check must always ask the server, and never be stored
+  if (new URL(e.request.url).pathname.endsWith('/version.json')) {
+    e.respondWith(fetch(e.request).catch(() => caches.match('./version.json')));
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then((cached) => {
       const network = fetch(e.request).then((resp) => {
