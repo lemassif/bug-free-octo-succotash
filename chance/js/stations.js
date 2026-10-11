@@ -72,8 +72,10 @@ window.Stations = (function () {
       card.appendChild(wrap);
       stage.appendChild(card);
 
-      // read the whole item aloud, then let him answer
-      var spoken = [item.story, item.q].filter(Boolean).concat(order.map(function (c, i) {
+      // read the whole item aloud, then let him answer. meta.spoken
+      // lets a caller supply a say-able version — "7 times 8" reads
+      // properly where the written "7 × 8" would not.
+      var spoken = [item.story, meta.spoken || item.q].filter(Boolean).concat(order.map(function (c, i) {
         return (i + 1) + '. ' + c.t;
       }));
       App.setReplay(function () { Voice.stop(); Voice.sayLines(spoken); });
@@ -244,6 +246,149 @@ window.Stations = (function () {
   /* ------------------------------------------------------------
      📖 READ & SAY  (phonics, out loud, with the microphone)
      ------------------------------------------------------------ */
+  /* ------------------------------------------------------------
+     wordCard() — one phonics word: tappable chunks, 🔊 hear it,
+     🐢 sound it out, 🎤 say it into the microphone.
+
+     Shared by the Read & Say station and by homework spelling
+     words, so a word photographed off a worksheet behaves exactly
+     like a word from the course: same chunking, same anchored
+     sounds, same pronunciation scoring, same owl.
+     ------------------------------------------------------------ */
+  function wordCard(o) {
+    stage.innerHTML = '';
+
+    var card = el('div', 'card');
+    var head = el('div', 'card-head');
+    head.appendChild(el('span', 'em', '📖'));
+    var ht = el('div');
+    ht.appendChild(el('span', 'tag', o.tag || 'READ & SAY'));
+    ht.appendChild(el('h3', null, o.title || 'Say the word'));
+    head.appendChild(ht);
+    card.appendChild(head);
+
+    var hero = el('div', 'word-hero');
+    var wordRow = el('div', 'word');
+    var chunkEls = o.parts.map(function (p, idx) {
+      var c = el('span', 'chunk', p);
+      c.addEventListener('click', function () {
+        Voice.stop();
+        light(idx);
+        // "f, like in fan" — or Grandpa's recorded /f/ if it exists
+        Voice.sayChunk(p, o.word, idx).then(function () { light(-1); });
+      });
+      wordRow.appendChild(c);
+      return c;
+    });
+    hero.appendChild(wordRow);
+    if (o.mean) hero.appendChild(el('div', 'say', o.mean));
+    card.appendChild(hero);
+
+    function light(k) {
+      chunkEls.forEach(function (c, idx) { c.classList.toggle('lit', idx === k); });
+    }
+
+    var micRow = el('div', 'mic-row');
+    var hearBtn = el('button', 'icon-btn', '🔊');
+    hearBtn.setAttribute('aria-label', 'Hear the word');
+    var slowBtn = el('button', 'icon-btn', '🐢');
+    slowBtn.setAttribute('aria-label', 'Sound it out slowly');
+    var mic = el('button', 'mic-btn', '🎤');
+    mic.setAttribute('aria-label', 'Say the word');
+    micRow.appendChild(hearBtn);
+    micRow.appendChild(mic);
+    micRow.appendChild(slowBtn);
+    card.appendChild(micRow);
+
+    var heard = el('div', 'heard', Voice.canListen()
+      ? 'Tap the microphone and say the word.'
+      : 'Tap 🐢 to hear the sounds, then say it out loud.');
+    card.appendChild(heard);
+    stage.appendChild(card);
+
+    function sayWord() { Voice.stop(); return Voice.say(o.word, { rate: 0.72 }); }
+    function soundOut() { Voice.stop(); return Voice.soundOut(o.word, o.parts, light); }
+    hearBtn.addEventListener('click', sayWord);
+    slowBtn.addEventListener('click', soundOut);
+    App.setReplay(soundOut);
+
+    var attempt = 0;
+    mic.addEventListener('click', function () {
+      if (!Voice.canListen()) {
+        soundOut().then(function () {
+          heard.innerHTML = 'Now you say it out loud, then tap <b>I said it</b>.';
+        });
+        return;
+      }
+      Voice.stop();
+      attempt++;
+      mic.classList.add('live');
+      heard.textContent = 'Listening…';
+      var t0 = Date.now();
+      Voice.listen({
+        ms: 5000,
+        onInterim: function (txt) { heard.innerHTML = 'I hear: <b>' + txt + '</b>'; }
+      }).then(function (res) {
+        mic.classList.remove('live');
+        if (res.reason === 'denied' || res.reason === 'unsupported') {
+          heard.textContent = 'Microphone is off. Tap 🐢 and say it out loud instead.';
+          return;
+        }
+        var conf = Voice.match(o.word, res.transcript, res.alternatives);
+        var v = Evaluate.judgeSpoken({
+          word: o.word, parts: o.parts, confidence: conf, attempt: attempt,
+          heard: res.transcript, ms: Date.now() - t0, itemId: o.itemId
+        });
+        App.setThinkMeter(v.focus);
+        App.showCoach(v.speak, v.tone);
+
+        if (v.correct) {
+          heard.innerHTML = '✅ <b>' + o.word + '</b> — that is it!';
+          chunkEls.forEach(function (c) { c.classList.add('lit'); });
+          App.burst(5);
+          Voice.say(v.speak).then(function () { App.hideCoach(); o.onDone(); });
+        } else {
+          heard.innerHTML = res.transcript ? 'I heard: <b>' + res.transcript + '</b>' : 'I did not catch that.';
+          Voice.say(v.speak).then(function () {
+            if (attempt >= 2) return soundOut();
+          }).then(function () {
+            if (attempt >= 3) {
+              heard.innerHTML = 'Good trying. Tap <b>Next</b> — we will practice this one again.';
+              App.setActions([
+                { label: 'Try again', em: '🎤', cls: 'ghost', fn: function () { mic.click(); } },
+                { label: 'Next word', em: '➡️', cls: '', fn: function () { App.hideCoach(); o.onDone(); } }
+              ]);
+            }
+          });
+        }
+      });
+    });
+
+    /* "I said it" is the honour-system path: it exists so a dead
+       microphone, a noisy room or a shy morning never blocks the
+       lesson. It still credits the word so the Word Sayer badge is
+       reachable without the mic, but it is logged as self-reported
+       so the grown-up report does not mistake it for a checked
+       pronunciation. */
+    App.setActions([
+      {
+        label: 'I said it', em: '👍', cls: 'sun', fn: function () {
+          if (attempt === 0 && !Progress.stationDone(o.dayId, o.station)) {
+            Progress.logEvent({
+              t: Date.now(), dayId: o.dayId, itemId: o.itemId,
+              station: o.station, domain: 'phonics', correct: true,
+              attempt: 1, ms: 0, flags: ['self-reported']
+            });
+          }
+          App.hideCoach();
+          o.onDone();
+        }
+      }
+    ]);
+
+    soundOut();
+  }
+
   function reading(day) {
     var r = day.reading;
     var wi = 0;
@@ -252,147 +397,17 @@ window.Stations = (function () {
     function wordStep() {
       App.setPips(wi, r.words.length + 2);
       var word = r.words[wi];
-      stage.innerHTML = '';
-
-      var card = el('div', 'card');
-      var head = el('div', 'card-head');
-      head.appendChild(el('span', 'em', '📖'));
-      var ht = el('div');
-      ht.appendChild(el('span', 'tag', 'READ & SAY · ' + (day.phonicsFocus || '').toUpperCase()));
-      ht.appendChild(el('h3', null, 'Word ' + (wi + 1) + ' of ' + r.words.length));
-      head.appendChild(ht);
-      card.appendChild(head);
-
-      var hero = el('div', 'word-hero');
-      var wordRow = el('div', 'word');
-      var chunkEls = word.parts.map(function (p, idx) {
-        var c = el('span', 'chunk', p);
-        c.addEventListener('click', function () {
-          Voice.stop();
-          light(idx);
-          // "f, like in fan" — or Grandpa's recorded /f/ if it exists
-          Voice.sayChunk(p, word.w, idx).then(function () { light(-1); });
-        });
-        wordRow.appendChild(c);
-        return c;
-      });
-      hero.appendChild(wordRow);
-      if (word.mean) hero.appendChild(el('div', 'say', word.mean));
-      card.appendChild(hero);
-
-      function light(k) {
-        chunkEls.forEach(function (c, idx) { c.classList.toggle('lit', idx === k); });
-      }
-
-      var micRow = el('div', 'mic-row');
-      var hearBtn = el('button', 'icon-btn', '🔊');
-      hearBtn.setAttribute('aria-label', 'Hear the word');
-      var slowBtn = el('button', 'icon-btn', '🐢');
-      slowBtn.setAttribute('aria-label', 'Sound it out slowly');
-      var mic = el('button', 'mic-btn', '🎤');
-      mic.setAttribute('aria-label', 'Say the word');
-      micRow.appendChild(hearBtn);
-      micRow.appendChild(mic);
-      micRow.appendChild(slowBtn);
-      card.appendChild(micRow);
-
-      var heard = el('div', 'heard', Voice.canListen() ? 'Tap the microphone and say the word.' : 'Tap 🐢 to hear the sounds, then say it out loud.');
-      card.appendChild(heard);
-      stage.appendChild(card);
-
-      function sayWord() { Voice.stop(); return Voice.say(word.w, { rate: 0.72 }); }
-      function soundOut() {
-        Voice.stop();
-        return Voice.soundOut(word.w, word.parts, light);
-      }
-      hearBtn.addEventListener('click', sayWord);
-      slowBtn.addEventListener('click', soundOut);
-      App.setReplay(soundOut);
-
-      var attempt = 0;
-      mic.addEventListener('click', function () {
-        if (!Voice.canListen()) {
-          soundOut().then(function () {
-            heard.innerHTML = 'Now you say it out loud, then tap <b>I said it</b>.';
-          });
-          return;
+      wordCard({
+        word: word.w, parts: word.parts, mean: word.mean,
+        tag: 'READ & SAY · ' + (day.phonicsFocus || '').toUpperCase(),
+        title: 'Word ' + (wi + 1) + ' of ' + r.words.length,
+        itemId: day.id + '-w' + wi, dayId: day.id, station: 'reading',
+        onDone: function () {
+          wi++;
+          if (wi < r.words.length) wordStep();
+          else sentenceStep();
         }
-        Voice.stop();
-        attempt++;
-        mic.classList.add('live');
-        heard.textContent = 'Listening…';
-        var t0 = Date.now();
-        Voice.listen({
-          ms: 5000,
-          onInterim: function (txt) { heard.innerHTML = 'I hear: <b>' + txt + '</b>'; }
-        }).then(function (res) {
-          mic.classList.remove('live');
-          if (res.reason === 'denied' || res.reason === 'unsupported') {
-            heard.textContent = 'Microphone is off. Tap 🐢 and say it out loud instead.';
-            return;
-          }
-          var conf = Voice.match(word.w, res.transcript, res.alternatives);
-          var v = Evaluate.judgeSpoken({
-            word: word.w, parts: word.parts, confidence: conf, attempt: attempt,
-            heard: res.transcript, ms: Date.now() - t0, itemId: day.id + '-w' + wi
-          });
-          App.setThinkMeter(v.focus);
-          App.showCoach(v.speak, v.tone);
-
-          if (v.correct) {
-            heard.innerHTML = '✅ <b>' + word.w + '</b> — that is it!';
-            chunkEls.forEach(function (c) { c.classList.add('lit'); });
-            App.burst(5);
-            Voice.say(v.speak).then(function () { App.hideCoach(); advance(); });
-          } else {
-            heard.innerHTML = res.transcript ? 'I heard: <b>' + res.transcript + '</b>' : 'I did not catch that.';
-            Voice.say(v.speak).then(function () {
-              if (attempt >= 2) return soundOut();
-            }).then(function () {
-              if (attempt >= 3) {
-                heard.innerHTML = 'Good trying. Tap <b>Next</b> — we will practice this one again on the Word Wall.';
-                App.setActions([
-                  { label: 'Try again', em: '🎤', cls: 'ghost', fn: function () { mic.click(); } },
-                  { label: 'Next word', em: '➡️', cls: '', fn: function () { App.hideCoach(); advance(); } }
-                ]);
-              }
-            });
-          }
-        });
       });
-
-      /* "I said it" is the honour-system path: it exists so a dead
-         microphone, a noisy room or a shy morning never blocks the
-         lesson. It still credits the word so the Word Sayer badge is
-         reachable without the mic, but it is logged as self-reported
-         so the grown-up report does not mistake it for a checked
-         pronunciation. */
-      App.setActions([
-        {
-          label: 'I said it', em: '👍', cls: 'sun', fn: function () {
-            // Only when the mic was never used on this word — otherwise
-            // judgeSpoken already logged the real attempt and we would
-            // be scoring the same word twice.
-            if (attempt === 0 && !Progress.stationDone(day.id, 'reading')) {
-              Progress.logEvent({
-                t: Date.now(), dayId: day.id, itemId: day.id + '-w' + wi,
-                station: 'reading', domain: 'phonics', correct: true,
-                attempt: 1, ms: 0, flags: ['self-reported']
-              });
-            }
-            App.hideCoach();
-            advance();
-          }
-        }
-      ]);
-
-      soundOut();
-
-      function advance() {
-        wi++;
-        if (wi < r.words.length) wordStep();
-        else sentenceStep();
-      }
     }
 
     /* the sentence: science vocabulary in a real sentence */
@@ -475,6 +490,119 @@ window.Stations = (function () {
   }
 
   /* ------------------------------------------------------------
+     📸 HOMEWORK — his real worksheet, photographed
+
+     The photo sits at the top the whole time so he can look back at
+     the actual problem, and the practice items run through the same
+     ask() machinery as the course: shuffled choices, tagged wrong
+     answers, the owl, the scaffold on a third miss. Spelling words
+     go through the same wordCard as Read & Say.
+     ------------------------------------------------------------ */
+  function homework(pack) {
+    var items = (pack.items || []).slice();
+    var i = 0;
+
+    /* The container goes in synchronously and fills in when the blob
+       loads — otherwise the question card, which is appended right
+       after this returns, ends up above the worksheet it is about. */
+    function showPhotos(container) {
+      var ids = pack.photoIds || [];
+      if (!ids.length) return;
+      var holder = el('div', 'hw-photos');
+      container.appendChild(holder);
+      ids.forEach(function (pid) {
+        var fig = el('div', 'hw-photo');
+        holder.appendChild(fig);
+        Homework.photo(pid).then(function (rec) {
+          if (!rec) return;
+          var url = URL.createObjectURL(rec.blob);
+          var img = document.createElement('img');
+          img.src = url;
+          img.alt = 'Homework photo';
+          img.addEventListener('click', function () { App.showPhoto(url); });
+          fig.appendChild(img);
+          fig.appendChild(el('div', 'hw-tap', 'Tap the picture to make it big'));
+        });
+      });
+    }
+
+    /* No items yet: the photo on its own is still worth something —
+       he reads the worksheet, does it on paper, and taps done. */
+    function lookAndDo() {
+      stage.innerHTML = '';
+      var card = el('div', 'card');
+      var head = el('div', 'card-head');
+      head.appendChild(el('span', 'em', '📸'));
+      var ht = el('div');
+      ht.appendChild(el('span', 'tag', 'HOMEWORK'));
+      ht.appendChild(el('h3', null, pack.title));
+      head.appendChild(ht);
+      card.appendChild(head);
+      showPhotos(card);
+      card.appendChild(el('div', 'heard', 'Do it on paper, then tap the button.'));
+      stage.appendChild(card);
+      App.setPips(0, 1);
+      App.setReplay(function () { Voice.say('Here is your homework. ' + pack.title + '.'); });
+      Voice.say('Here is your homework. Do it on paper, then tap the button.');
+      App.setActions([{
+        label: 'I finished it', em: '✅', cls: 'sun', fn: function () {
+          App.setPips(1, 1);
+          finishHomework(pack);
+        }
+      }]);
+    }
+
+    function nextItem() {
+      if (i >= items.length) return finishHomework(pack);
+      App.setPips(i, items.length);
+      var item = items[i];
+      stage.innerHTML = '';
+
+      var head = el('div', 'card-head');
+      head.appendChild(el('span', 'em', '📸'));
+      var ht = el('div');
+      ht.appendChild(el('span', 'tag', 'HOMEWORK · ' + (i + 1) + ' OF ' + items.length));
+      ht.appendChild(el('h3', null, pack.title));
+      head.appendChild(ht);
+      stage.appendChild(head);
+
+      showPhotos(stage);   // the worksheet stays up, every question
+
+      App.setActions([]);
+
+      if (item.kind === 'word') {
+        wordCard({
+          word: item.word, parts: item.parts,
+          tag: 'HOMEWORK SPELLING · ' + (i + 1) + ' OF ' + items.length,
+          title: 'Say the word',
+          itemId: pack.id + '-' + item.id, dayId: pack.id, station: 'homework',
+          onDone: function () { i++; nextItem(); }
+        });
+        return;
+      }
+
+      ask(item, {
+        itemId: pack.id + '-' + item.id,
+        station: 'homework',
+        domain: item.kind === 'math' ? 'homework-math' : 'homework-question',
+        dayId: pack.id,
+        spoken: item.spoken
+      }).then(function () { i++; nextItem(); });
+    }
+
+    if (!items.length) lookAndDo();
+    else nextItem();
+  }
+
+  /* Homework earns stars and feeds the Thinking Report, but it does
+     not advance the 60-day course — it is extra, not a substitute. */
+  function finishHomework(pack) {
+    var res = Progress.completeStation(pack.id, 'homework');
+    var summary = Evaluate.sessionSummary();
+    App.homeworkFinished(pack, res, summary);
+  }
+
+  /* ------------------------------------------------------------
      end of a station
      ------------------------------------------------------------ */
   function finish(day, station) {
@@ -492,7 +620,8 @@ window.Stations = (function () {
       Evaluate.startSession(day.id);
     }
     App.setThinkMeter(Evaluate.currentSession().focus);
-    if (station === 'discover') discover(day);
+    if (station === 'homework') homework(day);     // `day` is a homework pack here
+    else if (station === 'discover') discover(day);
     else if (station === 'numbers') numbers(day);
     else reading(day);
   }

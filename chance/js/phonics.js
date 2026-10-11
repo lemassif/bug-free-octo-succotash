@@ -80,11 +80,16 @@ window.Phonics = (function () {
     bl: { a: 'black', a2: 'blue' }, br: { a: 'brick', a2: 'bring' },
     cl: { a: 'clap', a2: 'clock' }, cr: { a: 'crab', a2: 'cross' },
     dr: { a: 'drum', a2: 'dress' }, fl: { a: 'flag', a2: 'floor' },
-    gl: { a: 'glad', a2: 'glue' }, gr: { a: 'grab', a2: 'green' },
-    pl: { a: 'plan', a2: 'plus' }, sl: { a: 'sled', a2: 'slid' },
+    fr: { a: 'frog', a2: 'fresh' }, gl: { a: 'glad', a2: 'glue' },
+    gr: { a: 'grab', a2: 'green' }, pl: { a: 'plan', a2: 'plus' },
+    pr: { a: 'prize', a2: 'press' }, sc: { a: 'scat', a2: 'scoop' },
+    sk: { a: 'skip', a2: 'sky' }, sl: { a: 'sled', a2: 'slid' },
+    sm: { a: 'smile', a2: 'small' }, sn: { a: 'snap', a2: 'snow' },
     sw: { a: 'swim', a2: 'sweet' }, tr: { a: 'tree', a2: 'truck' },
-    scr: { a: 'scrap', a2: 'scrub' }, spl: { a: 'split', a2: 'splint' },
-    spr: { a: 'sprint', a2: 'spray' }, str: { a: 'street', a2: 'string' },
+    tw: { a: 'twin', a2: 'twelve' }, qu: { a: 'queen', a2: 'quick' },
+    scr: { a: 'scrap', a2: 'scrub' }, shr: { a: 'shrink', a2: 'shrug' },
+    spl: { a: 'split', a2: 'splint' }, spr: { a: 'sprint', a2: 'spray' },
+    squ: { a: 'square', a2: 'squish' }, str: { a: 'street', a2: 'string' },
     thr: { a: 'three', a2: 'throw' },
 
     /* ---- short vowels. The letter NAME is the long sound, so
@@ -106,6 +111,12 @@ window.Phonics = (function () {
     oo: { a: 'moon', a2: 'soon', lead: 'o o says oo' },
     ou: { a: 'cloud', a2: 'shout', lead: 'o u says ow' },
     ow: { a: 'snow', a2: 'yellow', lead: 'o w says oh' },
+    oi: { a: 'coin', a2: 'join', lead: 'o i says oy' },
+    oy: { a: 'boy', a2: 'toy' },
+    au: { a: 'haul', a2: 'launch', lead: 'a u says aw' },
+    aw: { a: 'saw', a2: 'claw' },
+    ue: { a: 'blue', a2: 'glue', lead: 'u e says oo' },
+    ie: { a: 'pie', a2: 'tie' },
     aigh: { a: 'rain', a2: 'eight', lead: 'a i g h says ay' },
     igh: { a: 'night', a2: 'high', lead: 'i g h says long i' },
 
@@ -287,8 +298,49 @@ window.Phonics = (function () {
     return problems;
   }
 
+  /* Split a word the app has never seen into decodable chunks, using
+     the same table the curriculum uses. Longest match wins, and a
+     vowel-less tail is folded back into the chunk before it so we
+     never strand a lone consonant.
+
+     This is good enough for homework spelling words typed in by a
+     grown-up, who can always override it by typing the split with
+     hyphens ("sh-ad-ow"). It is not used for the 180 curriculum
+     words — those are split by hand in the data files. */
+  function split(word) {
+    var w = String(word || '').toLowerCase().replace(/[^a-z]/g, '');
+    if (!w) return [];
+    var sizes = [4, 3, 2];
+    var out = [], i = 0;
+    while (i < w.length) {
+      var hit = null;
+      for (var s = 0; s < sizes.length && !hit; s++) {
+        var n = sizes[s];
+        if (i + n > w.length) continue;
+        var piece = w.substr(i, n);
+        if (CHUNKS[piece]) hit = piece;
+      }
+      if (!hit) hit = w[i];
+      /* Don't swallow a vowel that an "r" is waiting to claim:
+         "circle" must split c|ir|cle, not ci|r|cle. */
+      if (hit.length > 1 && /[aeiou]$/.test(hit) && w[i + hit.length] === 'r') {
+        hit = hit.slice(0, -1);
+      }
+      out.push(hit);
+      i += hit.length;
+    }
+    // never leave a trailing chunk with no vowel standing alone
+    for (var k = out.length - 1; k > 0; k--) {
+      if (!/[aeiouy]/.test(out[k]) && !CHUNKS[out[k]]) {
+        out[k - 1] += out[k];
+        out.splice(k, 1);
+      }
+    }
+    return out;
+  }
+
   return {
     script: script, chunkPhrase: chunkPhrase, allChunks: allChunks,
-    audit: audit, entryFor: entryFor
+    audit: audit, entryFor: entryFor, split: split
   };
 })();

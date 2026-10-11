@@ -5,12 +5,13 @@
    Speech synthesis is built into iOS and works offline too; only
    the microphone check needs a connection on some devices. */
 
-const CACHE = 'chance-academy-v1';
+const CACHE = 'chance-academy-v1.4.0';
 const ASSETS = [
   './',
   './index.html',
   './app.css',
   './manifest.webmanifest',
+  './version.json',
   './icon-180.png',
   './icon-192.png',
   './icon-512.png',
@@ -19,6 +20,8 @@ const ASSETS = [
   './data/unit2-woods.js',
   './data/unit3-forces.js',
   './js/phonics.js',
+  './js/updater.js',
+  './js/homework.js',
   './js/recordings.js',
   './js/voice.js',
   './js/evaluate.js',
@@ -27,6 +30,7 @@ const ASSETS = [
   './js/stations.js',
   './js/grownup.js',
   './js/studio.js',
+  './js/hwui.js',
   './js/app.js'
 ];
 

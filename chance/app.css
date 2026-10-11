@@ -333,6 +333,37 @@ table.tbl th { background: #eef4fb; font-size: 13px; letter-spacing: .5px; }
   border: 2px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink);
 }
 
+/* ---------------------------- HOMEWORK ------------------------------ */
+.hw-photo { margin: 10px 0; text-align: center; }
+.hw-photos { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.hw-photo img {
+  width: 100%; max-height: 26vh; object-fit: contain;
+  border-radius: 14px; border: 2px solid var(--line); background: #fff;
+}
+.hw-tap { font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
+.hw-thumb {
+  width: 100%; height: 92px; border-radius: 12px; overflow: hidden;
+  background: #eef4fb; display: grid; place-items: center; font-size: 34px;
+}
+.hw-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.tile-hw { border-color: #ffd9a8; background: #fffaf2; }
+.hw-card { cursor: pointer; }
+
+/* Page pinch-zoom is disabled app-wide, so a worksheet photo gets its
+   own full-screen viewer with a zoom step and a scrollable surface. */
+.photo-full {
+  position: fixed; inset: 0; z-index: 80; background: #0f2a4a;
+  overflow: auto; -webkit-overflow-scrolling: touch;
+  padding: 0 0 92px;
+}
+.photo-full img { display: block; width: 100%; height: auto; }
+.photo-bar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  padding: 12px 14px max(14px, env(safe-area-inset-bottom));
+  background: rgba(15, 42, 74, .92);
+  display: flex; gap: 10px; justify-content: center;
+}
+
 /* ----------------------------- CONFETTI ----------------------------- */
 .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 70; overflow: hidden; }
 .confetti i {

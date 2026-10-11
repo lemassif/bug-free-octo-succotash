@@ -335,6 +335,37 @@ table.tbl th { background: #eef4fb; font-size: 13px; letter-spacing: .5px; }
   border: 2px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink);
 }
 
+/* ---------------------------- HOMEWORK ------------------------------ */
+.hw-photo { margin: 10px 0; text-align: center; }
+.hw-photos { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.hw-photo img {
+  width: 100%; max-height: 26vh; object-fit: contain;
+  border-radius: 14px; border: 2px solid var(--line); background: #fff;
+}
+.hw-tap { font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
+.hw-thumb {
+  width: 100%; height: 92px; border-radius: 12px; overflow: hidden;
+  background: #eef4fb; display: grid; place-items: center; font-size: 34px;
+}
+.hw-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.tile-hw { border-color: #ffd9a8; background: #fffaf2; }
+.hw-card { cursor: pointer; }
+
+/* Page pinch-zoom is disabled app-wide, so a worksheet photo gets its
+   own full-screen viewer with a zoom step and a scrollable surface. */
+.photo-full {
+  position: fixed; inset: 0; z-index: 80; background: #0f2a4a;
+  overflow: auto; -webkit-overflow-scrolling: touch;
+  padding: 0 0 92px;
+}
+.photo-full img { display: block; width: 100%; height: auto; }
+.photo-bar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  padding: 12px 14px max(14px, env(safe-area-inset-bottom));
+  background: rgba(15, 42, 74, .92);
+  display: flex; gap: 10px; justify-content: center;
+}
+
 /* ----------------------------- CONFETTI ----------------------------- */
 .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 70; overflow: hidden; }
 .confetti i {
@@ -388,6 +419,10 @@ table.tbl th { background: #eef4fb; font-size: 13px; letter-spacing: .5px; }
     </button>
     <button class="tile tile-word" data-go="wordwall">
       <span class="tile-icon">🗣️</span><span class="tile-label">Word Wall</span>
+    </button>
+    <button class="tile tile-hw" data-go="homework">
+      <span class="tile-icon">📸</span><span class="tile-label">Homework</span>
+      <span class="tile-count" id="tileHwCount" hidden>0</span>
     </button>
   </nav>
 
@@ -463,6 +498,26 @@ table.tbl th { background: #eef4fb; font-size: 13px; letter-spacing: .5px; }
     <span class="spacer"></span>
   </header>
   <div class="scroll" id="grownupBody"></div>
+</section>
+
+<!-- =========================== HOMEWORK ========================= -->
+<section class="screen" id="screen-homework" data-screen="homework" hidden>
+  <header class="bar-top">
+    <button class="icon-btn" data-go="home" aria-label="Home">🏠</button>
+    <h2>Homework</h2>
+    <span class="spacer"></span>
+  </header>
+  <div class="scroll" id="homeworkBody"></div>
+</section>
+
+<!-- ======================= HOMEWORK EDITOR ====================== -->
+<section class="screen" id="screen-hwedit" data-screen="hwedit" hidden>
+  <header class="bar-top">
+    <button class="icon-btn" data-go="grownup" aria-label="Back to grown-ups">⬅️</button>
+    <h2>Homework Photos</h2>
+    <span class="spacer"></span>
+  </header>
+  <div class="scroll" id="hwEditBody"></div>
 </section>
 
 <!-- ============================ STUDIO ========================== -->
@@ -4673,11 +4728,16 @@ window.Phonics = (function () {
     bl: { a: 'black', a2: 'blue' }, br: { a: 'brick', a2: 'bring' },
     cl: { a: 'clap', a2: 'clock' }, cr: { a: 'crab', a2: 'cross' },
     dr: { a: 'drum', a2: 'dress' }, fl: { a: 'flag', a2: 'floor' },
-    gl: { a: 'glad', a2: 'glue' }, gr: { a: 'grab', a2: 'green' },
-    pl: { a: 'plan', a2: 'plus' }, sl: { a: 'sled', a2: 'slid' },
+    fr: { a: 'frog', a2: 'fresh' }, gl: { a: 'glad', a2: 'glue' },
+    gr: { a: 'grab', a2: 'green' }, pl: { a: 'plan', a2: 'plus' },
+    pr: { a: 'prize', a2: 'press' }, sc: { a: 'scat', a2: 'scoop' },
+    sk: { a: 'skip', a2: 'sky' }, sl: { a: 'sled', a2: 'slid' },
+    sm: { a: 'smile', a2: 'small' }, sn: { a: 'snap', a2: 'snow' },
     sw: { a: 'swim', a2: 'sweet' }, tr: { a: 'tree', a2: 'truck' },
-    scr: { a: 'scrap', a2: 'scrub' }, spl: { a: 'split', a2: 'splint' },
-    spr: { a: 'sprint', a2: 'spray' }, str: { a: 'street', a2: 'string' },
+    tw: { a: 'twin', a2: 'twelve' }, qu: { a: 'queen', a2: 'quick' },
+    scr: { a: 'scrap', a2: 'scrub' }, shr: { a: 'shrink', a2: 'shrug' },
+    spl: { a: 'split', a2: 'splint' }, spr: { a: 'sprint', a2: 'spray' },
+    squ: { a: 'square', a2: 'squish' }, str: { a: 'street', a2: 'string' },
     thr: { a: 'three', a2: 'throw' },
 
     /* ---- short vowels. The letter NAME is the long sound, so
@@ -4699,6 +4759,12 @@ window.Phonics = (function () {
     oo: { a: 'moon', a2: 'soon', lead: 'o o says oo' },
     ou: { a: 'cloud', a2: 'shout', lead: 'o u says ow' },
     ow: { a: 'snow', a2: 'yellow', lead: 'o w says oh' },
+    oi: { a: 'coin', a2: 'join', lead: 'o i says oy' },
+    oy: { a: 'boy', a2: 'toy' },
+    au: { a: 'haul', a2: 'launch', lead: 'a u says aw' },
+    aw: { a: 'saw', a2: 'claw' },
+    ue: { a: 'blue', a2: 'glue', lead: 'u e says oo' },
+    ie: { a: 'pie', a2: 'tie' },
     aigh: { a: 'rain', a2: 'eight', lead: 'a i g h says ay' },
     igh: { a: 'night', a2: 'high', lead: 'i g h says long i' },
 
@@ -4880,9 +4946,534 @@ window.Phonics = (function () {
     return problems;
   }
 
+  /* Split a word the app has never seen into decodable chunks, using
+     the same table the curriculum uses. Longest match wins, and a
+     vowel-less tail is folded back into the chunk before it so we
+     never strand a lone consonant.
+
+     This is good enough for homework spelling words typed in by a
+     grown-up, who can always override it by typing the split with
+     hyphens ("sh-ad-ow"). It is not used for the 180 curriculum
+     words — those are split by hand in the data files. */
+  function split(word) {
+    var w = String(word || '').toLowerCase().replace(/[^a-z]/g, '');
+    if (!w) return [];
+    var sizes = [4, 3, 2];
+    var out = [], i = 0;
+    while (i < w.length) {
+      var hit = null;
+      for (var s = 0; s < sizes.length && !hit; s++) {
+        var n = sizes[s];
+        if (i + n > w.length) continue;
+        var piece = w.substr(i, n);
+        if (CHUNKS[piece]) hit = piece;
+      }
+      if (!hit) hit = w[i];
+      /* Don't swallow a vowel that an "r" is waiting to claim:
+         "circle" must split c|ir|cle, not ci|r|cle. */
+      if (hit.length > 1 && /[aeiou]$/.test(hit) && w[i + hit.length] === 'r') {
+        hit = hit.slice(0, -1);
+      }
+      out.push(hit);
+      i += hit.length;
+    }
+    // never leave a trailing chunk with no vowel standing alone
+    for (var k = out.length - 1; k > 0; k--) {
+      if (!/[aeiouy]/.test(out[k]) && !CHUNKS[out[k]]) {
+        out[k - 1] += out[k];
+        out.splice(k, 1);
+      }
+    }
+    return out;
+  }
+
   return {
     script: script, chunkPhrase: chunkPhrase, allChunks: allChunks,
-    audit: audit, entryFor: entryFor
+    audit: audit, entryFor: entryFor, split: split
+  };
+})();
+
+
+/* ===== js/updater.js ===== */
+/* ============================================================
+   updater.js — "update the app" from inside the app
+
+   Why this is needed at all: the service worker serves from cache
+   first so a lesson never stalls waiting on a network. That is the
+   right call at the creek with no signal, and the wrong one the day
+   a fix is published — the iPad will happily keep running the old
+   copy forever.
+
+   So there is a command inside the app that goes and gets the new
+   version:
+
+     Grown-Ups -> ⬆️ Update the app
+
+   It checks the server, says plainly whether anything is new, and
+   on confirmation throws away every cache, drops the old service
+   worker and reloads. Nothing he has earned is touched — stars,
+   badges, recordings and homework all live in localStorage and
+   IndexedDB, which this never clears.
+
+   It also checks quietly once on launch (and only when online), so
+   a new version announces itself rather than waiting to be found.
+   ============================================================ */
+
+window.Updater = (function () {
+
+  /* Bumped by the build. Compared against the copy on the server to
+     decide whether there is anything to get. */
+  var VERSION = '1.4.0';
+  var BUILT = '2026-10-11';
+
+  function current() { return { version: VERSION, built: BUILT }; }
+
+  function online() { return navigator.onLine !== false; }
+
+  /* Ask the server what it has, bypassing every cache on the way. */
+  function check() {
+    if (!online()) return Promise.resolve({ ok: false, reason: 'offline' });
+    var url = 'version.json?t=' + Date.now();
+    return fetch(url, { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('http ' + r.status);
+        return r.json();
+      })
+      .then(function (j) {
+        return {
+          ok: true,
+          latest: j.version,
+          built: j.built,
+          notes: j.notes || '',
+          newer: compare(j.version, VERSION) > 0
+        };
+      })
+      .catch(function (e) {
+        return { ok: false, reason: 'unreachable', detail: String(e.message || e) };
+      });
+  }
+
+  /* 1.10.0 is newer than 1.9.0 — string comparison gets that wrong. */
+  function compare(a, b) {
+    var pa = String(a || '0').split('.').map(Number);
+    var pb = String(b || '0').split('.').map(Number);
+    for (var i = 0; i < Math.max(pa.length, pb.length); i++) {
+      var x = pa[i] || 0, y = pb[i] || 0;
+      if (x !== y) return x > y ? 1 : -1;
+    }
+    return 0;
+  }
+
+  /* The actual update: drop every cache this app owns, unregister
+     the service worker so the next load fetches fresh, then reload.
+     Deliberately does NOT touch localStorage or IndexedDB. */
+  function install(onStep) {
+    var step = onStep || function () {};
+    step('Clearing the old copy…');
+    return clearCaches()
+      .then(function () {
+        step('Letting go of the old version…');
+        return unregister();
+      })
+      .then(function () {
+        step('Loading the new one…');
+        return new Promise(function (r) { setTimeout(r, 400); });
+      })
+      .then(function () {
+        // cache-busted so the shell itself cannot come from cache
+        var u = location.href.split('#')[0].split('?')[0];
+        location.replace(u + '?updated=' + Date.now());
+      });
+  }
+
+  function clearCaches() {
+    if (!window.caches || !caches.keys) return Promise.resolve();
+    return caches.keys().then(function (keys) {
+      return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+    }).catch(function () {});
+  }
+
+  function unregister() {
+    if (!navigator.serviceWorker || !navigator.serviceWorker.getRegistrations) return Promise.resolve();
+    return navigator.serviceWorker.getRegistrations().then(function (regs) {
+      return Promise.all(regs.map(function (r) { return r.unregister(); }));
+    }).catch(function () {});
+  }
+
+  /* A gentler nudge: ask the browser to re-fetch the worker. Enough
+     when the worker itself changed, which is the usual case. */
+  function refresh() {
+    if (!navigator.serviceWorker || !navigator.serviceWorker.getRegistrations) return Promise.resolve();
+    return navigator.serviceWorker.getRegistrations().then(function (regs) {
+      return Promise.all(regs.map(function (r) { return r.update(); }));
+    }).catch(function () {});
+  }
+
+  /* Quiet check on launch. Resolves with the check result so the
+     grown-up door can wear a dot when something is waiting. */
+  var launchResult = null;
+  function checkOnLaunch() {
+    if (!online()) return Promise.resolve(null);
+    return check().then(function (res) {
+      launchResult = res;
+      return res;
+    });
+  }
+  function lastCheck() { return launchResult; }
+
+  return {
+    current: current, check: check, install: install, refresh: refresh,
+    compare: compare, checkOnLaunch: checkOnLaunch, lastCheck: lastCheck,
+    clearCaches: clearCaches
+  };
+})();
+
+
+/* ===== js/homework.js ===== */
+/* ============================================================
+   homework.js — photograph the real homework, study it in the app
+
+   The idea: Chance's actual worksheet comes home, Grandpa snaps a
+   photo of it, and the app turns it into practice he can do with
+   the same owl, the same coaching and the same report as the
+   built-in curriculum.
+
+   The hard part is not the photo — it is that nobody is going to
+   hand-type twenty questions every night. So:
+
+   - A photo on its own is already useful: the Look & Do mode shows
+     it big and reads the instructions aloud.
+   - Typing "7 x 8" generates a complete question, with three wrong
+     answers chosen to match the mistakes a second-grader actually
+     makes, each carrying the right misconception tag so the live
+     evaluator and the Thinking Report keep working. Ten problems
+     takes about a minute.
+   - Typing a spelling word generates a Read & Say item, chunked by
+     the same phonics table the course uses.
+
+   Everything lives in IndexedDB on the device, like the voice
+   recordings. Photos are downscaled on import so a term's worth of
+   homework does not fill the iPad.
+   ============================================================ */
+
+window.Homework = (function () {
+
+  var DB_NAME = 'chance-homework';
+  var PACKS = 'packs', PHOTOS = 'photos';
+  var db = null;
+  var cache = [];          // packs in memory, newest first
+  var ready = false;
+
+  /* ------------------------- storage ------------------------- */
+  function open() {
+    return new Promise(function (resolve, reject) {
+      if (db) return resolve(db);
+      if (!window.indexedDB) return reject(new Error('no IndexedDB'));
+      var req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = function () {
+        var d = req.result;
+        if (!d.objectStoreNames.contains(PACKS)) d.createObjectStore(PACKS, { keyPath: 'id' });
+        if (!d.objectStoreNames.contains(PHOTOS)) d.createObjectStore(PHOTOS, { keyPath: 'id' });
+      };
+      req.onsuccess = function () { db = req.result; resolve(db); };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+  function store(name, mode) {
+    return open().then(function (d) { return d.transaction(name, mode).objectStore(name); });
+  }
+  function put(name, rec) {
+    return store(name, 'readwrite').then(function (s) {
+      return new Promise(function (res, rej) {
+        var r = s.put(rec);
+        r.onsuccess = function () { res(rec); };
+        r.onerror = function () { rej(r.error); };
+      });
+    });
+  }
+  function del(name, id) {
+    return store(name, 'readwrite').then(function (s) {
+      return new Promise(function (res) {
+        var r = s.delete(id);
+        r.onsuccess = function () { res(true); };
+        r.onerror = function () { res(false); };
+      });
+    });
+  }
+  function getAll(name) {
+    return store(name, 'readonly').then(function (s) {
+      return new Promise(function (res) {
+        var out = [], r = s.openCursor();
+        r.onsuccess = function () {
+          var c = r.result;
+          if (c) { out.push(c.value); c.continue(); } else res(out);
+        };
+        r.onerror = function () { res([]); };
+      });
+    }).catch(function () { return []; });
+  }
+  function get(name, id) {
+    return store(name, 'readonly').then(function (s) {
+      return new Promise(function (res) {
+        var r = s.get(id);
+        r.onsuccess = function () { res(r.result || null); };
+        r.onerror = function () { res(null); };
+      });
+    }).catch(function () { return null; });
+  }
+
+  function init() {
+    return getAll(PACKS).then(function (list) {
+      cache = list.sort(function (a, b) { return b.created - a.created; });
+      ready = true;
+      return cache;
+    });
+  }
+
+  function packs() { return cache; }
+  function pack(id) { return cache.filter(function (p) { return p.id === id; })[0] || null; }
+  function isReady() { return ready; }
+
+  function newId(prefix) {
+    return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function createPack(title) {
+    var p = {
+      id: newId('hw'),
+      title: title || defaultTitle(),
+      created: Date.now(),
+      date: new Date().toISOString().slice(0, 10),
+      photoIds: [],
+      items: []
+    };
+    cache.unshift(p);
+    return put(PACKS, p).then(function () { return p; });
+  }
+
+  function defaultTitle() {
+    var d = new Date();
+    return d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }) + ' homework';
+  }
+
+  function savePack(p) {
+    var i = cache.findIndex(function (x) { return x.id === p.id; });
+    if (i >= 0) cache[i] = p;
+    return put(PACKS, p);
+  }
+
+  function deletePack(p) {
+    cache = cache.filter(function (x) { return x.id !== p.id; });
+    var chain = Promise.resolve();
+    (p.photoIds || []).forEach(function (pid) { chain = chain.then(function () { return del(PHOTOS, pid); }); });
+    return chain.then(function () { return del(PACKS, p.id); });
+  }
+
+  /* --------------------------- photos ------------------------- */
+  /* Phone cameras produce 4000px, 4MB images. A worksheet is
+     perfectly readable at 1600px, and that keeps a whole term of
+     homework inside a sane amount of storage. */
+  var MAX_EDGE = 1600;
+
+  function addPhoto(packObj, file) {
+    return downscale(file).then(function (out) {
+      var rec = { id: newId('ph'), packId: packObj.id, blob: out.blob, w: out.w, h: out.h, created: Date.now() };
+      return put(PHOTOS, rec).then(function () {
+        packObj.photoIds = (packObj.photoIds || []).concat(rec.id);
+        return savePack(packObj).then(function () { return rec; });
+      });
+    });
+  }
+
+  function downscale(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        var w = img.naturalWidth, h = img.naturalHeight;
+        var scale = Math.min(1, MAX_EDGE / Math.max(w, h));
+        var cw = Math.round(w * scale), ch = Math.round(h * scale);
+        var c = document.createElement('canvas');
+        c.width = cw; c.height = ch;
+        c.getContext('2d').drawImage(img, 0, 0, cw, ch);
+        URL.revokeObjectURL(url);
+        var done = function (blob) {
+          if (!blob) return reject(new Error('could not read that picture'));
+          resolve({ blob: blob, w: cw, h: ch });
+        };
+        if (c.toBlob) c.toBlob(done, 'image/jpeg', 0.82);
+        else done(dataURLtoBlob(c.toDataURL('image/jpeg', 0.82)));
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('could not read that picture')); };
+      img.src = url;
+    });
+  }
+  function dataURLtoBlob(u) {
+    var parts = u.split(','), bin = atob(parts[1]), n = bin.length, arr = new Uint8Array(n);
+    while (n--) arr[n] = bin.charCodeAt(n);
+    return new Blob([arr], { type: 'image/jpeg' });
+  }
+
+  function photo(id) { return get(PHOTOS, id); }
+  function removePhoto(packObj, photoId) {
+    packObj.photoIds = (packObj.photoIds || []).filter(function (x) { return x !== photoId; });
+    return del(PHOTOS, photoId).then(function () { return savePack(packObj); });
+  }
+
+  /* ------------------- turning input into items ---------------- */
+
+  /* Parse "7 x 8", "7*8", "24 ÷ 3", "15-8", "9 + 6". Returns the
+     numbers and operator, or null if it is not a simple problem. */
+  function parseMath(text) {
+    var t = String(text || '').trim().replace(/[=?]+$/, '').trim();
+    var m = /^(\d{1,4})\s*([x×*·+\-−/÷])\s*(\d{1,4})$/i.exec(t);
+    if (!m) return null;
+    var a = parseInt(m[1], 10), b = parseInt(m[3], 10);
+    var opRaw = m[2];
+    var op = /[x×*·]/i.test(opRaw) ? '×' : (opRaw === '+' ? '+' : (/[-−]/.test(opRaw) ? '−' : '÷'));
+    if (op === '÷' && (b === 0 || a % b !== 0)) return null;   // keep it whole-number
+    if (op === '−' && b > a) return null;                      // no negatives at seven
+    return { a: a, b: b, op: op };
+  }
+
+  /* Build a full question from a parsed problem. Every wrong answer
+     carries the tag of the mistake that produces it, so the live
+     coaching and the Thinking Report keep working exactly as they
+     do for the built-in curriculum. */
+  function mathItem(p) {
+    var a = p.a, b = p.b, op = p.op, correct, wrong = [];
+
+    if (op === '×') {
+      correct = a * b;
+      wrong.push([a + b, 'additive-for-multiplicative']);
+      wrong.push([a * b - a, 'off-by-one']);            // skip-counted one group short
+      wrong.push([a * (b + 1), 'bigger-number-bias']);
+    } else if (op === '+') {
+      correct = a + b;
+      wrong.push([Math.abs(a - b), 'reversed-relation']);  // did the opposite operation
+      wrong.push([a + b + 1, 'off-by-one']);
+      wrong.push([a * b, 'bigger-number-bias']);
+    } else if (op === '−') {
+      correct = a - b;
+      wrong.push([a + b, 'reversed-relation']);
+      wrong.push([a - b + 1, 'off-by-one']);
+      wrong.push([b, 'surface-feature']);                  // copied a number from the question
+    } else {
+      correct = a / b;
+      wrong.push([a - b, 'reversed-relation']);
+      wrong.push([a * b, 'bigger-number-bias']);
+      wrong.push([a / b + 1, 'off-by-one']);
+    }
+
+    // no duplicates, nothing negative, nothing equal to the answer
+    var seen = { }, choices = [{ t: String(correct), correct: true }];
+    seen[correct] = true;
+    wrong.forEach(function (w) {
+      var v = w[0];
+      if (v == null || isNaN(v) || v < 0 || seen[v]) return;
+      seen[v] = true;
+      choices.push({ t: String(v), tag: w[1] });
+    });
+    // a question needs at least one distractor to be worth asking
+    var pad = 1;
+    while (choices.length < 3) {
+      var v = correct + pad;
+      if (!seen[v]) { seen[v] = true; choices.push({ t: String(v), tag: 'off-by-one' }); }
+      pad++;
+      if (pad > 12) break;
+    }
+
+    var names = { '×': 'times', '+': 'plus', '−': 'minus', '÷': 'divided by' };
+    return {
+      id: newId('it'),
+      kind: 'math',
+      source: a + ' ' + op + ' ' + b,
+      q: 'What is ' + a + ' ' + op + ' ' + b + '?',
+      spoken: 'What is ' + a + ' ' + names[op] + ' ' + b + '?',
+      choices: choices,
+      hint: hintFor(op, a, b),
+      show: a + ' ' + op + ' ' + b + ' = ' + correct + '.'
+    };
+  }
+
+  function hintFor(op, a, b) {
+    if (op === '×') return 'Think of ' + b + ' groups with ' + a + ' in each group. Count them up.';
+    if (op === '+') return 'Start at ' + a + ' and count on ' + b + ' more.';
+    if (op === '−') return 'Start at ' + a + ' and count back ' + b + '.';
+    return 'How many ' + b + 's fit inside ' + a + '?';
+  }
+
+  /* A spelling word becomes a Read & Say item: he sees the chunks,
+     hears them anchored, and says the word into the microphone.
+     Hyphens let a grown-up force the split: "sh-ad-ow". */
+  function wordItem(text) {
+    var raw = String(text || '').trim();
+    if (!raw) return null;
+    var word, parts;
+    if (raw.indexOf('-') !== -1) {
+      parts = raw.split('-').map(function (s) { return s.trim(); }).filter(Boolean);
+      word = parts.join('');
+    } else {
+      word = raw.replace(/\s+/g, '');
+      parts = window.Phonics && Phonics.split ? Phonics.split(word) : [word];
+    }
+    if (!word) return null;
+    return { id: newId('it'), kind: 'word', word: word, parts: parts };
+  }
+
+  /* A free-form question typed by a grown-up. Wrong answers are
+     optional; with none it becomes a say-it-out-loud prompt. */
+  function askItem(q, right, wrongs) {
+    var choices = [{ t: String(right), correct: true }];
+    (wrongs || []).forEach(function (w) {
+      if (w && String(w).trim()) choices.push({ t: String(w).trim(), tag: 'guess-plausible' });
+    });
+    return {
+      id: newId('it'), kind: 'ask', q: String(q),
+      choices: choices,
+      hint: 'Read the question again slowly.',
+      show: 'The answer is ' + right + '.'
+    };
+  }
+
+  function addItem(packObj, item) {
+    if (!item) return Promise.resolve(null);
+    packObj.items = (packObj.items || []).concat(item);
+    return savePack(packObj).then(function () { return item; });
+  }
+  function removeItem(packObj, itemId) {
+    packObj.items = (packObj.items || []).filter(function (x) { return x.id !== itemId; });
+    return savePack(packObj);
+  }
+
+  /* Accepts a whole list at once: "7x8, 6x7, 24/3" or one per line. */
+  function addMany(packObj, text) {
+    var lines = String(text || '').split(/[\n,;]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+    var made = [], skipped = [];
+    lines.forEach(function (line) {
+      var p = parseMath(line);
+      if (p) made.push(mathItem(p));
+      else skipped.push(line);
+    });
+    packObj.items = (packObj.items || []).concat(made);
+    return savePack(packObj).then(function () { return { made: made, skipped: skipped }; });
+  }
+
+  function stats() {
+    var items = 0, photos = 0;
+    cache.forEach(function (p) { items += (p.items || []).length; photos += (p.photoIds || []).length; });
+    return { packs: cache.length, items: items, photos: photos };
+  }
+
+  init();
+
+  return {
+    isReady: isReady, init: init, packs: packs, pack: pack,
+    createPack: createPack, savePack: savePack, deletePack: deletePack,
+    addPhoto: addPhoto, photo: photo, removePhoto: removePhoto,
+    parseMath: parseMath, mathItem: mathItem, wordItem: wordItem, askItem: askItem,
+    addItem: addItem, removeItem: removeItem, addMany: addMany,
+    stats: stats, defaultTitle: defaultTitle
   };
 })();
 
@@ -6532,8 +7123,10 @@ window.Stations = (function () {
       card.appendChild(wrap);
       stage.appendChild(card);
 
-      // read the whole item aloud, then let him answer
-      var spoken = [item.story, item.q].filter(Boolean).concat(order.map(function (c, i) {
+      // read the whole item aloud, then let him answer. meta.spoken
+      // lets a caller supply a say-able version — "7 times 8" reads
+      // properly where the written "7 × 8" would not.
+      var spoken = [item.story, meta.spoken || item.q].filter(Boolean).concat(order.map(function (c, i) {
         return (i + 1) + '. ' + c.t;
       }));
       App.setReplay(function () { Voice.stop(); Voice.sayLines(spoken); });
@@ -6704,6 +7297,149 @@ window.Stations = (function () {
   /* ------------------------------------------------------------
      📖 READ & SAY  (phonics, out loud, with the microphone)
      ------------------------------------------------------------ */
+  /* ------------------------------------------------------------
+     wordCard() — one phonics word: tappable chunks, 🔊 hear it,
+     🐢 sound it out, 🎤 say it into the microphone.
+
+     Shared by the Read & Say station and by homework spelling
+     words, so a word photographed off a worksheet behaves exactly
+     like a word from the course: same chunking, same anchored
+     sounds, same pronunciation scoring, same owl.
+     ------------------------------------------------------------ */
+  function wordCard(o) {
+    stage.innerHTML = '';
+
+    var card = el('div', 'card');
+    var head = el('div', 'card-head');
+    head.appendChild(el('span', 'em', '📖'));
+    var ht = el('div');
+    ht.appendChild(el('span', 'tag', o.tag || 'READ & SAY'));
+    ht.appendChild(el('h3', null, o.title || 'Say the word'));
+    head.appendChild(ht);
+    card.appendChild(head);
+
+    var hero = el('div', 'word-hero');
+    var wordRow = el('div', 'word');
+    var chunkEls = o.parts.map(function (p, idx) {
+      var c = el('span', 'chunk', p);
+      c.addEventListener('click', function () {
+        Voice.stop();
+        light(idx);
+        // "f, like in fan" — or Grandpa's recorded /f/ if it exists
+        Voice.sayChunk(p, o.word, idx).then(function () { light(-1); });
+      });
+      wordRow.appendChild(c);
+      return c;
+    });
+    hero.appendChild(wordRow);
+    if (o.mean) hero.appendChild(el('div', 'say', o.mean));
+    card.appendChild(hero);
+
+    function light(k) {
+      chunkEls.forEach(function (c, idx) { c.classList.toggle('lit', idx === k); });
+    }
+
+    var micRow = el('div', 'mic-row');
+    var hearBtn = el('button', 'icon-btn', '🔊');
+    hearBtn.setAttribute('aria-label', 'Hear the word');
+    var slowBtn = el('button', 'icon-btn', '🐢');
+    slowBtn.setAttribute('aria-label', 'Sound it out slowly');
+    var mic = el('button', 'mic-btn', '🎤');
+    mic.setAttribute('aria-label', 'Say the word');
+    micRow.appendChild(hearBtn);
+    micRow.appendChild(mic);
+    micRow.appendChild(slowBtn);
+    card.appendChild(micRow);
+
+    var heard = el('div', 'heard', Voice.canListen()
+      ? 'Tap the microphone and say the word.'
+      : 'Tap 🐢 to hear the sounds, then say it out loud.');
+    card.appendChild(heard);
+    stage.appendChild(card);
+
+    function sayWord() { Voice.stop(); return Voice.say(o.word, { rate: 0.72 }); }
+    function soundOut() { Voice.stop(); return Voice.soundOut(o.word, o.parts, light); }
+    hearBtn.addEventListener('click', sayWord);
+    slowBtn.addEventListener('click', soundOut);
+    App.setReplay(soundOut);
+
+    var attempt = 0;
+    mic.addEventListener('click', function () {
+      if (!Voice.canListen()) {
+        soundOut().then(function () {
+          heard.innerHTML = 'Now you say it out loud, then tap <b>I said it</b>.';
+        });
+        return;
+      }
+      Voice.stop();
+      attempt++;
+      mic.classList.add('live');
+      heard.textContent = 'Listening…';
+      var t0 = Date.now();
+      Voice.listen({
+        ms: 5000,
+        onInterim: function (txt) { heard.innerHTML = 'I hear: <b>' + txt + '</b>'; }
+      }).then(function (res) {
+        mic.classList.remove('live');
+        if (res.reason === 'denied' || res.reason === 'unsupported') {
+          heard.textContent = 'Microphone is off. Tap 🐢 and say it out loud instead.';
+          return;
+        }
+        var conf = Voice.match(o.word, res.transcript, res.alternatives);
+        var v = Evaluate.judgeSpoken({
+          word: o.word, parts: o.parts, confidence: conf, attempt: attempt,
+          heard: res.transcript, ms: Date.now() - t0, itemId: o.itemId
+        });
+        App.setThinkMeter(v.focus);
+        App.showCoach(v.speak, v.tone);
+
+        if (v.correct) {
+          heard.innerHTML = '✅ <b>' + o.word + '</b> — that is it!';
+          chunkEls.forEach(function (c) { c.classList.add('lit'); });
+          App.burst(5);
+          Voice.say(v.speak).then(function () { App.hideCoach(); o.onDone(); });
+        } else {
+          heard.innerHTML = res.transcript ? 'I heard: <b>' + res.transcript + '</b>' : 'I did not catch that.';
+          Voice.say(v.speak).then(function () {
+            if (attempt >= 2) return soundOut();
+          }).then(function () {
+            if (attempt >= 3) {
+              heard.innerHTML = 'Good trying. Tap <b>Next</b> — we will practice this one again.';
+              App.setActions([
+                { label: 'Try again', em: '🎤', cls: 'ghost', fn: function () { mic.click(); } },
+                { label: 'Next word', em: '➡️', cls: '', fn: function () { App.hideCoach(); o.onDone(); } }
+              ]);
+            }
+          });
+        }
+      });
+    });
+
+    /* "I said it" is the honour-system path: it exists so a dead
+       microphone, a noisy room or a shy morning never blocks the
+       lesson. It still credits the word so the Word Sayer badge is
+       reachable without the mic, but it is logged as self-reported
+       so the grown-up report does not mistake it for a checked
+       pronunciation. */
+    App.setActions([
+      {
+        label: 'I said it', em: '👍', cls: 'sun', fn: function () {
+          if (attempt === 0 && !Progress.stationDone(o.dayId, o.station)) {
+            Progress.logEvent({
+              t: Date.now(), dayId: o.dayId, itemId: o.itemId,
+              station: o.station, domain: 'phonics', correct: true,
+              attempt: 1, ms: 0, flags: ['self-reported']
+            });
+          }
+          App.hideCoach();
+          o.onDone();
+        }
+      }
+    ]);
+
+    soundOut();
+  }
+
   function reading(day) {
     var r = day.reading;
     var wi = 0;
@@ -6712,147 +7448,17 @@ window.Stations = (function () {
     function wordStep() {
       App.setPips(wi, r.words.length + 2);
       var word = r.words[wi];
-      stage.innerHTML = '';
-
-      var card = el('div', 'card');
-      var head = el('div', 'card-head');
-      head.appendChild(el('span', 'em', '📖'));
-      var ht = el('div');
-      ht.appendChild(el('span', 'tag', 'READ & SAY · ' + (day.phonicsFocus || '').toUpperCase()));
-      ht.appendChild(el('h3', null, 'Word ' + (wi + 1) + ' of ' + r.words.length));
-      head.appendChild(ht);
-      card.appendChild(head);
-
-      var hero = el('div', 'word-hero');
-      var wordRow = el('div', 'word');
-      var chunkEls = word.parts.map(function (p, idx) {
-        var c = el('span', 'chunk', p);
-        c.addEventListener('click', function () {
-          Voice.stop();
-          light(idx);
-          // "f, like in fan" — or Grandpa's recorded /f/ if it exists
-          Voice.sayChunk(p, word.w, idx).then(function () { light(-1); });
-        });
-        wordRow.appendChild(c);
-        return c;
-      });
-      hero.appendChild(wordRow);
-      if (word.mean) hero.appendChild(el('div', 'say', word.mean));
-      card.appendChild(hero);
-
-      function light(k) {
-        chunkEls.forEach(function (c, idx) { c.classList.toggle('lit', idx === k); });
-      }
-
-      var micRow = el('div', 'mic-row');
-      var hearBtn = el('button', 'icon-btn', '🔊');
-      hearBtn.setAttribute('aria-label', 'Hear the word');
-      var slowBtn = el('button', 'icon-btn', '🐢');
-      slowBtn.setAttribute('aria-label', 'Sound it out slowly');
-      var mic = el('button', 'mic-btn', '🎤');
-      mic.setAttribute('aria-label', 'Say the word');
-      micRow.appendChild(hearBtn);
-      micRow.appendChild(mic);
-      micRow.appendChild(slowBtn);
-      card.appendChild(micRow);
-
-      var heard = el('div', 'heard', Voice.canListen() ? 'Tap the microphone and say the word.' : 'Tap 🐢 to hear the sounds, then say it out loud.');
-      card.appendChild(heard);
-      stage.appendChild(card);
-
-      function sayWord() { Voice.stop(); return Voice.say(word.w, { rate: 0.72 }); }
-      function soundOut() {
-        Voice.stop();
-        return Voice.soundOut(word.w, word.parts, light);
-      }
-      hearBtn.addEventListener('click', sayWord);
-      slowBtn.addEventListener('click', soundOut);
-      App.setReplay(soundOut);
-
-      var attempt = 0;
-      mic.addEventListener('click', function () {
-        if (!Voice.canListen()) {
-          soundOut().then(function () {
-            heard.innerHTML = 'Now you say it out loud, then tap <b>I said it</b>.';
-          });
-          return;
+      wordCard({
+        word: word.w, parts: word.parts, mean: word.mean,
+        tag: 'READ & SAY · ' + (day.phonicsFocus || '').toUpperCase(),
+        title: 'Word ' + (wi + 1) + ' of ' + r.words.length,
+        itemId: day.id + '-w' + wi, dayId: day.id, station: 'reading',
+        onDone: function () {
+          wi++;
+          if (wi < r.words.length) wordStep();
+          else sentenceStep();
         }
-        Voice.stop();
-        attempt++;
-        mic.classList.add('live');
-        heard.textContent = 'Listening…';
-        var t0 = Date.now();
-        Voice.listen({
-          ms: 5000,
-          onInterim: function (txt) { heard.innerHTML = 'I hear: <b>' + txt + '</b>'; }
-        }).then(function (res) {
-          mic.classList.remove('live');
-          if (res.reason === 'denied' || res.reason === 'unsupported') {
-            heard.textContent = 'Microphone is off. Tap 🐢 and say it out loud instead.';
-            return;
-          }
-          var conf = Voice.match(word.w, res.transcript, res.alternatives);
-          var v = Evaluate.judgeSpoken({
-            word: word.w, parts: word.parts, confidence: conf, attempt: attempt,
-            heard: res.transcript, ms: Date.now() - t0, itemId: day.id + '-w' + wi
-          });
-          App.setThinkMeter(v.focus);
-          App.showCoach(v.speak, v.tone);
-
-          if (v.correct) {
-            heard.innerHTML = '✅ <b>' + word.w + '</b> — that is it!';
-            chunkEls.forEach(function (c) { c.classList.add('lit'); });
-            App.burst(5);
-            Voice.say(v.speak).then(function () { App.hideCoach(); advance(); });
-          } else {
-            heard.innerHTML = res.transcript ? 'I heard: <b>' + res.transcript + '</b>' : 'I did not catch that.';
-            Voice.say(v.speak).then(function () {
-              if (attempt >= 2) return soundOut();
-            }).then(function () {
-              if (attempt >= 3) {
-                heard.innerHTML = 'Good trying. Tap <b>Next</b> — we will practice this one again on the Word Wall.';
-                App.setActions([
-                  { label: 'Try again', em: '🎤', cls: 'ghost', fn: function () { mic.click(); } },
-                  { label: 'Next word', em: '➡️', cls: '', fn: function () { App.hideCoach(); advance(); } }
-                ]);
-              }
-            });
-          }
-        });
       });
-
-      /* "I said it" is the honour-system path: it exists so a dead
-         microphone, a noisy room or a shy morning never blocks the
-         lesson. It still credits the word so the Word Sayer badge is
-         reachable without the mic, but it is logged as self-reported
-         so the grown-up report does not mistake it for a checked
-         pronunciation. */
-      App.setActions([
-        {
-          label: 'I said it', em: '👍', cls: 'sun', fn: function () {
-            // Only when the mic was never used on this word — otherwise
-            // judgeSpoken already logged the real attempt and we would
-            // be scoring the same word twice.
-            if (attempt === 0 && !Progress.stationDone(day.id, 'reading')) {
-              Progress.logEvent({
-                t: Date.now(), dayId: day.id, itemId: day.id + '-w' + wi,
-                station: 'reading', domain: 'phonics', correct: true,
-                attempt: 1, ms: 0, flags: ['self-reported']
-              });
-            }
-            App.hideCoach();
-            advance();
-          }
-        }
-      ]);
-
-      soundOut();
-
-      function advance() {
-        wi++;
-        if (wi < r.words.length) wordStep();
-        else sentenceStep();
-      }
     }
 
     /* the sentence: science vocabulary in a real sentence */
@@ -6935,6 +7541,119 @@ window.Stations = (function () {
   }
 
   /* ------------------------------------------------------------
+     📸 HOMEWORK — his real worksheet, photographed
+
+     The photo sits at the top the whole time so he can look back at
+     the actual problem, and the practice items run through the same
+     ask() machinery as the course: shuffled choices, tagged wrong
+     answers, the owl, the scaffold on a third miss. Spelling words
+     go through the same wordCard as Read & Say.
+     ------------------------------------------------------------ */
+  function homework(pack) {
+    var items = (pack.items || []).slice();
+    var i = 0;
+
+    /* The container goes in synchronously and fills in when the blob
+       loads — otherwise the question card, which is appended right
+       after this returns, ends up above the worksheet it is about. */
+    function showPhotos(container) {
+      var ids = pack.photoIds || [];
+      if (!ids.length) return;
+      var holder = el('div', 'hw-photos');
+      container.appendChild(holder);
+      ids.forEach(function (pid) {
+        var fig = el('div', 'hw-photo');
+        holder.appendChild(fig);
+        Homework.photo(pid).then(function (rec) {
+          if (!rec) return;
+          var url = URL.createObjectURL(rec.blob);
+          var img = document.createElement('img');
+          img.src = url;
+          img.alt = 'Homework photo';
+          img.addEventListener('click', function () { App.showPhoto(url); });
+          fig.appendChild(img);
+          fig.appendChild(el('div', 'hw-tap', 'Tap the picture to make it big'));
+        });
+      });
+    }
+
+    /* No items yet: the photo on its own is still worth something —
+       he reads the worksheet, does it on paper, and taps done. */
+    function lookAndDo() {
+      stage.innerHTML = '';
+      var card = el('div', 'card');
+      var head = el('div', 'card-head');
+      head.appendChild(el('span', 'em', '📸'));
+      var ht = el('div');
+      ht.appendChild(el('span', 'tag', 'HOMEWORK'));
+      ht.appendChild(el('h3', null, pack.title));
+      head.appendChild(ht);
+      card.appendChild(head);
+      showPhotos(card);
+      card.appendChild(el('div', 'heard', 'Do it on paper, then tap the button.'));
+      stage.appendChild(card);
+      App.setPips(0, 1);
+      App.setReplay(function () { Voice.say('Here is your homework. ' + pack.title + '.'); });
+      Voice.say('Here is your homework. Do it on paper, then tap the button.');
+      App.setActions([{
+        label: 'I finished it', em: '✅', cls: 'sun', fn: function () {
+          App.setPips(1, 1);
+          finishHomework(pack);
+        }
+      }]);
+    }
+
+    function nextItem() {
+      if (i >= items.length) return finishHomework(pack);
+      App.setPips(i, items.length);
+      var item = items[i];
+      stage.innerHTML = '';
+
+      var head = el('div', 'card-head');
+      head.appendChild(el('span', 'em', '📸'));
+      var ht = el('div');
+      ht.appendChild(el('span', 'tag', 'HOMEWORK · ' + (i + 1) + ' OF ' + items.length));
+      ht.appendChild(el('h3', null, pack.title));
+      head.appendChild(ht);
+      stage.appendChild(head);
+
+      showPhotos(stage);   // the worksheet stays up, every question
+
+      App.setActions([]);
+
+      if (item.kind === 'word') {
+        wordCard({
+          word: item.word, parts: item.parts,
+          tag: 'HOMEWORK SPELLING · ' + (i + 1) + ' OF ' + items.length,
+          title: 'Say the word',
+          itemId: pack.id + '-' + item.id, dayId: pack.id, station: 'homework',
+          onDone: function () { i++; nextItem(); }
+        });
+        return;
+      }
+
+      ask(item, {
+        itemId: pack.id + '-' + item.id,
+        station: 'homework',
+        domain: item.kind === 'math' ? 'homework-math' : 'homework-question',
+        dayId: pack.id,
+        spoken: item.spoken
+      }).then(function () { i++; nextItem(); });
+    }
+
+    if (!items.length) lookAndDo();
+    else nextItem();
+  }
+
+  /* Homework earns stars and feeds the Thinking Report, but it does
+     not advance the 60-day course — it is extra, not a substitute. */
+  function finishHomework(pack) {
+    var res = Progress.completeStation(pack.id, 'homework');
+    var summary = Evaluate.sessionSummary();
+    App.homeworkFinished(pack, res, summary);
+  }
+
+  /* ------------------------------------------------------------
      end of a station
      ------------------------------------------------------------ */
   function finish(day, station) {
@@ -6952,7 +7671,8 @@ window.Stations = (function () {
       Evaluate.startSession(day.id);
     }
     App.setThinkMeter(Evaluate.currentSession().focus);
-    if (station === 'discover') discover(day);
+    if (station === 'homework') homework(day);     // `day` is a homework pack here
+    else if (station === 'discover') discover(day);
     else if (station === 'numbers') numbers(day);
     else reading(day);
   }
@@ -6997,7 +7717,9 @@ window.Grownup = (function () {
     physics: 'Physics & forces',
     measure: 'Measuring & data',
     phonics: 'Phonics (spoken)',
-    comprehension: 'Reading comprehension'
+    comprehension: 'Reading comprehension',
+    'homework-math': 'Homework math (from school)',
+    'homework-question': 'Homework questions (from school)'
   };
 
   function render(body) {
@@ -7025,7 +7747,9 @@ window.Grownup = (function () {
 
     if (!log.length) {
       body.appendChild(el('p', null, 'No sessions yet. Once Chance finishes a mission, this page fills in with what his answers reveal about how he is thinking.'));
+      body.appendChild(homeworkBlock());
       body.appendChild(voiceBlock());
+      body.appendChild(updateBlock());
       body.appendChild(settingsBlock());
       return;
     }
@@ -7132,7 +7856,9 @@ window.Grownup = (function () {
       lastDay ? lastDay.discover.check.q + '  (Answer: ' + correctText(lastDay.discover.check) + ')' : ''));
 
     body.appendChild(copyBlock(pct, tags, tagCounts, byDomain));
+    body.appendChild(homeworkBlock());
     body.appendChild(voiceBlock());
+    body.appendChild(updateBlock());
     body.appendChild(settingsBlock());
   }
 
@@ -7224,6 +7950,75 @@ window.Grownup = (function () {
     var r = el('div', 'row');
     r.appendChild(App.ui.btn('🎙️', s.count ? 'Record more lines' : 'Start recording', function () {
       App.go('studio');
+    }));
+    wrap.appendChild(r);
+    return wrap;
+  }
+
+  /* ------------------- photograph his real homework --------------- */
+  function homeworkBlock() {
+    var s = Homework.stats();
+    var wrap = el('div', 'report-item ' + (s.packs ? 'good' : ''));
+    wrap.appendChild(el('b', null, '📸  Homework from school'));
+    wrap.appendChild(el('span', null, s.packs
+      ? s.packs + ' worksheet' + (s.packs === 1 ? '' : 's') + ' · ' + s.photos + ' photo' +
+        (s.photos === 1 ? '' : 's') + ' · ' + s.items + ' question' + (s.items === 1 ? '' : 's')
+      : 'Photograph the worksheet that came home, type the problems off it, and he studies them ' +
+        'with the same coaching and the same report as the course.'));
+    var r = el('div', 'row');
+    r.appendChild(App.ui.btn('📷', s.packs ? 'Add or edit homework' : 'Add homework', function () {
+      App.go('hwedit');
+    }));
+    wrap.appendChild(r);
+    return wrap;
+  }
+
+  /* --------------------- update the app itself -------------------- */
+  function updateBlock() {
+    var cur = Updater.current();
+    var wrap = el('div', 'report-item');
+    wrap.appendChild(el('b', null, '⬆️  Update the app'));
+    var status = el('span', null, 'Version ' + cur.version + ', built ' + cur.built +
+      '. The app keeps itself cached so it works with no signal, which also means a new ' +
+      'version has to be fetched on purpose.');
+    wrap.appendChild(status);
+
+    var r = el('div', 'row');
+    r.appendChild(App.ui.btn('🔄', 'Check for an update', function () {
+      status.textContent = 'Checking…';
+      Updater.check().then(function (res) {
+        if (!res.ok) {
+          status.textContent = res.reason === 'offline'
+            ? 'No connection right now. Try again when you are back on wi-fi.'
+            : 'Could not reach the server. The app still works — try again later.';
+          return;
+        }
+        if (!res.newer) {
+          status.textContent = 'You already have the newest version (' + cur.version + '). Nothing to do.';
+          return;
+        }
+        status.textContent = 'Version ' + res.latest + ' is available' +
+          (res.notes ? ' — ' + res.notes : '') + '.';
+        App.sheet([
+          App.ui.big('⬆️'),
+          App.ui.h3('Update to ' + res.latest + '?'),
+          App.ui.p(res.notes || 'A newer version of the app is ready.'),
+          App.ui.p('His stars, badges, recordings and homework are all kept.'),
+          App.ui.row([
+            App.ui.btn('⬆️', 'Update now', function () {
+              var step = App.ui.p('Starting…');
+              App.sheet([App.ui.big('⏳'), App.ui.h3('Updating'), step]);
+              Updater.install(function (msg) { step.textContent = msg; });
+            }),
+            App.ui.btn('✖️', 'Not now', function () { App.closeSheet(); })
+          ])
+        ]);
+      });
+    }));
+    r.appendChild(App.ui.btn('🧹', 'Force a fresh copy', function () {
+      if (!confirm('Throw away the cached app and reload from the server?\n\n' +
+                   'Stars, badges, recordings and homework are all kept.')) return;
+      Updater.install(function () {});
     }));
     wrap.appendChild(r);
     return wrap;
@@ -7604,6 +8399,319 @@ window.Studio = (function () {
 })();
 
 
+/* ===== js/hwui.js ===== */
+/* ============================================================
+   hwui.js — the two homework screens
+
+   📸 Homework (kid)      pick a worksheet and study it
+   ✏️ Manage (grown-up)   photograph it, add practice to it
+
+   The grown-up side is built around one honest constraint: nobody
+   is hand-typing twenty questions on a weeknight. So the fast path
+   is a single box where you paste or type the problems the way
+   they appear on the page — "7x8, 6x7, 24/3" — and every one
+   becomes a full question with tagged wrong answers.
+   ============================================================ */
+
+window.HWUI = (function () {
+
+  function el(tag, cls, txt) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (txt != null) n.textContent = txt;
+    return n;
+  }
+  function note(t) {
+    var n = el('p', null, t);
+    n.style.cssText = 'font-size:15px;color:var(--ink-soft);margin:8px 0;';
+    return n;
+  }
+
+  /* ============== KID SIDE: pick a worksheet ================= */
+  function renderPicker(body) {
+    body.innerHTML = '';
+    var list = Homework.packs();
+
+    if (!list.length) {
+      var empty = el('div', 'card');
+      empty.appendChild(el('div', 'big-em', '📸'));
+      empty.appendChild(el('h3', null, 'No homework here yet'));
+      empty.appendChild(note('Ask a grown-up to take a picture of your homework and put it in here.'));
+      var r = el('div', 'row');
+      r.appendChild(App.ui.btn('👨‍👩‍👦', 'Grown-ups', function () { App.go('hwedit'); }));
+      empty.appendChild(r);
+      body.appendChild(empty);
+      return;
+    }
+
+    body.appendChild(note('Tap a worksheet to study it.'));
+    var grid = el('div', 'badge-grid');
+    list.forEach(function (p) {
+      var card = el('button', 'badge hw-card');
+      var thumb = el('div', 'hw-thumb');
+      thumb.appendChild(el('span', 'em', '📄'));
+      card.appendChild(thumb);
+      card.appendChild(el('div', 'nm', p.title));
+      var n = (p.items || []).length;
+      card.appendChild(el('div', 'dt', n ? n + (n === 1 ? ' question' : ' questions') : 'look & do'));
+      if (Progress.stationDone(p.id, 'homework')) card.appendChild(el('div', 'dt', '⭐ done'));
+      card.addEventListener('click', function () {
+        App.go('mission', { day: p, station: 'homework' });
+      });
+      grid.appendChild(card);
+
+      // swap in the real photo once it loads
+      if ((p.photoIds || []).length) {
+        Homework.photo(p.photoIds[0]).then(function (rec) {
+          if (!rec) return;
+          var img = document.createElement('img');
+          img.src = URL.createObjectURL(rec.blob);
+          img.alt = '';
+          thumb.innerHTML = '';
+          thumb.appendChild(img);
+        });
+      }
+    });
+    body.appendChild(grid);
+  }
+
+  /* ============ GROWN-UP SIDE: build a worksheet ============== */
+  var editing = null;
+
+  function renderEditor(body) {
+    body.innerHTML = '';
+
+    if (!editing) return renderPackList(body);
+    return renderPack(body, editing);
+  }
+
+  function renderPackList(body) {
+    var s = Homework.stats();
+    var stats = el('div', 'stat-row');
+    [[s.packs, 'worksheets'], [s.photos, 'photos'], [s.items, 'questions']].forEach(function (x) {
+      var n = el('div', 'stat');
+      n.appendChild(el('b', null, String(x[0])));
+      n.appendChild(el('i', null, x[1]));
+      stats.appendChild(n);
+    });
+    body.appendChild(stats);
+
+    body.appendChild(note(
+      'Photograph the homework that came home, then add the problems from it. ' +
+      'Chance studies them with the same owl, the same coaching and the same report as the course.'
+    ));
+
+    var r = el('div', 'row');
+    r.appendChild(App.ui.btn('📷', 'New worksheet', function () {
+      Homework.createPack().then(function (p) { editing = p; renderEditor(body); });
+    }));
+    body.appendChild(r);
+
+    var list = Homework.packs();
+    if (!list.length) return;
+
+    body.appendChild(el('div', 'week-title', 'WORKSHEETS'));
+    list.forEach(function (p) {
+      var row = el('div', 'report-item');
+      row.appendChild(el('b', null, p.title));
+      row.appendChild(el('span', null,
+        (p.photoIds || []).length + ' photo' + ((p.photoIds || []).length === 1 ? '' : 's') + ' · ' +
+        (p.items || []).length + ' question' + ((p.items || []).length === 1 ? '' : 's') +
+        (Progress.stationDone(p.id, 'homework') ? ' · ⭐ he has done it' : '')));
+      var rr = el('div', 'row');
+      rr.appendChild(App.ui.btn('✏️', 'Open', function () { editing = p; renderEditor(body); }));
+      rr.appendChild(App.ui.btn('🗑️', 'Delete', function () {
+        if (!confirm('Delete "' + p.title + '" and its photos?')) return;
+        Homework.deletePack(p).then(function () { renderEditor(body); });
+      }));
+      row.appendChild(rr);
+      body.appendChild(row);
+    });
+  }
+
+  function renderPack(body, p) {
+    var back = el('div', 'row');
+    back.appendChild(App.ui.btn('⬅️', 'All worksheets', function () { editing = null; renderEditor(body); }));
+    body.appendChild(back);
+
+    // --- title
+    var titleField = el('label', 'field', 'What is this worksheet?');
+    var titleInput = el('input');
+    titleInput.type = 'text';
+    titleInput.value = p.title;
+    titleInput.addEventListener('change', function () {
+      p.title = titleInput.value.trim() || Homework.defaultTitle();
+      Homework.savePack(p);
+    });
+    titleField.appendChild(titleInput);
+    body.appendChild(titleField);
+
+    // --- photos
+    body.appendChild(el('div', 'week-title', 'PHOTOS'));
+    var photoRow = el('div', 'badge-grid');
+    (p.photoIds || []).forEach(function (pid) {
+      var cell = el('div', 'badge');
+      var holder = el('div', 'hw-thumb');
+      cell.appendChild(holder);
+      var rm = App.ui.btn('🗑️', 'Remove', function () {
+        Homework.removePhoto(p, pid).then(function () { renderEditor(body); });
+      });
+      cell.appendChild(rm);
+      photoRow.appendChild(cell);
+      Homework.photo(pid).then(function (rec) {
+        if (!rec) return;
+        var img = document.createElement('img');
+        img.src = URL.createObjectURL(rec.blob);
+        img.alt = '';
+        img.addEventListener('click', function () { App.showPhoto(img.src); });
+        holder.appendChild(img);
+      });
+    });
+    body.appendChild(photoRow);
+
+    /* capture="environment" makes iOS open the camera straight away
+       rather than the photo library; dropping it would make this a
+       two-step chore every single night. */
+    var camRow = el('div', 'row');
+    camRow.appendChild(filePicker('📷', 'Take a photo', true, p, body));
+    camRow.appendChild(filePicker('🖼️', 'Choose photos', false, p, body));
+    body.appendChild(camRow);
+
+    // --- the fast path
+    body.appendChild(el('div', 'week-title', 'ADD THE PROBLEMS'));
+    body.appendChild(note(
+      'Type the problems the way they appear on the page, separated by commas or new lines — ' +
+      '"7x8, 6x7, 24/3, 15-8". Each one becomes a full question, with wrong answers picked to match ' +
+      'the mistakes a second-grader actually makes.'
+    ));
+    var mathField = el('label', 'field', 'Math problems');
+    var mathBox = document.createElement('textarea');
+    mathBox.rows = 3;
+    mathBox.placeholder = '7x8, 6x7, 24/3, 15-8, 9+6';
+    mathBox.style.cssText = 'width:100%;margin-top:4px;padding:12px;font-size:17px;font-family:inherit;border:2px solid var(--line);border-radius:12px;';
+    mathField.appendChild(mathBox);
+    body.appendChild(mathField);
+    var mathMsg = note('');
+    body.appendChild(mathMsg);
+    var mr = el('div', 'row');
+    mr.appendChild(App.ui.btn('➕', 'Add these', function () {
+      Homework.addMany(p, mathBox.value).then(function (res) {
+        mathBox.value = '';
+        var msg = 'Added ' + res.made.length + '.';
+        if (res.skipped.length) msg += ' Could not read: ' + res.skipped.join(', ') +
+          ' — only simple whole-number problems like 7x8 or 24/3 work here.';
+        mathMsg.textContent = msg;
+        renderEditor(body);
+      });
+    }));
+    body.appendChild(mr);
+
+    // --- spelling words
+    var wordField = el('label', 'field', 'Spelling words (one per line — add hyphens to fix the split: sh-ad-ow)');
+    var wordBox = document.createElement('textarea');
+    wordBox.rows = 2;
+    wordBox.placeholder = 'shadow\nplanet\nbright';
+    wordBox.style.cssText = mathBox.style.cssText;
+    wordField.appendChild(wordBox);
+    body.appendChild(wordField);
+    var wr = el('div', 'row');
+    wr.appendChild(App.ui.btn('➕', 'Add words', function () {
+      var lines = wordBox.value.split(/[\n,;]+/).map(function (x) { return x.trim(); }).filter(Boolean);
+      var chain = Promise.resolve();
+      lines.forEach(function (w) {
+        chain = chain.then(function () { return Homework.addItem(p, Homework.wordItem(w)); });
+      });
+      chain.then(function () { wordBox.value = ''; renderEditor(body); });
+    }));
+    body.appendChild(wr);
+
+    // --- anything else
+    var askWrap = el('div', 'report-item');
+    askWrap.appendChild(el('b', null, 'Any other question'));
+    var qf = el('label', 'field', 'Question');
+    var qi = el('input'); qi.type = 'text'; qi.placeholder = 'What is a group of fish called?';
+    qf.appendChild(qi); askWrap.appendChild(qf);
+    var af = el('label', 'field', 'Right answer');
+    var ai = el('input'); ai.type = 'text'; ai.placeholder = 'A school';
+    af.appendChild(ai); askWrap.appendChild(af);
+    var wf = el('label', 'field', 'Wrong answers (optional, separated by commas)');
+    var wi2 = el('input'); wi2.type = 'text'; wi2.placeholder = 'A herd, A flock';
+    wf.appendChild(wi2); askWrap.appendChild(wf);
+    var ar = el('div', 'row');
+    ar.appendChild(App.ui.btn('➕', 'Add question', function () {
+      if (!qi.value.trim() || !ai.value.trim()) return;
+      var wrongs = wi2.value.split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+      Homework.addItem(p, Homework.askItem(qi.value.trim(), ai.value.trim(), wrongs))
+        .then(function () { renderEditor(body); });
+    }));
+    askWrap.appendChild(ar);
+    body.appendChild(askWrap);
+
+    // --- what is in the pack
+    var items = p.items || [];
+    body.appendChild(el('div', 'week-title', 'IN THIS WORKSHEET — ' + items.length +
+      (items.length === 1 ? ' QUESTION' : ' QUESTIONS')));
+    if (!items.length) {
+      body.appendChild(note('None yet. A worksheet with no questions still works — Chance sees the photo, ' +
+        'does it on paper, and taps "I finished it".'));
+    }
+    items.forEach(function (it) {
+      var row = el('div', 'report-item');
+      var label = it.kind === 'word' ? '📖 ' + it.word + '  (' + it.parts.join(' · ') + ')' : '🔢 ' + it.q;
+      row.appendChild(el('b', null, label));
+      if (it.choices) {
+        row.appendChild(el('span', null, 'Answer ' + it.choices.filter(function (c) { return c.correct; })[0].t +
+          '   ·   also offers ' + it.choices.filter(function (c) { return !c.correct; })
+            .map(function (c) { return c.t; }).join(', ')));
+      }
+      var rr = el('div', 'row');
+      rr.appendChild(App.ui.btn('🔊', 'Hear it', function () {
+        Voice.stop();
+        if (it.kind === 'word') Voice.soundOut(it.word, it.parts);
+        else Voice.say(it.spoken || it.q);
+      }));
+      rr.appendChild(App.ui.btn('🗑️', 'Remove', function () {
+        Homework.removeItem(p, it.id).then(function () { renderEditor(body); });
+      }));
+      row.appendChild(rr);
+      body.appendChild(row);
+    });
+
+    if (items.length || (p.photoIds || []).length) {
+      var done = el('div', 'row');
+      done.appendChild(App.ui.btn('👦', 'Try it as Chance', function () {
+        App.go('mission', { day: p, station: 'homework' });
+      }));
+      body.appendChild(done);
+    }
+  }
+
+  function filePicker(em, label, useCamera, p, body) {
+    var b = App.ui.btn(em, label, function () { input.click(); });
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    if (useCamera) input.setAttribute('capture', 'environment');
+    input.multiple = !useCamera;
+    input.style.display = 'none';
+    input.addEventListener('change', function () {
+      var files = [].slice.call(input.files || []);
+      if (!files.length) return;
+      var chain = Promise.resolve();
+      files.forEach(function (f) { chain = chain.then(function () { return Homework.addPhoto(p, f); }); });
+      chain.then(function () { input.value = ''; renderEditor(body); })
+        .catch(function (e) { alert(e.message || 'That picture could not be added.'); });
+    });
+    b.appendChild(input);
+    return b;
+  }
+
+  function openPack(p) { editing = p; }
+
+  return { renderPicker: renderPicker, renderEditor: renderEditor, openPack: openPack };
+})();
+
+
 /* ===== js/app.js ===== */
 /* ============================================================
    app.js — the shell: icons, routing, rewards, sharing
@@ -7642,6 +8750,8 @@ window.App = (function () {
     if (name === 'wordwall') renderWordWall();
     if (name === 'grownup') Grownup.render($('grownupBody'));
     if (name === 'studio') Studio.render($('studioBody'));
+    if (name === 'homework') HWUI.renderPicker($('homeworkBody'));
+    if (name === 'hwedit') HWUI.renderEditor($('hwEditBody'));
     if (name === 'mission' && arg) Stations.run(arg.day, arg.station);
   }
 
@@ -7710,8 +8820,8 @@ window.App = (function () {
     sheet([
       big('🏠'),
       h3('Stop for now?'),
-      p(day ? 'Your stars are saved. You can pick up Day ' + day.n + ' again any time.'
-            : 'Your stars are saved.'),
+      p(day && day.n ? 'Your stars are saved. You can pick up Day ' + day.n + ' again any time.'
+            : 'Your stars are saved. You can come back to this any time.'),
       row([
         btn('▶️', 'Keep going', function () { closeSheet(); }),
         btn('🏠', 'Yes, go home', function () { closeSheet(); go('home'); })
@@ -7763,6 +8873,60 @@ window.App = (function () {
     }
   }
 
+  /* ------------------------ PHOTO VIEWER ------------------------- */
+  /* Page pinch-zoom is off app-wide (it fights the lesson UI), so a
+     homework photo needs its own way to get bigger — otherwise he
+     cannot read the problems off his own worksheet. */
+  function showPhoto(url) {
+    var zoom = 1;
+    var wrap = el('div', 'photo-full');
+    var img = document.createElement('img');
+    img.src = url;
+    img.alt = 'Homework';
+    wrap.appendChild(img);
+
+    var bar = el('div', 'photo-bar');
+    var zoomBtn = el('button', 'btn-big ghost compact');
+    zoomBtn.appendChild(el('span', null, '🔍'));
+    var zoomLabel = el('span', null, 'Bigger');
+    zoomBtn.appendChild(zoomLabel);
+    zoomBtn.addEventListener('click', function () {
+      zoom = zoom >= 3 ? 1 : zoom + 1;
+      img.style.width = (zoom * 100) + '%';
+      img.style.maxWidth = 'none';
+      zoomLabel.textContent = zoom >= 3 ? 'Fit' : 'Bigger';
+    });
+    var closeBtn = el('button', 'btn-big ghost compact');
+    closeBtn.appendChild(el('span', null, '✖️'));
+    closeBtn.appendChild(el('span', null, 'Close'));
+    closeBtn.addEventListener('click', function () { wrap.remove(); });
+    bar.appendChild(zoomBtn);
+    bar.appendChild(closeBtn);
+    wrap.appendChild(bar);
+
+    document.body.appendChild(wrap);
+  }
+
+  /* --------------------- end of a homework pack ------------------ */
+  function homeworkFinished(pack, res, summary) {
+    setActions([], { bare: true });
+    burst(18);
+    Voice.say('Homework finished. Nice work.');
+    var n = (pack.items || []).length;
+    sheet([
+      big('📸'),
+      h3('Homework done!'),
+      p(n
+        ? (summary ? summary.firstTryPct + '% right on the first try.' : 'Nice work.')
+        : 'Nice work finishing it.'),
+      p('This earns stars and shows up in the grown-up report, but it does not use up a day of the course.'),
+      row([
+        btn('📸', 'More homework', function () { closeSheet(); go('homework'); }),
+        btn('🏠', 'Home', function () { closeSheet(); go('home'); })
+      ])
+    ]);
+  }
+
   /* ------------------------------ HOME --------------------------- */
   function renderHome() {
     var day = Progress.nextDay();
@@ -7781,6 +8945,13 @@ window.App = (function () {
     });
     $('homeAvatar').textContent = day.unit === 1 ? '🚀' : (day.unit === 2 ? '🦎' : '⚙️');
     $('tileStarCount').textContent = Progress.data.totals.stars;
+
+    var hw = window.Homework ? Homework.packs().filter(function (p) {
+      return !Progress.stationDone(p.id, 'homework');
+    }).length : 0;
+    var hwBadge = $('tileHwCount');
+    hwBadge.textContent = hw;
+    hwBadge.hidden = !hw;
 
     var streak = Progress.data.streak.count;
     $('homeGreeting').textContent = streak > 1
@@ -8067,7 +9238,7 @@ window.App = (function () {
 
   /* ------------------------------ BOOT --------------------------- */
   function boot() {
-    ['home', 'mission', 'map', 'rewards', 'wordwall', 'grownup', 'studio'].forEach(function (k) {
+    ['home', 'mission', 'map', 'rewards', 'wordwall', 'grownup', 'studio', 'homework', 'hwedit'].forEach(function (k) {
       screens[k] = $('screen-' + k);
     });
 
@@ -8115,6 +9286,7 @@ window.App = (function () {
     go: go, setActions: setActions, showCoach: showCoach, hideCoach: hideCoach,
     setThinkMeter: setThinkMeter, setPips: setPips, setReplay: setReplay, burst: burst,
     stationFinished: stationFinished, startMission: startMission,
+    homeworkFinished: homeworkFinished, showPhoto: showPhoto,
     sheet: sheet, closeSheet: closeSheet, shareSheet: shareSheet,
     ui: { el: el, big: big, h3: h3, p: p, row: row, btn: btn }
   };

@@ -58,6 +58,10 @@
     <button class="tile tile-word" data-go="wordwall">
       <span class="tile-icon">🗣️</span><span class="tile-label">Word Wall</span>
     </button>
+    <button class="tile tile-hw" data-go="homework">
+      <span class="tile-icon">📸</span><span class="tile-label">Homework</span>
+      <span class="tile-count" id="tileHwCount" hidden>0</span>
+    </button>
   </nav>
 
   <div class="goal-strip">
@@ -134,6 +138,26 @@
   <div class="scroll" id="grownupBody"></div>
 </section>
 
+<!-- =========================== HOMEWORK ========================= -->
+<section class="screen" id="screen-homework" data-screen="homework" hidden>
+  <header class="bar-top">
+    <button class="icon-btn" data-go="home" aria-label="Home">🏠</button>
+    <h2>Homework</h2>
+    <span class="spacer"></span>
+  </header>
+  <div class="scroll" id="homeworkBody"></div>
+</section>
+
+<!-- ======================= HOMEWORK EDITOR ====================== -->
+<section class="screen" id="screen-hwedit" data-screen="hwedit" hidden>
+  <header class="bar-top">
+    <button class="icon-btn" data-go="grownup" aria-label="Back to grown-ups">⬅️</button>
+    <h2>Homework Photos</h2>
+    <span class="spacer"></span>
+  </header>
+  <div class="scroll" id="hwEditBody"></div>
+</section>
+
 <!-- ============================ STUDIO ========================== -->
 <section class="screen" id="screen-studio" data-screen="studio" hidden>
   <header class="bar-top">
@@ -156,6 +180,8 @@
 <script src="data/unit2-woods.js"></script>
 <script src="data/unit3-forces.js"></script>
 <script src="js/phonics.js"></script>
+<script src="js/updater.js"></script>
+<script src="js/homework.js"></script>
 <script src="js/recordings.js"></script>
 <script src="js/voice.js"></script>
 <script src="js/evaluate.js"></script>
@@ -164,6 +190,7 @@
 <script src="js/stations.js"></script>
 <script src="js/grownup.js"></script>
 <script src="js/studio.js"></script>
+<script src="js/hwui.js"></script>
 <script src="js/app.js"></script>
 <script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }</script>
 </body>

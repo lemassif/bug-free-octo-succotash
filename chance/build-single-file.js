@@ -33,6 +33,8 @@ const SCRIPTS = [
   'data/unit2-woods.js',
   'data/unit3-forces.js',
   'js/phonics.js',
+  'js/updater.js',
+  'js/homework.js',
   'js/recordings.js',
   'js/voice.js',
   'js/evaluate.js',
@@ -41,6 +43,7 @@ const SCRIPTS = [
   'js/stations.js',
   'js/grownup.js',
   'js/studio.js',
+  'js/hwui.js',
   'js/app.js'
 ];
 
@@ -76,6 +79,24 @@ if (!pageContentOnly) parts.push('</head>', '<body>');
 parts.push(markup);
 parts.push('<script>\n' + js + '\n<\/script>');
 if (!pageContentOnly) parts.push('</body>', '</html>');
+
+/* Keep version.json in step with the version baked into updater.js.
+   If these drift the app either nags about an update forever or never
+   notices one, so the build writes the file rather than trusting a
+   human to remember. */
+const verMatch = /var VERSION = '([^']+)'/.exec(read('js/updater.js'));
+const builtMatch = /var BUILT = '([^']+)'/.exec(read('js/updater.js'));
+if (verMatch) {
+  const vfile = path.join(ROOT, 'version.json');
+  const existing = fs.existsSync(vfile) ? JSON.parse(fs.readFileSync(vfile, 'utf8')) : {};
+  const next = {
+    version: verMatch[1],
+    built: builtMatch ? builtMatch[1] : existing.built || '',
+    notes: existing.notes || ''
+  };
+  fs.writeFileSync(vfile, JSON.stringify(next, null, 2) + '\n');
+  console.log('  version.json -> ' + next.version);
+}
 
 const out = parts.join('\n');
 fs.mkdirSync(OUT_DIR, { recursive: true });

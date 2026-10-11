@@ -35,6 +35,8 @@ window.App = (function () {
     if (name === 'wordwall') renderWordWall();
     if (name === 'grownup') Grownup.render($('grownupBody'));
     if (name === 'studio') Studio.render($('studioBody'));
+    if (name === 'homework') HWUI.renderPicker($('homeworkBody'));
+    if (name === 'hwedit') HWUI.renderEditor($('hwEditBody'));
     if (name === 'mission' && arg) Stations.run(arg.day, arg.station);
   }
 
@@ -103,8 +105,8 @@ window.App = (function () {
     sheet([
       big('🏠'),
       h3('Stop for now?'),
-      p(day ? 'Your stars are saved. You can pick up Day ' + day.n + ' again any time.'
-            : 'Your stars are saved.'),
+      p(day && day.n ? 'Your stars are saved. You can pick up Day ' + day.n + ' again any time.'
+            : 'Your stars are saved. You can come back to this any time.'),
       row([
         btn('▶️', 'Keep going', function () { closeSheet(); }),
         btn('🏠', 'Yes, go home', function () { closeSheet(); go('home'); })
@@ -156,6 +158,60 @@ window.App = (function () {
     }
   }
 
+  /* ------------------------ PHOTO VIEWER ------------------------- */
+  /* Page pinch-zoom is off app-wide (it fights the lesson UI), so a
+     homework photo needs its own way to get bigger — otherwise he
+     cannot read the problems off his own worksheet. */
+  function showPhoto(url) {
+    var zoom = 1;
+    var wrap = el('div', 'photo-full');
+    var img = document.createElement('img');
+    img.src = url;
+    img.alt = 'Homework';
+    wrap.appendChild(img);
+
+    var bar = el('div', 'photo-bar');
+    var zoomBtn = el('button', 'btn-big ghost compact');
+    zoomBtn.appendChild(el('span', null, '🔍'));
+    var zoomLabel = el('span', null, 'Bigger');
+    zoomBtn.appendChild(zoomLabel);
+    zoomBtn.addEventListener('click', function () {
+      zoom = zoom >= 3 ? 1 : zoom + 1;
+      img.style.width = (zoom * 100) + '%';
+      img.style.maxWidth = 'none';
+      zoomLabel.textContent = zoom >= 3 ? 'Fit' : 'Bigger';
+    });
+    var closeBtn = el('button', 'btn-big ghost compact');
+    closeBtn.appendChild(el('span', null, '✖️'));
+    closeBtn.appendChild(el('span', null, 'Close'));
+    closeBtn.addEventListener('click', function () { wrap.remove(); });
+    bar.appendChild(zoomBtn);
+    bar.appendChild(closeBtn);
+    wrap.appendChild(bar);
+
+    document.body.appendChild(wrap);
+  }
+
+  /* --------------------- end of a homework pack ------------------ */
+  function homeworkFinished(pack, res, summary) {
+    setActions([], { bare: true });
+    burst(18);
+    Voice.say('Homework finished. Nice work.');
+    var n = (pack.items || []).length;
+    sheet([
+      big('📸'),
+      h3('Homework done!'),
+      p(n
+        ? (summary ? summary.firstTryPct + '% right on the first try.' : 'Nice work.')
+        : 'Nice work finishing it.'),
+      p('This earns stars and shows up in the grown-up report, but it does not use up a day of the course.'),
+      row([
+        btn('📸', 'More homework', function () { closeSheet(); go('homework'); }),
+        btn('🏠', 'Home', function () { closeSheet(); go('home'); })
+      ])
+    ]);
+  }
+
   /* ------------------------------ HOME --------------------------- */
   function renderHome() {
     var day = Progress.nextDay();
@@ -174,6 +230,13 @@ window.App = (function () {
     });
     $('homeAvatar').textContent = day.unit === 1 ? '🚀' : (day.unit === 2 ? '🦎' : '⚙️');
     $('tileStarCount').textContent = Progress.data.totals.stars;
+
+    var hw = window.Homework ? Homework.packs().filter(function (p) {
+      return !Progress.stationDone(p.id, 'homework');
+    }).length : 0;
+    var hwBadge = $('tileHwCount');
+    hwBadge.textContent = hw;
+    hwBadge.hidden = !hw;
 
     var streak = Progress.data.streak.count;
     $('homeGreeting').textContent = streak > 1
@@ -460,7 +523,7 @@ window.App = (function () {
 
   /* ------------------------------ BOOT --------------------------- */
   function boot() {
-    ['home', 'mission', 'map', 'rewards', 'wordwall', 'grownup', 'studio'].forEach(function (k) {
+    ['home', 'mission', 'map', 'rewards', 'wordwall', 'grownup', 'studio', 'homework', 'hwedit'].forEach(function (k) {
       screens[k] = $('screen-' + k);
     });
 
@@ -508,6 +571,7 @@ window.App = (function () {
     go: go, setActions: setActions, showCoach: showCoach, hideCoach: hideCoach,
     setThinkMeter: setThinkMeter, setPips: setPips, setReplay: setReplay, burst: burst,
     stationFinished: stationFinished, startMission: startMission,
+    homeworkFinished: homeworkFinished, showPhoto: showPhoto,
     sheet: sheet, closeSheet: closeSheet, shareSheet: shareSheet,
     ui: { el: el, big: big, h3: h3, p: p, row: row, btn: btn }
   };

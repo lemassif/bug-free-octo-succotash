@@ -122,6 +122,75 @@ clothes:
 
 ---
 
+## Photograph his real homework and study it in the app
+
+The worksheet that comes home on Friday can become practice in the app.
+
+**Grown-Ups → 📸 Homework from school → New worksheet**, then:
+
+1. **📷 Take a photo** — opens the camera straight away on the iPad. Add as
+   many pages as you like. Photos are shrunk to 1600px on the way in, so a
+   whole term of homework does not fill the device.
+2. **Type the problems off the page** into one box, separated by commas:
+   `7x8, 6x7, 24/3, 15-8`. Each one becomes a complete question in about a
+   second.
+3. Optionally add **spelling words** (one per line) and **any other question**
+   with your own right and wrong answers.
+
+Then Chance taps **📸 Homework** on the home screen, sees his actual worksheet
+at the top of the screen the whole time, and works through it with the same
+owl, the same coaching, the same stars.
+
+### The part that makes this worth doing
+
+A generated math question is not a bare answer key. `7x8` produces:
+
+| Answer | Why it's offered |
+|---|---|
+| **56** | correct |
+| 15 | he added instead of multiplying — tagged `additive-for-multiplicative` |
+| 49 | he skip-counted one group short — tagged `off-by-one` |
+| 63 | he reached for the bigger number — tagged `bigger-number-bias` |
+
+So the live coaching and the Thinking Report work on his real homework exactly
+as they do on the course. If he adds when he should multiply on Friday's
+worksheet, that shows up in the same report as the same habit in the space
+lessons — which is the whole point of tracking habits instead of scores.
+
+Spelling words go through the same phonics table as the course: chunked, with
+anchored sounds and the microphone check. The automatic split is good but not
+perfect on irregular words, so you can force it by typing hyphens:
+`sh-ad-ow`.
+
+**A worksheet with no questions typed in still works.** He sees the photo, does
+it on paper, and taps "I finished it". Sometimes that is all you have time for.
+
+Homework earns stars and feeds the report, but it does **not** consume a day of
+the 60-day course — it is extra, not a substitute.
+
+---
+
+## Updating the app
+
+The app caches itself so it works with no signal. That is the right call at the
+creek and the wrong one the day a fix is published — otherwise the iPad happily
+runs the old copy forever.
+
+**Grown-Ups → ⬆️ Update the app → Check for an update.** It says plainly
+whether anything is new, and updating throws away the cached copy and reloads.
+**His stars, badges, recordings and homework are all kept** — the update clears
+caches only, never his data.
+
+There is also **🧹 Force a fresh copy** for when you are fairly sure something
+is stale and do not want to think about version numbers.
+
+For whoever is publishing: bump `VERSION` in `chance/js/updater.js`, then run
+`node chance/build-single-file.js`. The build writes `chance/version.json` from
+that constant, so the two can never drift apart — if they did, the app would
+either nag forever or never notice an update.
+
+---
+
 ## Use your own voice instead of the computer's
 
 The synthesized voice is a fallback, not the goal. For a kid this age the
@@ -366,6 +435,9 @@ kind.
 |---|---|
 | `chance/js/voice.js` | voice selection, slow narration, phoneme stretching, microphone listening, pronunciation matching — plays a real recording when one exists, synthesizes when it doesn't |
 | `chance/js/phonics.js` | the grapheme table: how every letter chunk gets said out loud, plus the audit that keeps it correct |
+| `chance/js/homework.js` | homework photos and the question generator |
+| `chance/js/hwui.js` | the two homework screens |
+| `chance/js/updater.js` | version check and the in-app update |
 | `chance/js/recordings.js` | stores your recorded lines in IndexedDB, keyed by the text of the line; export/import |
 | `chance/js/studio.js` | the recording booth |
 | `chance/js/evaluate.js` | the thinking-error dictionary and the real-time judge |
@@ -374,3 +446,17 @@ kind.
 | `chance/js/stations.js` | the three station flows |
 | `chance/js/grownup.js` | the Thinking Report and settings |
 | `chance/js/app.js` | icon home screen, routing, sheets |
+| `chance/test/regress.js` | the regression suite — see below |
+
+## Running the tests
+
+```
+npx http-server -p 8099 -s .        # from the repo root
+node chance/test/regress.js         # the multi-file app
+BASE=http://127.0.0.1:8099/dist/chance-academy.html node chance/test/regress.js
+```
+
+It drives a real browser and checks the things that have actually broken
+before: every day's content, the phonics rules, the exits, a full day
+walkthrough, homework generation, the updater, and all 180 day/station screens
+rendering. Run it before publishing.

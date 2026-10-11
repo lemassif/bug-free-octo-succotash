@@ -33,7 +33,9 @@ window.Grownup = (function () {
     physics: 'Physics & forces',
     measure: 'Measuring & data',
     phonics: 'Phonics (spoken)',
-    comprehension: 'Reading comprehension'
+    comprehension: 'Reading comprehension',
+    'homework-math': 'Homework math (from school)',
+    'homework-question': 'Homework questions (from school)'
   };
 
   function render(body) {
@@ -61,7 +63,9 @@ window.Grownup = (function () {
 
     if (!log.length) {
       body.appendChild(el('p', null, 'No sessions yet. Once Chance finishes a mission, this page fills in with what his answers reveal about how he is thinking.'));
+      body.appendChild(homeworkBlock());
       body.appendChild(voiceBlock());
+      body.appendChild(updateBlock());
       body.appendChild(settingsBlock());
       return;
     }
@@ -168,7 +172,9 @@ window.Grownup = (function () {
       lastDay ? lastDay.discover.check.q + '  (Answer: ' + correctText(lastDay.discover.check) + ')' : ''));
 
     body.appendChild(copyBlock(pct, tags, tagCounts, byDomain));
+    body.appendChild(homeworkBlock());
     body.appendChild(voiceBlock());
+    body.appendChild(updateBlock());
     body.appendChild(settingsBlock());
   }
 
@@ -260,6 +266,75 @@ window.Grownup = (function () {
     var r = el('div', 'row');
     r.appendChild(App.ui.btn('🎙️', s.count ? 'Record more lines' : 'Start recording', function () {
       App.go('studio');
+    }));
+    wrap.appendChild(r);
+    return wrap;
+  }
+
+  /* ------------------- photograph his real homework --------------- */
+  function homeworkBlock() {
+    var s = Homework.stats();
+    var wrap = el('div', 'report-item ' + (s.packs ? 'good' : ''));
+    wrap.appendChild(el('b', null, '📸  Homework from school'));
+    wrap.appendChild(el('span', null, s.packs
+      ? s.packs + ' worksheet' + (s.packs === 1 ? '' : 's') + ' · ' + s.photos + ' photo' +
+        (s.photos === 1 ? '' : 's') + ' · ' + s.items + ' question' + (s.items === 1 ? '' : 's')
+      : 'Photograph the worksheet that came home, type the problems off it, and he studies them ' +
+        'with the same coaching and the same report as the course.'));
+    var r = el('div', 'row');
+    r.appendChild(App.ui.btn('📷', s.packs ? 'Add or edit homework' : 'Add homework', function () {
+      App.go('hwedit');
+    }));
+    wrap.appendChild(r);
+    return wrap;
+  }
+
+  /* --------------------- update the app itself -------------------- */
+  function updateBlock() {
+    var cur = Updater.current();
+    var wrap = el('div', 'report-item');
+    wrap.appendChild(el('b', null, '⬆️  Update the app'));
+    var status = el('span', null, 'Version ' + cur.version + ', built ' + cur.built +
+      '. The app keeps itself cached so it works with no signal, which also means a new ' +
+      'version has to be fetched on purpose.');
+    wrap.appendChild(status);
+
+    var r = el('div', 'row');
+    r.appendChild(App.ui.btn('🔄', 'Check for an update', function () {
+      status.textContent = 'Checking…';
+      Updater.check().then(function (res) {
+        if (!res.ok) {
+          status.textContent = res.reason === 'offline'
+            ? 'No connection right now. Try again when you are back on wi-fi.'
+            : 'Could not reach the server. The app still works — try again later.';
+          return;
+        }
+        if (!res.newer) {
+          status.textContent = 'You already have the newest version (' + cur.version + '). Nothing to do.';
+          return;
+        }
+        status.textContent = 'Version ' + res.latest + ' is available' +
+          (res.notes ? ' — ' + res.notes : '') + '.';
+        App.sheet([
+          App.ui.big('⬆️'),
+          App.ui.h3('Update to ' + res.latest + '?'),
+          App.ui.p(res.notes || 'A newer version of the app is ready.'),
+          App.ui.p('His stars, badges, recordings and homework are all kept.'),
+          App.ui.row([
+            App.ui.btn('⬆️', 'Update now', function () {
+              var step = App.ui.p('Starting…');
+              App.sheet([App.ui.big('⏳'), App.ui.h3('Updating'), step]);
+              Updater.install(function (msg) { step.textContent = msg; });
+            }),
+            App.ui.btn('✖️', 'Not now', function () { App.closeSheet(); })
+          ])
+        ]);
+      });
+    }));
+    r.appendChild(App.ui.btn('🧹', 'Force a fresh copy', function () {
+      if (!confirm('Throw away the cached app and reload from the server?\n\n' +
+                   'Stars, badges, recordings and homework are all kept.')) return;
+      Updater.install(function () {});
     }));
     wrap.appendChild(r);
     return wrap;
