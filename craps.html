@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Craps">
+<meta name="theme-color" content="#3a0c18">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Craps — Lucky Seven Casino</title>
+<link rel="stylesheet" href="casino.css">
+<style>
+  .wrap { max-width: 720px; margin: 0 auto; }
+  .stage { position: relative; margin: 8px 10px 0; border-radius: 16px; overflow: hidden; border: 3px solid var(--gold-lo); box-shadow: 0 0 0 3px #1a050b, 0 10px 22px rgba(0,0,0,.5); background: #0d6b3d; }
+  #cv { display: block; width: 100%; height: 190px; }
+  .callout { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; pointer-events: none; padding: 0 10px; }
+  .callout b { display: inline-block; font: 700 clamp(20px, 6vw, 30px)/1.05 var(--serif); letter-spacing: .06em; text-transform: uppercase; color: var(--gold-hi);
+    -webkit-text-stroke: 5px #1a050b; paint-order: stroke fill; text-shadow: 0 3px 0 rgba(0,0,0,.6); animation: callIn .35s ease-out; }
+  .callout small { display: block; margin-top: 2px; font-size: 13px; font-weight: 800; color: #fff; text-shadow: 0 2px 4px #000, 0 0 8px #000; }
+  @keyframes callIn { from { opacity: 0; transform: scale(.7); } }
+  .strip { display: flex; align-items: center; gap: 10px; padding: 8px 12px 2px; flex-wrap: wrap; }
+  .puck { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: 12px; letter-spacing: .04em; flex: none; border: 3px solid #888; }
+  .puck.off { background: #111; color: #fff; border-color: #444; } .puck.on { background: #fff; color: #111; border-color: #ddd; font-size: 19px; box-shadow: 0 0 14px rgba(255,255,255,.5); }
+  .who { flex: 1; min-width: 150px; line-height: 1.25; }
+  .who b { font-size: 16px; } .who small { display: block; color: var(--mute); font-size: 12px; }
+  .hist { display: flex; gap: 4px; flex-wrap: wrap; width: 100%; padding-top: 2px; }
+  .hist span { min-width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 900; background: rgba(255,255,255,.12); color: var(--ivory); }
+  .hist span.seven { background: var(--bad); color: #2a0509; } .hist span.pt { background: var(--gold); color: var(--ink); }
+  .auto { background: rgba(255,255,255,.08); border: 1px solid var(--line); border-radius: 999px; padding: 6px 11px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
+  .auto[aria-pressed="true"] { background: var(--gold); color: var(--ink); }
+
+  .board { margin: 8px 10px 10px; padding: 10px 10px 12px; border-radius: 16px; border: 3px solid var(--gold-lo);
+    background: radial-gradient(120% 90% at 50% 0%, var(--felt-hi), var(--felt) 55%, var(--felt-lo)); box-shadow: 0 0 0 3px #1a050b, 0 10px 22px rgba(0,0,0,.5); }
+  .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 10px; }
+  .tabs button { background: rgba(0,0,0,.35); border: 1.5px solid rgba(232,185,74,.4); border-radius: 10px; padding: 9px 2px; font-weight: 800; font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--gold-hi); }
+  .tabs button[aria-selected="true"] { background: var(--gold); color: var(--ink); border-color: var(--gold-hi); }
+  .grid { display: grid; gap: 8px; } .g2 { grid-template-columns: 1fr 1fr; } .g3 { grid-template-columns: repeat(3, 1fr); } .g4 { grid-template-columns: repeat(4, 1fr); }
+  .sec { margin: 12px 0 6px; font: 700 11px var(--sans); letter-spacing: .2em; text-transform: uppercase; color: var(--gold-hi); text-align: center; opacity: .9; }
+  .spot { position: relative; min-height: 62px; padding: 8px 6px 7px; border-radius: 10px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    background: rgba(0,0,0,.18); border: 2px solid rgba(232,185,74,.75); color: var(--ivory); box-shadow: inset 0 0 0 1px rgba(0,0,0,.25); }
+  .spot:active { background: rgba(232,185,74,.3); }
+  .spot:disabled { opacity: .38; }
+  .spot b { font: 700 15px/1.05 var(--serif); letter-spacing: .05em; text-transform: uppercase; color: var(--gold-hi); }
+  .spot small { font-size: 10.5px; color: #e9ddc6; line-height: 1.2; }
+  .spot.num b { font-size: 26px; letter-spacing: 0; }
+  .spot.hot { border-color: var(--gold-hi); background: rgba(232,185,74,.18); }
+  .bdgs { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; margin-top: 2px; }
+  .bdg { font-size: 10.5px; font-weight: 900; border-radius: 999px; padding: 1px 7px; background: var(--pc); color: #1a0a10; border: 1.5px solid rgba(0,0,0,.45); box-shadow: 0 1px 0 rgba(0,0,0,.4); }
+  .seg { display: flex; background: rgba(0,0,0,.4); border: 1px solid var(--line); border-radius: 999px; padding: 3px; margin: 0 auto 10px; max-width: 360px; }
+  .seg button { flex: 1; background: none; border: 0; border-radius: 999px; padding: 8px 6px; font-weight: 800; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+  .seg button[aria-pressed="true"] { background: var(--gold); color: var(--ink); }
+  .note { text-align: center; font-size: 12px; color: #e9ddc6; margin: 8px 4px 0; line-height: 1.4; }
+  .orow { display: grid; grid-template-columns: 1fr auto; gap: 6px 8px; align-items: center; padding: 8px 10px; border-radius: 10px; background: rgba(0,0,0,.28); border: 1px solid rgba(232,185,74,.5); margin-bottom: 6px; }
+  .orow b { font-size: 14px; } .orow small { display: block; color: #e9ddc6; font-size: 11.5px; }
+  .orow .bt { display: flex; gap: 5px; } .orow .bt button { background: var(--gold); color: var(--ink); border: 0; border-radius: 999px; padding: 7px 11px; font-weight: 900; font-size: 12px; }
+  .orow .bt button.g { background: rgba(255,255,255,.14); color: var(--ivory); }
+  .hopg { display: grid; grid-template-columns: 22px repeat(6, 1fr); gap: 5px; align-items: stretch; }
+  .hopg .hd { display: grid; place-items: center; font-weight: 900; font-size: 12px; color: var(--gold-hi); }
+  .hopg .spot { min-height: 46px; padding: 3px 1px; } .hopg .spot b { font-size: 14px; } .hopg .spot small { font-size: 9px; }
+  .hopg .gap { background: rgba(0,0,0,.18); border-radius: 8px; }
+
+  .dock { position: sticky; bottom: 0; z-index: 25; padding: 8px 10px max(10px, env(safe-area-inset-bottom)); background: linear-gradient(0deg, #12060a 70%, rgba(18,6,10,.0)); }
+  .dock .inner { max-width: 720px; margin: 0 auto; display: grid; gap: 8px; }
+  .dock .who2 { text-align: center; font-size: 12px; color: var(--mute); letter-spacing: .06em; }
+  .dock .who2 b { color: var(--gold-hi); }
+  .dock .acts { display: grid; grid-template-columns: 1fr 1fr 1fr 1.5fr; gap: 6px; align-items: stretch; }
+  .dock .acts .btn { padding: 11px 4px; font-size: 12px; letter-spacing: .04em; line-height: 1.1; }
+  .dock .acts .btn.red { font-size: 17px; letter-spacing: .1em; }
+  .rebuy { margin-top: 4px; background: var(--gold); color: var(--ink); border: 0; border-radius: 999px; font-size: 10px; font-weight: 900; letter-spacing: .06em; padding: 3px 8px; text-transform: uppercase; }
+  .cnt { font-size: 11px; color: var(--gold-hi); font-weight: 800; letter-spacing: .06em; }
+  .bar { height: 9px; border-radius: 5px; background: rgba(255,255,255,.1); overflow: hidden; margin: 3px 0; }
+  .bar i { display: block; height: 100%; background: var(--gold); }
+  .bar i.ex { background: rgba(125,255,160,.7); margin-top: -9px; }
+  .hrow { display: grid; grid-template-columns: 26px 1fr 54px; gap: 8px; align-items: center; font-size: 12px; margin: 5px 0; }
+  .bets-pl { margin: 12px 0 4px; display: flex; align-items: center; gap: 8px; font-weight: 800; }
+  .bets-pl .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--pc); }
+  .brow { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.1); font-size: 13px; align-items: center; }
+  .brow small { color: var(--mute); display: block; }
+  .brow .off { color: var(--bad); font-weight: 800; font-size: 11px; letter-spacing: .06em; }
+  .brow button { background: rgba(255,255,255,.12); border: 1px solid var(--line); color: var(--ivory); border-radius: 999px; padding: 5px 10px; font-size: 11px; font-weight: 800; }
+  .chk { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: #ecdcc0; margin: 10px 0; }
+  .chk input { width: 20px; height: 20px; accent-color: var(--gold); flex: none; margin-top: 1px; }
+</style>
+</head>
+<body>
+<header class="top tight">
+  <a class="back" href="casino.html">&#8249; Lobby</a><h1>Craps</h1>
+  <div class="tools"><button class="tool" id="bRef" type="button">Odds</button><button class="tool" id="bStat" type="button">Rolls</button><button class="tool" id="bSnd" type="button" aria-pressed="true" aria-label="Sound">Sound</button></div>
+</header>
+<div id="setup"></div>
+<main id="game" class="wrap" hidden>
+  <section class="stage" aria-label="Dice table"><canvas id="cv"></canvas><div class="callout" id="call" aria-live="polite"></div></section>
+  <section class="strip">
+    <div class="puck off" id="puck" aria-label="Point marker">OFF</div>
+    <div class="who" id="who"></div>
+    <button class="auto" id="bPass" type="button">Pass dice</button>
+    <button class="auto" id="bAuto" type="button" aria-pressed="true">Auto-roll</button>
+    <div class="hist" id="hist" aria-label="Recent rolls"></div>
+  </section>
+  <section class="seats" id="seats" aria-label="Players"></section>
+  <section class="board" aria-label="Bets"><div class="tabs" id="tabs" role="tablist"></div><div id="panel"></div></section>
+</main>
+<footer class="dock" id="dock" hidden><div class="inner">
+  <div id="tray"></div>
+  <div class="who2" id="who2"></div>
+  <div class="acts">
+    <button class="btn ghost" id="bUndo" type="button">Undo chip</button>
+    <button class="btn ghost" id="bSame" type="button">Same bets</button>
+    <button class="btn ghost" id="bMine" type="button">My bets</button>
+    <button class="btn red" id="bRoll" type="button">Roll</button>
+  </div>
+</div></footer>
+
+<script src="craps-engine.js"></script>
+<script src="casino-core.js"></script>
+<script>
+(function () {
+  'use strict';
+  const C = Craps, { h, money, signed, sfx } = Casino;
+  const $ = id => document.getElementById(id);
+  const S = { t: null, ps: [], active: 0, chip: 5, tab: 'line', numMode: 'place', phase: 'setup', auto: true, count: 0, tick: 0, snaps: [], undo: [], net: [], rolling: false };
+  const TABS = [['line', 'Line'], ['num', 'Numbers'], ['prop', 'Props'], ['hop', 'Hops']];
+
+  /* ---------- helpers ---------- */
+  const label = b => {
+    const d = C.DEFS[b.type];
+    if (b.type === 'come' || b.type === 'dc') return d.label + (b.num ? ' on ' + b.num : ' (new)');
+    if (b.type === 'hop') return (b.hop[0] === b.hop[1] ? 'Hard hop ' : 'Easy hop ') + b.hop[0] + '-' + b.hop[1];
+    if (b.num != null) return d.label + ' ' + b.num;
+    return d.label;
+  };
+  const player = i => S.ps[i];
+  const isOff = b => S.t.point === null && !S.t.keep[b.p] && (b.type === 'place' || b.type === 'buy' || b.type === 'hard');
+  const oddsOff = b => S.t.point === null && !S.t.keep[b.p] && (b.type === 'come' || b.type === 'dc') && b.num !== null;
+  const shooter = () => S.ps[S.t.shooter];
+  const modalOpen = () => !!document.querySelector('.modal');
+
+  function dice() {
+    if (window.__forceDice && window.__forceDice.length) return window.__forceDice.shift();
+    return [1 + Math.floor(Math.random() * 6), 1 + Math.floor(Math.random() * 6)];
+  }
+
+  /* ---------- the dice canvas ---------- */
+  const cv = $('cv'), g = cv.getContext('2d'); let W = 300, H = 190, dpr = 1;
+  const D = [{ x: .43, y: .66, r: -.25, f: 3 }, { x: .57, y: .69, r: .35, f: 4 }];
+  function sizeCanvas() { const r = cv.getBoundingClientRect(); if (!r.width) return; dpr = Math.min(window.devicePixelRatio || 1, 2.5); W = r.width; H = r.height; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); g.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  const PIPS = { 1: [[0, 0]], 2: [[-1, -1], [1, 1]], 3: [[-1, -1], [0, 0], [1, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]], 5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]], 6: [[-1, -1], [-1, 0], [-1, 1], [1, -1], [1, 0], [1, 1]] };
+  function die(x, y, s, ang, face) {
+    g.save(); g.translate(x, y); g.rotate(ang);
+    g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(4, s * .55, s * .55, s * .2, 0, 0, 6.3); g.fill();
+    const gr = g.createLinearGradient(-s / 2, -s / 2, s / 2, s / 2); gr.addColorStop(0, '#ff5a5a'); gr.addColorStop(1, '#a31524');
+    g.fillStyle = gr; g.strokeStyle = '#ffe39a'; g.lineWidth = 2; g.beginPath(); g.roundRect(-s / 2, -s / 2, s, s, s * .2); g.fill(); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.22)'; g.beginPath(); g.roundRect(-s / 2 + 3, -s / 2 + 3, s - 6, s * .35, s * .15); g.fill();
+    g.fillStyle = '#fff'; for (const [px, py] of PIPS[face]) { g.beginPath(); g.arc(px * s * .26, py * s * .26, s * .075, 0, 6.3); g.fill(); }
+    g.restore();
+  }
+  function scene() {
+    const wallH = H * .3;
+    g.clearRect(0, 0, W, H);
+    const wg = g.createLinearGradient(0, 0, 0, wallH); wg.addColorStop(0, '#2b0710'); wg.addColorStop(1, '#5a1325'); g.fillStyle = wg; g.fillRect(0, 0, W, wallH);
+    g.fillStyle = 'rgba(255,255,255,.07)';
+    for (let row = 0; row < 2; row++) for (let x = -10 + (row ? 14 : 0); x < W + 14; x += 28) { g.beginPath(); g.moveTo(x, wallH - row * 14); g.lineTo(x + 14, wallH - 24 - row * 14); g.lineTo(x + 28, wallH - row * 14); g.fill(); }
+    g.fillStyle = '#e8b94a'; g.fillRect(0, wallH - 2, W, 3);
+    const fg = g.createRadialGradient(W / 2, H * .75, 10, W / 2, H * .75, W * .7); fg.addColorStop(0, '#1aa061'); fg.addColorStop(1, '#075a31'); g.fillStyle = fg; g.fillRect(0, wallH + 1, W, H);
+    g.strokeStyle = 'rgba(232,185,74,.5)'; g.lineWidth = 2; g.beginPath(); g.moveTo(10, H - 12); g.quadraticCurveTo(W / 2, wallH + 34, W - 10, H - 12); g.stroke();
+    g.fillStyle = 'rgba(255,227,154,.55)'; g.font = '700 12px Georgia, serif'; g.textAlign = 'center'; g.fillText('DON’T COME  ·  PASS LINE  ·  FIELD', W / 2, wallH + 22);
+    const sz = Math.min(46, W * .12);
+    D.forEach(d => die(d.x * W, d.y * H, sz, d.r, d.f));
+  }
+  function animateRoll(d1, d2) {
+    return new Promise(done => {
+      const dur = 1250, t0 = performance.now(), faces = [d1, d2];
+      const ends = [{ x: .36 + Math.random() * .1, y: .64 + Math.random() * .08, r: (Math.random() - .5) * 2.4 }, { x: .56 + Math.random() * .1, y: .62 + Math.random() * .1, r: (Math.random() - .5) * 2.4 }];
+      const starts = [{ x: .42, y: 1.25 }, { x: .56, y: 1.35 }]; let lastFace = 0, landed = false; sfx('dice');
+      function f(now) {
+        const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+        for (let k = 0; k < 2; k++) {
+          const arc = Math.sin(Math.PI * Math.min(1, p * 1.05)) * (.62 - k * .05) * (1 - p * .5), bounce = p > .78 ? Math.abs(Math.sin((p - .78) * 14)) * .06 * (1 - p) * 4 : 0;
+          D[k].x = starts[k].x + (ends[k].x - starts[k].x) * e + Math.sin(p * 8 + k * 2) * .015 * (1 - p);
+          D[k].y = starts[k].y + (ends[k].y - starts[k].y) * e - arc - bounce;
+          D[k].r = ends[k].r + (1 - e) * (k ? -14 : 12);
+          if (p < .86) { if (now - lastFace > 75) { D[k].f = 1 + Math.floor(Math.random() * 6); } } else D[k].f = faces[k];
+        }
+        if (now - lastFace > 75) lastFace = now;
+        if (!landed && p > .8) { landed = true; sfx('land'); }
+        scene(); if (p < 1) requestAnimationFrame(f); else { D[0].f = d1; D[1].f = d2; scene(); done(); }
+      }
+      requestAnimationFrame(f);
+    });
+  }
+
+  /* ---------- game flow ---------- */
+  function start(players) {
+    S.ps = players; S.t = C.create(players); S.net = players.map(() => 0); S.undo = players.map(() => []); S.snaps = players.map(() => []);
+    const first = players.findIndex(p => p.human); S.active = first < 0 ? 0 : first;
+    $('setup').hidden = true; $('game').hidden = false; $('dock').hidden = false;
+    sizeCanvas(); scene(); S.phase = 'bet'; beginBetting();
+    try { if (!localStorage.getItem('luckyseven.craps.seen')) { localStorage.setItem('luckyseven.craps.seen', '1'); setTimeout(showHow, 400); } } catch (e) { /* ignore */ }
+  }
+  function beginBetting() {
+    S.phase = 'bet'; clearInterval(S.tick); S.count = 0;
+    S.ps.forEach((p, i) => { if (!p.human) { if (p.bank < 25) { Casino.rebuy(p); Casino.toast(p.name + ' reloads ' + money(Casino.START_BANK) + '.'); } C.cpuBets(S.t, i, p.style); } });
+    const sh = S.t.shooter; if (S.ps[sh].human) S.active = sh;
+    S.undo = S.ps.map(() => []);
+    Casino.save(); render();
+    if (!S.ps[sh].human && S.auto) { S.count = 6; S.tick = setInterval(tickDown, 1000); }
+  }
+  function tickDown() {
+    if (S.phase !== 'bet') { clearInterval(S.tick); return; }
+    if (modalOpen()) return;
+    S.count--; if (S.count <= 0) { clearInterval(S.tick); doRoll(); } else renderWho();
+  }
+
+  async function doRoll() {
+    if (S.phase !== 'bet') return;
+    const t = S.t, sh = t.shooter, p = S.ps[sh];
+    if (t.point === null && !t.bets.some(b => b.p === sh && (b.type === 'pass' || b.type === 'dp'))) {
+      if (p.human) { Casino.toast(p.name + ', the shooter needs a Pass Line or Don’t Pass bet.'); S.tab = 'line'; S.active = sh; render(); return; }
+      if (!C.addBet(t, sh, 'pass', 10).ok) { C.nextShooter(t); Casino.toast('Dice pass to ' + shooter().name + '.'); beginBetting(); return; }
+    }
+    clearInterval(S.tick); S.phase = 'rolling'; S.count = 0;
+    S.snaps = S.ps.map((_, i) => t.bets.filter(b => b.p === i && !((b.type === 'come' || b.type === 'dc') && b.num !== null)).map(b => ({ type: b.type, num: b.num, hop: b.hop, amt: b.amt })));
+    render();
+    const [d1, d2] = dice();
+    await animateRoll(d1, d2);
+    resolve(d1, d2);
+  }
+
+  function announce(res) {
+    const call = C.callFor(res.d1, res.d2); let sub = '';
+    if (res.comeOut) {
+      if (res.total === 7 || res.total === 11) sub = 'Front-line winner. Pay the line.';
+      else if (res.total === 2 || res.total === 3 || res.total === 12) sub = 'Craps. Line away' + (res.total === 12 ? ' (bar 12 pushes the dark side).' : '.');
+      else sub = 'The point is ' + res.total + '. Puck is ON.';
+    } else if (res.pointMade) sub = 'Point made! Pay the line.';
+    else if (res.sevenOut) sub = 'Seven out. Line away, dice pass.';
+    else if (res.pointBefore) sub = 'Point is still ' + res.pointBefore + '.';
+    $('call').innerHTML = ''; $('call').append(h('b', null, res.total + ' · ' + call), h('small', null, sub));
+  }
+
+  function resolve(d1, d2) {
+    const res = C.roll(S.t, d1, d2); S.last = res;
+    S.ps.forEach((p, i) => { S.net[i] = Casino.r2(S.net[i] + res.net[i]); Casino.touch(p); });
+    announce(res);
+    const anyWin = res.net.some(n => n > 0), seven = res.sevenOut;
+    sfx(seven ? 'lose' : res.net.some(n => n >= 100) ? 'big' : anyWin ? 'win' : res.pointSet ? 'bell' : 'click');
+    render();
+    res.net.forEach((n, i) => { if (n !== 0) { const el = document.querySelector('.seat[data-i="' + i + '"]'); if (el) Casino.pop(el, signed(n), n > 0 ? 'win' : 'lose'); } });
+    if (seven) { C.nextShooter(S.t); setTimeout(() => Casino.toast('Dice pass to ' + shooter().name + '.'), 900); }
+    Casino.save();
+    S.phase = 'result'; renderDock();
+    setTimeout(() => { if (S.phase === 'result') beginBetting(); }, seven ? 2300 : 1700);
+  }
+
+  /* ---------- betting actions ---------- */
+  function press(type, num, hop) {
+    if (S.phase !== 'bet') { Casino.toast('Wait for the dice to stop.'); return; }
+    const p = S.active; if (!S.ps[p].human) { Casino.toast('Pick a human seat to bet.'); return; }
+    const r = C.addBet(S.t, p, type, S.chip, num, hop);
+    if (!r.ok) { Casino.toast(r.error); sfx('lose'); return; }
+    S.undo[p].push({ kind: 'bet', id: r.bet.id, amt: S.chip, vig: r.vig }); sfx('chip'); Casino.touch(S.ps[p]); Casino.save(); render();
+  }
+  function addOdds(id, amt) {
+    if (S.phase !== 'bet') return; const b = S.t.bets.find(x => x.id === id); if (!b) return;
+    const r = C.addOdds(S.t, id, amt); if (!r.ok) { Casino.toast(r.error); sfx('lose'); return; }
+    S.undo[b.p].push({ kind: 'odds', id, amt }); sfx('chip'); Casino.save(); render();
+  }
+  function undo() {
+    if (S.phase !== 'bet') return; const p = S.active, st = S.undo[p];
+    while (st.length) {
+      const e = st.pop(); const b = S.t.bets.find(x => x.id === e.id); if (!b) continue;
+      const r = e.kind === 'odds' ? C.reduceOdds(S.t, e.id, e.amt) : C.reduceBet(S.t, e.id, e.amt, e.vig);
+      if (!r.ok) { Casino.toast(r.error); return; }
+      sfx('click'); Casino.save(); render(); return;
+    }
+    Casino.toast('Nothing to undo.');
+  }
+  function same() {
+    if (S.phase !== 'bet') return; const p = S.active; let n = 0;
+    for (const e of S.snaps[p] || []) {
+      if (S.t.bets.some(b => b.p === p && b.type === e.type && b.num === (e.num == null ? null : e.num) && (e.type !== 'hop' || (b.hop[0] === e.hop[0] && b.hop[1] === e.hop[1])))) continue;
+      const r = C.addBet(S.t, p, e.type, e.amt, e.num, e.hop); if (r.ok) { S.undo[p].push({ kind: 'bet', id: r.bet.id, amt: e.amt, vig: r.vig }); n++; }
+    }
+    if (n) { sfx('chips'); Casino.save(); render(); } else Casino.toast('Nothing new to repeat.');
+  }
+
+  /* ---------- rendering ---------- */
+  const spotBets = (type, num, hop) => S.t.bets.filter(b => b.type === type && b.num === (num == null ? null : num) && (type !== 'hop' || (b.hop[0] === hop[0] && b.hop[1] === hop[1])));
+  function spot(o) {
+    const bets = spotBets(o.type, o.num, o.hop);
+    const mineOn = bets.some(b => b.p === S.active);
+    const el = h('button', { type: 'button', class: 'spot' + (o.num != null && o.cls === 'num' ? ' num' : '') + (mineOn ? ' hot' : ''), disabled: !!o.off, 'aria-label': o.aria || o.title,
+      onclick: () => press(o.type, o.num, o.hop) },
+      h('b', null, o.title), o.sub ? h('small', null, o.sub) : null,
+      bets.length ? h('span', { class: 'bdgs' }, bets.map(b => h('span', { class: 'bdg', style: { '--pc': S.ps[b.p].color } }, money(b.amt)))) : null);
+    return el;
+  }
+  const PAYTXT = { place: { 4: '9:5', 5: '7:5', 6: '7:6', 8: '7:6', 9: '7:5', 10: '9:5' }, buy: { 4: '2:1', 5: '3:2', 6: '6:5', 8: '6:5', 9: '3:2', 10: '2:1' }, lay: { 4: '1:2', 5: '2:3', 6: '5:6', 8: '5:6', 9: '2:3', 10: '1:2' } };
+  const NUMNAME = { 6: 'SIX', 9: 'NINE' };
+
+  function tabLine() {
+    const t = S.t, co = t.point === null, root = h('div');
+    root.append(h('div', { class: 'grid g2' },
+      spot({ type: 'pass', title: 'Pass Line', sub: '1:1 · 1.41%', off: !co }),
+      spot({ type: 'dp', title: 'Don’t Pass', sub: '1:1 · bar 12 · 1.36%', off: !co })));
+    root.append(h('div', { class: 'grid g2', style: { marginTop: '8px' } },
+      spot({ type: 'come', title: 'Come', sub: co ? 'after the point' : '1:1 · 1.41%', off: co }),
+      spot({ type: 'dc', title: 'Don’t Come', sub: co ? 'after the point' : '1:1 · 1.36%', off: co })));
+    const rows = oddsRows();
+    root.append(h('div', { class: 'sec' }, 'Free odds'));
+    if (rows.length) rows.forEach(r => root.append(r)); else root.append(h('p', { class: 'note' }, co ? 'Odds open once a point is set. They pay true odds with no house edge.' : 'Make a Pass, Don’t Pass, Come or Don’t Come bet and back it up here.'));
+    root.append(h('div', { class: 'sec' }, 'Center bets'));
+    root.append(h('div', { class: 'grid g1' }, spot({ type: 'field', title: 'Field', sub: '3 4 9 10 11 pay 1:1 · 2 pays 2:1 · 12 pays 3:1 · 2.78%' })));
+    root.append(h('div', { class: 'grid g2', style: { marginTop: '8px' } },
+      spot({ type: 'big6', title: 'Big 6', sub: '1:1 · 9.09%' }), spot({ type: 'big8', title: 'Big 8', sub: '1:1 · 9.09%' })));
+    return root;
+  }
+  function oddsRows() {
+    const t = S.t, p = S.active, out = [];
+    t.bets.filter(b => b.p === p && C.hasOdds(b) && C.oddsNumber(t, b) != null).forEach(b => {
+      const n = C.oddsNumber(t, b), max = C.maxOdds(t, b), lay = !(b.type === 'pass' || b.type === 'come');
+      out.push(h('div', { class: 'orow' },
+        h('div', null, h('b', null, label(b) + (b.type === 'pass' || b.type === 'dp' ? ' (' + n + ')' : '') + ' ' + money(b.amt)),
+          h('small', null, (lay ? 'Lay odds' : 'Odds') + ' ' + money(b.odds) + ' of ' + money(max) + ' max' + (oddsOff(b) ? ' · OFF on come-out' : ''))),
+        h('div', { class: 'bt' },
+          h('button', { type: 'button', onclick: () => addOdds(b.id, S.chip) }, '+' + money(S.chip)),
+          h('button', { type: 'button', onclick: () => addOdds(b.id, Math.max(0, Casino.r2(max - b.odds))) }, 'Max'),
+          b.odds ? h('button', { class: 'g', type: 'button', 'aria-label': 'Take down odds', onclick: () => { if (S.phase !== 'bet') return; const r = C.removeOdds(t, b.id); if (r.ok) { sfx('click'); Casino.save(); render(); } } }, 'Down') : null)));
+    });
+    return out;
+  }
+  function tabNum() {
+    const root = h('div'), m = S.numMode;
+    root.append(h('div', { class: 'seg', role: 'group', 'aria-label': 'Number bet type' }, [['place', 'Place'], ['buy', 'Buy'], ['lay', 'Lay']].map(([k, l]) =>
+      h('button', { type: 'button', 'aria-pressed': S.numMode === k, onclick: () => { S.numMode = k; sfx('click'); render(); } }, l))));
+    root.append(h('div', { class: 'grid g3' }, [4, 5, 6, 8, 9, 10].map(n =>
+      spot({ type: m, num: n, title: NUMNAME[n] || String(n), cls: 'num', aria: m + ' ' + n, sub: PAYTXT[m][n] + (m === 'buy' ? ' · 5% vig' : m === 'lay' ? ' · 5% vig' : '') }))));
+    root.append(h('p', { class: 'note' }, m === 'place' ? 'Place bets win when the number rolls before a 7. House edge 1.52% on 6 and 8, 4% on 5 and 9, 6.67% on 4 and 10. Off on the come-out roll unless kept working.'
+      : m === 'buy' ? 'Buy bets pay true odds, less a 5% commission paid up front. They come down after they win. House edge 4.76%.'
+      : 'Lay bets win if a 7 rolls before the number. The 5% commission is on the win and is paid up front. Edge 2.44% to 4%.'));
+    return root;
+  }
+  function tabProp() {
+    const root = h('div');
+    root.append(h('div', { class: 'sec' }, 'Hardways · off on come-out'));
+    root.append(h('div', { class: 'grid g4' }, [4, 6, 8, 10].map(n => spot({ type: 'hard', num: n, title: 'Hard ' + n, sub: (n === 6 || n === 8 ? '9:1' : '7:1'), cls: '' }))));
+    root.append(h('p', { class: 'note' }, 'Wins if the number rolls as a pair before an easy way or a 7.'));
+    root.append(h('div', { class: 'sec' }, 'One-roll bets'));
+    root.append(h('div', { class: 'grid g3' },
+      spot({ type: 'any7', title: 'Any 7', sub: '4:1 · 16.67%' }), spot({ type: 'anycraps', title: 'Any Craps', sub: '7:1 · 11.11%' }), spot({ type: 'ce', title: 'C & E', sub: 'craps 3:1 · 11 7:1' }),
+      spot({ type: 'two', title: 'Aces 2', sub: '30:1' }), spot({ type: 'three', title: 'Ace-Deuce 3', sub: '15:1' }), spot({ type: 'yo', title: 'Yo 11', sub: '15:1' }),
+      spot({ type: 'twelve', title: 'Boxcars 12', sub: '30:1' }), spot({ type: 'horn', title: 'Horn', sub: '2, 3, 11, 12 · 12.5%' })));
+    root.append(h('p', { class: 'note' }, 'One-roll proposition bets carry the biggest house edge on the table (11% to 17%). Fun, risky, and settled on the very next roll.'));
+    return root;
+  }
+  function tabHop() {
+    const root = h('div'), grid = h('div', { class: 'hopg' });
+    grid.append(h('span'));
+    for (let b = 1; b <= 6; b++) grid.append(h('span', { class: 'hd' }, b));
+    for (let a = 1; a <= 6; a++) {
+      grid.append(h('span', { class: 'hd' }, a));
+      for (let b = 1; b <= 6; b++) {
+        if (b < a) { grid.append(h('span', { class: 'gap' })); continue; }
+        grid.append(spot({ type: 'hop', hop: [a, b], title: a + '-' + b, sub: a === b ? '30:1' : '15:1', aria: 'Hop ' + a + ' and ' + b }));
+      }
+    }
+    root.append(grid, h('p', { class: 'note' }, 'A hop bet wins if the very next roll shows exactly those two dice. Easy hops (two different dice) pay 15:1, hard hops (a pair) pay 30:1.'));
+    return root;
+  }
+
+  function renderTabs() {
+    const tabs = $('tabs'); tabs.innerHTML = '';
+    TABS.forEach(([k, l]) => tabs.append(h('button', { type: 'button', role: 'tab', 'aria-selected': S.tab === k, onclick: () => { S.tab = k; sfx('click'); render(); } }, l)));
+  }
+  function renderPanel() {
+    const sc = window.scrollY; const pnl = $('panel'); pnl.innerHTML = '';
+    pnl.append(S.tab === 'line' ? tabLine() : S.tab === 'num' ? tabNum() : S.tab === 'prop' ? tabProp() : tabHop());
+    window.scrollTo(0, sc);
+  }
+  function renderWho() {
+    const t = S.t, sh = shooter(), w = $('who'); w.innerHTML = '';
+    const pend = S.phase === 'bet' && !sh.human && S.auto && S.count > 0 ? ' · dice in ' + S.count + 's' : '';
+    w.append(h('b', null, sh.name + (sh.name === 'You' ? ' are' : ' is') + ' shooting'), h('small', null, (t.point === null ? 'Come-out roll' : 'Point is ' + t.point) + ' · roll ' + (t.rolls + 1) + pend));
+    const puck = $('puck'); puck.className = 'puck ' + (t.point === null ? 'off' : 'on'); puck.textContent = t.point === null ? 'OFF' : t.point;
+    $('bAuto').setAttribute('aria-pressed', S.auto);
+    $('bPass').hidden = !(S.phase === 'bet' && t.point === null && S.ps.length > 1);
+  }
+  function renderHist() {
+    const el = $('hist'); el.innerHTML = '';
+    S.t.history.slice(-14).forEach(n => el.append(h('span', { class: n === 7 ? 'seven' : '' }, n)));
+  }
+  function renderSeats() {
+    const box = $('seats'); const keepScroll = box.scrollLeft; box.innerHTML = '';
+    S.ps.forEach((p, i) => {
+      const ex = C.exposure(S.t, i), sh = i === S.t.shooter;
+      box.append(h('button', { class: 'seat', type: 'button', 'data-i': i, 'aria-pressed': i === S.active, style: { '--pc': p.color }, onclick: () => { if (p.human) { S.active = i; sfx('click'); render(); } else showBets(i); } },
+        sh ? h('span', { class: 'tag' }, 'Shooter') : null,
+        h('div', { class: 'nm' }, h('span', { class: 'dot' }), p.name, p.human ? null : h('span', { class: 'cpu' }, 'CPU')),
+        h('div', { class: 'bk' }, money(p.bank)),
+        h('div', { class: 'sub' }, ex ? money(ex) + ' on table' : 'no bets'),
+        p.human && p.bank < 5 && !ex ? h('span', { class: 'rebuy', role: 'button', onclick: e => { e.stopPropagation(); Casino.rebuy(p); sfx('chips'); render(); } }, 'Rebuy ' + money(Casino.START_BANK)) : null));
+    });
+    box.scrollLeft = keepScroll;
+    const act = box.children[S.active]; if (act && S.phase === 'bet' && act.offsetLeft + act.offsetWidth > box.scrollLeft + box.clientWidth) act.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }
+  function renderDock() {
+    const sh = S.t.shooter, shp = S.ps[sh], bet = S.phase === 'bet';
+    $('tray').innerHTML = ''; $('tray').append(Casino.chipTray(S.chip, v => { S.chip = v; sfx('click'); renderDock(); renderPanel(); }));
+    $('who2').innerHTML = ''; const ap = S.ps[S.active];
+    $('who2').append(ap && ap.human ? h('span', null, 'Betting as ', h('b', null, ap.name), ' · chip ', h('b', null, money(S.chip))) : 'Pick a human seat to place bets');
+    const roll = $('bRoll'); roll.textContent = shp.human ? 'Roll' : 'Roll now';
+    roll.disabled = !bet; $('bUndo').disabled = !bet; $('bSame').disabled = !bet;
+  }
+  function render() { renderWho(); renderHist(); renderSeats(); renderTabs(); renderPanel(); renderDock(); }
+
+  /* ---------- modals ---------- */
+  function showBets(only) {
+    const body = h('div'), t = S.t;
+    const idx = only != null ? [only] : S.ps.map((_, i) => i);
+    idx.forEach(i => {
+      const p = S.ps[i], mine = t.bets.filter(b => b.p === i);
+      body.append(h('div', { class: 'bets-pl', style: { '--pc': p.color } }, h('span', { class: 'dot' }), p.name, h('span', { style: { marginLeft: 'auto', color: 'var(--gold-hi)' } }, money(C.exposure(t, i)) + ' on table')));
+      if (!mine.length) body.append(h('p', null, 'No bets on the table.'));
+      mine.forEach(b => body.append(h('div', { class: 'brow' },
+        h('div', null, h('b', null, label(b) + ' ' + money(b.amt)), h('small', null, (b.odds ? 'odds ' + money(b.odds) + (oddsOff(b) ? ' (off)' : '') : '') + (isOff(b) ? ' ' : ''), isOff(b) ? h('span', { class: 'off' }, 'OFF on come-out') : null)),
+        S.ps[i].human && S.phase === 'bet' && C.canRemove(t, b) ? h('button', { type: 'button', onclick: () => { const r = C.removeBet(t, b.id); if (r.ok) { sfx('click'); Casino.save(); render(); mdl.close(); showBets(only); } else Casino.toast(r.error); } }, 'Take down') : h('small', null, C.canRemove(t, b) ? '' : 'locked'))));
+      if (p.human) body.append(h('label', { class: 'chk' }, h('input', { type: 'checkbox', checked: !!t.keep[i], onchange: e => { t.keep[i] = e.target.checked; render(); } }),
+        h('span', null, 'Keep place, buy and hardway bets and come odds working on the come-out roll.')));
+    });
+    const mdl = Casino.modal(only != null ? S.ps[only].name + '’s bets' : 'Bets on the table', body, [{ label: 'Close' }]);
+  }
+  function showStats() {
+    const t = S.t, body = h('div'); let max = 1; for (let n = 2; n <= 12; n++) max = Math.max(max, t.dist[n], t.rolls * C.WAYS[n] / 36);
+    body.append(h('p', null, t.rolls + ' rolls this session, ' + t.sevenOuts + ' seven-outs. Gold bars are your rolls; green marks show what the odds predict.'));
+    for (let n = 2; n <= 12; n++) {
+      const exp = t.rolls * C.WAYS[n] / 36;
+      body.append(h('div', { class: 'hrow' }, h('b', null, n), h('div', null, h('div', { class: 'bar' }, h('i', { style: { width: (t.dist[n] / max * 100) + '%' } })), h('div', { class: 'bar', style: { height: '4px', marginTop: '-1px' } }, h('i', { class: 'ex', style: { width: (exp / max * 100) + '%', marginTop: 0, height: '4px' } }))), h('span', { style: { textAlign: 'right', color: 'var(--mute)' } }, t.dist[n] + ' / ' + C.WAYS[n] + 'x')));
+    }
+    body.append(h('h3', null, 'Session results'));
+    S.ps.forEach((p, i) => body.append(h('div', { class: 'brow' }, h('b', null, p.name), h('b', { style: { color: S.net[i] >= 0 ? 'var(--good)' : 'var(--bad)' } }, signed(S.net[i])))));
+    Casino.modal('Roll statistics', body);
+  }
+  function showRef() {
+    const body = h('div');
+    body.append(h('p', null, 'Every bet at this table, how it pays, and the house edge. Free odds have no edge at all, so back up your line bets whenever you can.'));
+    C.REFERENCE.forEach(gp => {
+      body.append(h('h3', null, gp.group));
+      const tb = h('table', null, h('tr', null, h('th', null, 'Bet'), h('th', null, 'Pays'), h('th', { class: 'r' }, 'Edge')));
+      gp.rows.forEach(r => tb.append(h('tr', null, h('td', null, h('b', null, r[0]), h('div', { style: { color: 'var(--mute)', fontSize: '11px' } }, r[2])), h('td', null, r[1]), h('td', { class: 'r' }, r[3]))));
+      body.append(tb);
+    });
+    body.append(h('h3', null, 'Ways to roll each total'));
+    body.append(h('table', null, h('tr', null, [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => h('th', { class: 'r', style: { textAlign: 'center' } }, n))), h('tr', null, [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => h('td', { style: { textAlign: 'center' } }, C.WAYS[n] + '/36')))));
+    Casino.modal('Odds & payouts', body);
+  }
+  function showHow() {
+    Casino.modal('How craps works', h('div', null,
+      h('p', null, h('b', null, 'The shooter'), ' rolls two dice. The first roll is the come-out: 7 or 11 wins the Pass Line, 2, 3 or 12 loses it, and any other number becomes the point.'),
+      h('p', null, h('b', null, 'The point.'), ' Roll it again before a 7 and the Pass Line wins. Roll a 7 first (a seven-out) and the line loses and the dice pass to the next shooter.'),
+      h('p', null, h('b', null, 'Don’t Pass'), ' is the opposite bet. ', h('b', null, 'Odds'), ' back up a line bet at true odds. ', h('b', null, 'Come'), ' bets work like a fresh Pass Line bet in the middle of a roll.'),
+      h('p', null, h('b', null, 'Everyone plays together.'), ' Tap your seat, choose a chip, and tap a bet. Pass the phone around: when you’re the shooter, press Roll. Computer players bet and shoot on their own.'),
+      h('p', null, 'The Odds button lists every payout and house edge. Play money only.')), [{ label: 'Let’s roll', cls: '' }]);
+  }
+
+  /* ---------- wiring ---------- */
+  $('bRoll').addEventListener('click', () => { Casino.sfx('click'); doRoll(); });
+  $('bPass').addEventListener('click', () => {
+    if (S.phase !== 'bet' || S.t.point !== null) { Casino.toast('The dice can only be passed on a come-out roll.'); return; }
+    const was = shooter(); C.nextShooter(S.t); sfx('click'); Casino.toast(was.name + (was.name === 'You' ? ' pass' : ' passes') + ' the dice to ' + shooter().name + '.'); beginBetting();
+  });
+  $('bUndo').addEventListener('click', undo); $('bSame').addEventListener('click', same);
+  $('bMine').addEventListener('click', () => showBets(null));
+  $('bRef').addEventListener('click', showRef); $('bStat').addEventListener('click', () => { if (S.t) showStats(); else Casino.toast('Take your seats first.'); });
+  $('bAuto').addEventListener('click', () => { S.auto = !S.auto; if (!S.auto) { clearInterval(S.tick); S.count = 0; } else if (S.phase === 'bet' && !shooter().human) { S.count = 6; clearInterval(S.tick); S.tick = setInterval(tickDown, 1000); } renderWho(); });
+  const snd = $('bSnd'); snd.setAttribute('aria-pressed', !Casino.isMuted()); snd.addEventListener('click', () => { Casino.setMuted(!Casino.isMuted()); snd.setAttribute('aria-pressed', !Casino.isMuted()); Casino.sfx('click'); });
+  window.addEventListener('resize', () => { sizeCanvas(); if (S.t) scene(); });
+  window.addEventListener('keydown', e => { if (e.key.toLowerCase() === 'r' && S.phase === 'bet' && !modalOpen() && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) doRoll(); });
+
+  window.__craps = { S, C, doRoll, press, resolve };
+  Casino.pickSeats($('setup'), { game: 'craps', max: 6, title: 'Take your seats', blurb: 'Pick who is at the table. Everyone bets together and the dice pass around after every seven-out.', onStart: start });
+  Casino.registerSW();
+})();
+</script>
+</body>
+</html>

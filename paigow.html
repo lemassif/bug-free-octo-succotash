@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pai Gow">
+<meta name="theme-color" content="#3a0c18">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Face Up Pai Gow — Lucky Seven Casino</title>
+<link rel="stylesheet" href="casino.css">
+<style>
+  .wrap { max-width: 820px; margin: 0 auto; }
+  .felt { margin: 8px 10px 0; padding: 12px 10px 14px; border-radius: 20px; border: 3px solid var(--gold-lo); box-shadow: 0 0 0 3px #1a050b, 0 10px 22px rgba(0,0,0,.5);
+    background: radial-gradient(130% 80% at 50% 0%, var(--felt-hi), var(--felt) 55%, var(--felt-lo)); }
+  .arc { text-align: center; font: 700 11px var(--serif); letter-spacing: .26em; text-indent: .26em; text-transform: uppercase; color: rgba(255,227,154,.75); margin: 0 0 8px; }
+  .msg { margin: 8px auto 4px; text-align: center; min-height: 40px; }
+  .msg b { font: 700 clamp(16px, 4.8vw, 23px)/1.15 var(--serif); letter-spacing: .04em; text-transform: uppercase; color: var(--gold-hi); text-shadow: 0 2px 0 rgba(0,0,0,.6); }
+  .msg small { display: block; color: #f3e9d2; font-size: 12.5px; margin-top: 2px; }
+
+  .card { position: relative; width: 44px; height: 62px; border-radius: 6px; background: #fff; color: #111; box-shadow: 0 2px 5px rgba(0,0,0,.5); border: 1px solid #bbb; flex: none; font-weight: 800; user-select: none; }
+  .card.red { color: #c8202f; }
+  .card .r { position: absolute; left: 4px; top: 3px; font: 800 15px/1 var(--sans); letter-spacing: -1px; }
+  .card .s { position: absolute; left: 4px; top: 19px; width: 12px; height: 12px; fill: currentColor; }
+  .card .b { position: absolute; right: 4px; bottom: 4px; width: 22px; height: 22px; fill: currentColor; opacity: .92; }
+  .card.joker { background: linear-gradient(160deg, #fff, #ffe9b8); color: #7b3fb8; }
+  .card.joker .r { font-size: 11px; letter-spacing: 0; }
+  .card.fresh { animation: deal .4s cubic-bezier(.2, .8, .3, 1) both; animation-delay: var(--d, 0s); }
+  @keyframes deal { from { opacity: 0; transform: translate(30px, -90px) rotate(12deg); } }
+  .row5 { display: flex; gap: 3px; justify-content: center; flex-wrap: nowrap; }
+  .lab { font-size: 10px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: var(--gold-hi); text-align: center; margin: 3px 0 2px; }
+  .desc { font-size: 12px; font-weight: 800; color: #fff; text-align: center; background: rgba(0,0,0,.45); border-radius: 999px; padding: 2px 10px; display: inline-block; }
+  .hand2 { display: flex; gap: 14px; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
+  .hand2 > div { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .dealer { padding-bottom: 6px; border-bottom: 1px dashed rgba(255,227,154,.25); }
+
+  .seats { display: flex; gap: 8px; overflow-x: auto; padding: 12px 2px 4px; scroll-snap-type: x proximity; justify-content: safe center; scrollbar-width: none; }
+  .seats::-webkit-scrollbar { display: none; }
+  .ps { flex: none; scroll-snap-align: center; min-width: 150px; padding: 8px; border-radius: 16px; background: rgba(0,0,0,.28); border: 2px solid rgba(255,255,255,.12); text-align: center; position: relative; }
+  .ps[aria-pressed="true"] { border-color: var(--pc); }
+  .ps.turn { box-shadow: 0 0 0 3px var(--gold-hi), 0 0 22px rgba(255,227,154,.5); border-color: var(--gold-hi); }
+  .ps .nm { display: flex; justify-content: center; align-items: center; gap: 6px; font-weight: 800; font-size: 13px; white-space: nowrap; }
+  .ps .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--pc); box-shadow: 0 0 0 2px rgba(0,0,0,.4); }
+  .ps .cpu { font-size: 9px; letter-spacing: .1em; padding: 1px 5px; border-radius: 4px; background: rgba(255,255,255,.14); color: var(--mute); }
+  .ps .bk { font-weight: 900; font-size: 16px; color: var(--gold-hi); }
+  .ps .card { width: 30px; height: 42px; border-radius: 4px; } .ps .card .r { font-size: 11px; left: 2px; top: 2px; } .ps .card .s { width: 9px; height: 9px; top: 14px; left: 2px; } .ps .card .b { width: 14px; height: 14px; right: 2px; bottom: 2px; }
+  .ps .card.joker .r { font-size: 8px; }
+  .ps .row5 { gap: 1px; }
+  .bets { display: flex; gap: 8px; justify-content: center; align-items: center; font-weight: 900; color: var(--gold-hi); font-size: 13px; margin-top: 4px; min-height: 30px; flex-wrap: wrap; }
+  .bets .chip { --s: 28px; }
+  .res { margin-top: 4px; font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; display: inline-block; }
+  .res.win { background: var(--good); color: #05210f; } .res.lose { background: var(--bad); color: #2a0509; } .res.push { background: var(--gold); color: var(--ink); }
+  .ps .pop { position: absolute; left: 50%; top: 40px; transform: translateX(-50%); font-weight: 900; font-size: 18px; pointer-events: none; animation: rise 1.8s ease-out forwards; text-shadow: 0 2px 4px #000; z-index: 5; }
+  .ps .pop.win { color: var(--good); } .ps .pop.lose { color: var(--bad); } .ps .pop.push { color: var(--gold-hi); }
+  .rebuy { background: var(--gold); color: var(--ink); border: 0; border-radius: 999px; font-size: 10px; font-weight: 900; letter-spacing: .06em; padding: 4px 9px; text-transform: uppercase; margin-top: 4px; }
+
+  /* setting your hand */
+  .setter { margin: 10px; padding: 12px; border-radius: 18px; background: rgba(18,6,10,.85); border: 1.5px solid var(--gold); }
+  .setter h3 { margin: 0 0 6px; text-align: center; font: 700 17px var(--serif); letter-spacing: .1em; text-transform: uppercase; color: var(--gold-hi); }
+  .seven { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; margin: 6px 0 10px; }
+  .seven button { background: none; border: 0; padding: 0; border-radius: 8px; transition: transform .12s; }
+  .seven .card { width: 50px; height: 72px; }
+  .seven .card .r { font-size: 17px; } .seven .card .s { width: 13px; height: 13px; top: 22px; } .seven .card .b { width: 26px; height: 26px; }
+  .seven button[aria-pressed="true"] { transform: translateY(-14px); }
+  .seven button[aria-pressed="true"] .card { box-shadow: 0 0 0 3px var(--cyan), 0 6px 12px rgba(0,0,0,.5); }
+  .split { display: grid; grid-template-columns: 2.5fr 1fr; gap: 8px; }
+  .split > div { background: rgba(255,255,255,.05); border-radius: 12px; padding: 6px; text-align: center; min-height: 66px; }
+  .split .card { width: 34px; height: 48px; display: inline-block; vertical-align: top; margin: 1px; } .split .card .r { font-size: 12px; } .split .card .s { width: 10px; height: 10px; top: 16px; } .split .card .b { width: 16px; height: 16px; }
+  .warn { color: var(--bad); font-weight: 800; font-size: 12.5px; text-align: center; min-height: 18px; margin: 6px 0; }
+  .ok { color: var(--good); }
+
+  .dock { position: sticky; bottom: 0; z-index: 25; padding: 8px 10px max(10px, env(safe-area-inset-bottom)); background: linear-gradient(0deg, #12060a 72%, rgba(18,6,10,0)); }
+  .dock .inner { max-width: 820px; margin: 0 auto; display: grid; gap: 8px; }
+  .dock .who2 { text-align: center; font-size: 12px; color: var(--mute); letter-spacing: .05em; } .dock .who2 b { color: var(--gold-hi); }
+  .acts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+  .acts .btn { padding: 13px 4px; font-size: 13px; letter-spacing: .04em; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="sS" viewBox="0 0 24 24"><path d="M12 1.5C8 7 2.8 10 2.8 14.2c0 2.9 2.3 4.9 5 4.9 1.5 0 2.7-.6 3.5-1.7-.3 2.1-1.1 3.4-2.6 4.8h6.6c-1.5-1.4-2.3-2.7-2.6-4.8.8 1.1 2 1.7 3.5 1.7 2.7 0 5-2 5-4.9C21.2 10 16 7 12 1.5z"/></symbol>
+  <symbol id="sH" viewBox="0 0 24 24"><path d="M12 22C4 15.4 1.8 11.8 1.8 8.2 1.8 5 4.2 2.8 7 2.8c2 0 3.6 1 5 3 1.4-2 3-3 5-3 2.8 0 5.2 2.2 5.2 5.4 0 3.6-2.2 7.2-10.2 13.8z"/></symbol>
+  <symbol id="sD" viewBox="0 0 24 24"><path d="M12 1l9 11-9 11L3 12z"/></symbol>
+  <symbol id="sC" viewBox="0 0 24 24"><path d="M12 1.8a4.6 4.6 0 0 0-3.3 7.8A4.8 4.8 0 1 0 11 16.6c-.2 2.2-.9 3.7-2.4 5.6h6.8c-1.5-1.9-2.2-3.4-2.4-5.6a4.8 4.8 0 1 0 2.3-7A4.6 4.6 0 0 0 12 1.8z"/></symbol>
+  <symbol id="sJ" viewBox="0 0 24 24"><path d="M12 1.5l2.9 6.9 7.4.6-5.6 4.9 1.7 7.3L12 17.3l-6.4 3.9 1.7-7.3L1.7 9l7.4-.6z"/></symbol>
+</defs></svg>
+<header class="top tight">
+  <a class="back" href="casino.html">&#8249; Lobby</a><h1>Face Up Pai Gow</h1>
+  <div class="tools"><button class="tool" id="bRules" type="button">Rules</button><button class="tool" id="bSnd" type="button" aria-pressed="true" aria-label="Sound">Sound</button></div>
+</header>
+<div id="setup"></div>
+<main id="game" class="wrap" hidden>
+  <section class="felt" aria-label="Pai Gow table">
+    <p class="arc">Face up &nbsp;·&nbsp; No commission</p>
+    <div class="dealer" id="dealer"></div>
+    <div class="msg" id="msg" aria-live="polite"></div>
+    <div class="seats" id="seats"></div>
+  </section>
+  <div id="setter"></div>
+</main>
+<footer class="dock" id="dock" hidden><div class="inner" id="dockIn"></div></footer>
+
+<script src="poker-engine.js"></script>
+<script src="casino-core.js"></script>
+<script>
+(function () {
+  'use strict';
+  const P = Poker, { h, money, signed, sfx } = Casino;
+  const $ = id => document.getElementById(id);
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const MIN = 5, MAX = 500, FORT = 5;
+  const S = { ps: [], active: 0, chip: 25, bets: [], fort: [], last: [], lastF: [], phase: 'setup', deal: null, dealerSet: null, sets: [], pick: [], turn: -1, msg: null, results: null, seen: new Set(), pushAll: false };
+  const CPU_UNIT = [10, 25, 5, 50, 15, 100];
+
+  /* ---------- cards ---------- */
+  const SUIT = { S: 'spades', H: 'hearts', D: 'diamonds', C: 'clubs' };
+  function cardEl(c, delay) {
+    const fresh = !S.seen.has(c.id + ':' + S.handNo); S.seen.add(c.id + ':' + S.handNo);
+    if (c.joker) return h('div', { class: 'card joker' + (fresh ? ' fresh' : ''), style: fresh ? { '--d': (delay || 0) + 's' } : null, role: 'img', 'aria-label': 'Joker', html: '<span class="r">JOKER</span><svg class="b" viewBox="0 0 24 24"><use href="#sJ"/></svg>' });
+    const red = c.s === 'H' || c.s === 'D', rk = P.rankName(c.r);
+    return h('div', { class: 'card' + (red ? ' red' : '') + (fresh ? ' fresh' : ''), style: fresh ? { '--d': (delay || 0) + 's' } : null, role: 'img', 'aria-label': rk + ' of ' + SUIT[c.s],
+      html: '<span class="r">' + (rk === '10' ? '10' : rk) + '</span><svg class="s" viewBox="0 0 24 24"><use href="#s' + c.s + '"/></svg><svg class="b" viewBox="0 0 24 24"><use href="#s' + c.s + '"/></svg>' });
+  }
+  const sortCards = cs => cs.slice().sort((a, b) => (b.joker ? 15 : b.r) - (a.joker ? 15 : a.r) || a.s.localeCompare(b.s));
+  const chipFor = b => b >= 500 ? 500 : b >= 100 ? 100 : b >= 25 ? 25 : b >= 5 ? 5 : 1;
+
+  /* ---------- flow ---------- */
+  function start(players) {
+    S.ps = players; S.bets = players.map(() => 0); S.fort = players.map(() => 0); S.last = players.map(() => 0); S.lastF = players.map(() => 0); S.handNo = 0;
+    const first = players.findIndex(p => p.human); S.active = first < 0 ? 0 : first;
+    $('setup').hidden = true; $('game').hidden = false; $('dock').hidden = false;
+    try { if (!localStorage.getItem('luckyseven.paigow.seen')) { localStorage.setItem('luckyseven.paigow.seen', '1'); setTimeout(showRules, 400); } } catch (e) { /* ignore */ }
+    beginBet();
+  }
+  function beginBet() {
+    S.phase = 'bet'; S.deal = null; S.dealerSet = null; S.sets = []; S.results = null; S.turn = -1; S.pushAll = false; $('setter').innerHTML = '';
+    S.msg = ['Place your bets', 'Main bet ' + money(MIN) + '–' + money(MAX) + ' · Fortune bonus ' + money(FORT) + ' optional'];
+    S.ps.forEach((p, i) => {
+      if (!p.human) { if (p.bank < MIN + FORT) { Casino.rebuy(p); Casino.toast(p.name + ' reloads ' + money(Casino.START_BANK) + '.'); } S.bets[i] = Math.min(CPU_UNIT[p.style % 6], Math.floor(p.bank / MIN) * MIN); S.fort[i] = (p.style % 3 === 0) ? FORT : 0; }
+      else { S.bets[i] = S.last[i] && p.bank >= S.last[i] + S.lastF[i] ? S.last[i] : 0; S.fort[i] = S.bets[i] ? S.lastF[i] : 0; }
+    });
+    Casino.save(); render();
+  }
+  async function deal() {
+    if (S.phase !== 'bet') return;
+    if (!S.ps.some((p, i) => p.human && S.bets[i] >= MIN)) { Casino.toast('Place a bet of at least ' + money(MIN) + ' first.'); return; }
+    S.last = S.bets.slice(); S.lastF = S.fort.slice(); S.handNo++;
+    S.ps.forEach((p, i) => { if (S.bets[i] < MIN) { S.bets[i] = 0; S.fort[i] = 0; } p.bank = Casino.r2(p.bank - S.bets[i] - S.fort[i]); });
+    const d = P.paiGowDeal(S.ps.length, window.__pgRng || Math.random); S.deal = d;
+    S.dealerSet = P.houseWay(d.dealer); S.pushAll = P.dealerAceHighPaiGow(d.dealer);
+    S.phase = 'dealing'; S.msg = ['Dealing…', '']; render(); for (let i = 0; i < 8; i++) setTimeout(() => sfx('card'), i * 90);
+    await sleep(900);
+    S.msg = S.pushAll ? ['Dealer has ace-high pai gow', 'Every main bet pushes this hand. Fortune bets still pay.'] : ['The dealer sets the house way', P.describe(P.eval5(S.dealerSet.high)) + ' · ' + P.describe2(P.eval2(S.dealerSet.low))];
+    S.phase = 'set'; render(); await sleep(700);
+    S.sets = S.ps.map(() => null);
+    nextSetter();
+  }
+  async function nextSetter() {
+    for (let i = 0; i < S.ps.length; i++) {
+      if (S.sets[i] || !S.bets[i]) continue;
+      const p = S.ps[i];
+      if (!p.human) { S.sets[i] = P.bestVsDealer(S.deal.hands[i], S.dealerSet); S.turn = i; render(); await sleep(450); continue; }
+      S.turn = i; S.pick = []; S.msg = [p.name === 'You' ? 'Your turn to set' : p.name + '’s turn to set', 'Pick the two cards for your low hand below']; render(); scrollToTurn(); return;
+    }
+    S.turn = -1; settle();
+  }
+  function confirmSet() {
+    const i = S.turn, p = S.ps[i]; if (S.phase !== 'set' || !p || !p.human) return;
+    const cards = S.deal.hands[i]; if (S.pick.length !== 2) { Casino.toast('Pick exactly two cards for the low hand.'); return; }
+    const low = cards.filter(c => S.pick.includes(c.id)), high = cards.filter(c => !S.pick.includes(c.id));
+    if (!P.validSet(high, low)) { Casino.toast('Your five-card hand must beat your two-card hand.'); sfx('lose'); return; }
+    S.sets[i] = { high, low }; sfx('click'); nextSetter();
+  }
+  function useSet(sp) { S.pick = sp.low.map(c => c.id); sfx('click'); render(); }
+  function settle() {
+    S.phase = 'done'; const res = [];
+    S.ps.forEach((p, i) => {
+      if (!S.bets[i]) { res.push(null); return; }
+      const o = S.pushAll ? 'push' : P.outcome(S.sets[i], S.dealerSet);
+      let net = o === 'win' ? S.bets[i] : o === 'lose' ? -S.bets[i] : 0;
+      p.bank = Casino.r2(p.bank + S.bets[i] + net);
+      let fNet = 0, f = null;
+      if (S.fort[i]) { f = P.fortune(S.deal.hands[i]); if (f) { fNet = S.fort[i] * f.pay; p.bank = Casino.r2(p.bank + S.fort[i] + fNet); } else fNet = -S.fort[i]; }
+      res.push({ o, net, fNet, f });
+      Casino.touch(p);
+    });
+    S.results = res; Casino.save();
+    const anyWin = res.some(r => r && r.net + r.fNet > 0), big = res.some(r => r && r.fNet >= 100);
+    S.msg = S.pushAll ? ['Ace-high pai gow: all main bets push', ''] : ['Hands are settled', 'Both hands beat the dealer to win · ties go to the dealer'];
+    render();
+    res.forEach((r, i) => { if (!r) return; const el = document.querySelector('.ps[data-i="' + i + '"]'), n = Casino.r2(r.net + r.fNet); if (el) Casino.pop(el, n === 0 ? 'Push' : signed(n), n > 0 ? 'win' : n < 0 ? 'lose' : 'push'); });
+    sfx(big ? 'big' : anyWin ? 'win' : res.some(r => r && r.net < 0) ? 'lose' : 'push');
+    if (S.ps.some(p => p.human && p.bank < MIN)) Casino.toast('Someone is out of chips. Tap Rebuy on their seat.');
+  }
+
+  /* ---------- betting ---------- */
+  function addChip(i, v) {
+    if (S.phase !== 'bet') return; const p = S.ps[i]; if (!p || !p.human) return;
+    const nb = Casino.r2((S.bets[i] || 0) + v);
+    if (nb > MAX) { Casino.toast('Table maximum is ' + money(MAX) + '.'); return; }
+    if (nb + S.fort[i] > p.bank + 1e-9) { Casino.toast('Not enough chips.'); sfx('lose'); return; }
+    S.bets[i] = nb; sfx('chip'); render();
+  }
+  function toggleFortune(i) {
+    if (S.phase !== 'bet') return; const p = S.ps[i]; if (!p || !p.human) return;
+    if (!S.fort[i] && S.bets[i] + FORT > p.bank + 1e-9) { Casino.toast('Not enough chips.'); return; }
+    S.fort[i] = S.fort[i] ? 0 : FORT; sfx('chip'); render();
+  }
+
+  /* ---------- rendering ---------- */
+  function renderDealer() {
+    const d = $('dealer'); d.innerHTML = '';
+    if (!S.deal) { d.append(h('div', { class: 'lab' }, 'Dealer'), h('div', { class: 'row5', style: { minHeight: '62px', alignItems: 'center', color: 'var(--mute)', fontSize: '13px' } }, 'Seven cards each, dealt face up')); return; }
+    if (!S.dealerSet || S.phase === 'dealing') { d.append(h('div', { class: 'lab' }, 'Dealer'), h('div', { class: 'row5' }, sortCards(S.deal.dealer).map((c, k) => cardEl(c, k * .09)))); return; }
+    d.append(h('div', { class: 'hand2' },
+      h('div', null, h('div', { class: 'lab' }, 'Dealer high'), h('div', { class: 'row5' }, sortCards(S.dealerSet.high).map(c => cardEl(c))), h('span', { class: 'desc' }, P.describe(P.eval5(S.dealerSet.high)))),
+      h('div', null, h('div', { class: 'lab' }, 'Dealer low'), h('div', { class: 'row5' }, sortCards(S.dealerSet.low).map(c => cardEl(c))), h('span', { class: 'desc' }, P.describe2(P.eval2(S.dealerSet.low))))));
+  }
+  function renderSeats() {
+    const box = $('seats'), keep = box.scrollLeft; box.innerHTML = '';
+    S.ps.forEach((p, i) => {
+      const turn = S.turn === i && S.phase === 'set';
+      const el = h('div', { class: 'ps' + (turn ? ' turn' : ''), 'data-i': i, 'aria-pressed': i === S.active, style: { '--pc': p.color }, onclick: () => { if (p.human && S.phase === 'bet') { S.active = i; sfx('click'); render(); } } },
+        h('div', { class: 'nm' }, h('span', { class: 'dot' }), p.name, p.human ? null : h('span', { class: 'cpu' }, 'CPU')),
+        h('div', { class: 'bk' }, money(S.phase === 'bet' ? Casino.r2(p.bank - S.bets[i] - S.fort[i]) : p.bank)));
+      if (S.deal && S.bets[i]) {
+        const set = S.sets[i];
+        if (set && (S.phase === 'done' || !p.human || S.turn !== i)) {
+          el.append(h('div', { class: 'row5' }, sortCards(set.high).map(c => cardEl(c))), h('div', { class: 'row5', style: { marginTop: '3px' } }, sortCards(set.low).map(c => cardEl(c))));
+          el.append(h('div', { style: { fontSize: '11px', color: '#f3e9d2', marginTop: '3px' } }, P.describe(P.eval5(set.high)) + ' · ' + P.describe2(P.eval2(set.low))));
+        } else el.append(h('div', { class: 'row5' }, sortCards(S.deal.hands[i]).map((c, k) => cardEl(c, .1 + k * .06))));
+      }
+      if (S.phase === 'done' && S.results && S.results[i]) {
+        const r = S.results[i];
+        el.append(h('div', null, h('span', { class: 'res ' + r.o }, r.o === 'win' ? 'Win' : r.o === 'lose' ? 'Lose' : 'Push')));
+        if (S.fort[i]) el.append(h('div', { style: { fontSize: '11px', fontWeight: 800, color: r.f ? 'var(--good)' : 'var(--mute)', marginTop: '3px' } }, r.f ? 'Fortune: ' + r.f.name + ' pays ' + r.f.pay + ' to 1' : 'Fortune: no qualifying hand'));
+      }
+      el.append(h('div', { class: 'bets' }, S.bets[i] ? [Casino.chipEl(chipFor(S.bets[i])), money(S.bets[i])] : h('span', { style: { color: 'var(--mute)', fontWeight: 700 } }, p.bank < MIN ? 'Out of chips' : 'No bet'), S.fort[i] ? h('span', { style: { color: 'var(--cyan)' } }, '+ Fortune ' + money(S.fort[i])) : null));
+      if (p.human && p.bank < MIN && (S.phase === 'bet' || S.phase === 'done')) el.append(h('button', { class: 'rebuy', type: 'button', onclick: e => { e.stopPropagation(); Casino.rebuy(p); sfx('chips'); render(); } }, 'Rebuy ' + money(Casino.START_BANK)));
+      box.append(el);
+    });
+    box.scrollLeft = keep;
+  }
+  function scrollToTurn() { const box = $('seats'), el = box.querySelector('.ps.turn'); if (el) box.scrollLeft = el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2; }
+  function renderSetter() {
+    const box = $('setter'); box.innerHTML = '';
+    if (S.phase !== 'set' || S.turn < 0 || !S.ps[S.turn].human) return;
+    const i = S.turn, cards = sortCards(S.deal.hands[i]), low = cards.filter(c => S.pick.includes(c.id)), high = cards.filter(c => !S.pick.includes(c.id));
+    const valid = low.length === 2 && P.validSet(high, low);
+    let verdict = '';
+    if (low.length === 2 && valid && !S.pushAll) { const o = P.outcome({ high, low }, S.dealerSet); verdict = o === 'win' ? 'This setting beats the dealer on both hands: you win.' : o === 'lose' ? 'This setting loses both hands to the dealer.' : 'This setting wins one hand and loses the other: a push.'; }
+    box.append(h('div', { class: 'setter' },
+      h('h3', null, S.ps[i].name + ': set your hand'),
+      h('p', { style: { textAlign: 'center', margin: '0 0 4px', fontSize: '12.5px', color: 'var(--mute)' } }, 'Tap two cards to lift them into your low hand. The rest make your five-card high hand.'),
+      h('div', { class: 'seven' }, cards.map(c => h('button', { type: 'button', 'aria-pressed': S.pick.includes(c.id), onclick: () => {
+        if (S.pick.includes(c.id)) S.pick = S.pick.filter(x => x !== c.id); else { if (S.pick.length >= 2) S.pick.shift(); S.pick.push(c.id); }
+        sfx('card'); render(); } }, cardEl(c)))),
+      h('div', { class: 'split' },
+        h('div', null, h('div', { class: 'lab' }, 'High hand (5)'), high.map(c => cardEl(c)), h('div', null, h('span', { class: 'desc' }, high.length === 5 ? P.describe(P.eval5(high)) : '—'))),
+        h('div', null, h('div', { class: 'lab' }, 'Low hand (2)'), low.map(c => cardEl(c)), h('div', null, h('span', { class: 'desc' }, low.length === 2 ? P.describe2(P.eval2(low)) : 'Pick 2')))),
+      h('div', { class: 'warn' + (valid ? ' ok' : '') }, low.length < 2 ? '' : !valid ? 'Not allowed: your five-card hand must beat your two-card hand.' : verdict)));
+  }
+  function renderMsg() { const m = $('msg'); m.innerHTML = ''; if (S.msg) m.append(h('div', null, h('b', null, S.msg[0]), S.msg[1] ? h('small', null, S.msg[1]) : null)); }
+  function renderDock() {
+    const box = $('dockIn'); box.innerHTML = '';
+    if (S.phase === 'bet') {
+      const ap = S.ps[S.active];
+      box.append(Casino.chipTray(S.chip, v => { S.chip = v; addChip(S.active, v); }));
+      box.append(h('div', { class: 'who2' }, ap && ap.human ? h('span', null, 'Betting for ', h('b', null, ap.name), ' · bet ', h('b', null, money(S.bets[S.active] || 0)), S.fort[S.active] ? ' + Fortune ' + money(S.fort[S.active]) : '') : 'Seat a human player to bet'));
+      box.append(h('div', { class: 'acts' },
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.bets[S.active] = 0; S.fort[S.active] = 0; sfx('click'); render(); } }, 'Clear'),
+        h('button', { class: 'btn ghost', type: 'button', 'aria-pressed': !!S.fort[S.active], onclick: () => toggleFortune(S.active) }, S.fort[S.active] ? 'Fortune ✓' : 'Fortune $5'),
+        h('button', { class: 'btn red', type: 'button', onclick: deal }, 'Deal')));
+    } else if (S.phase === 'set' && S.turn >= 0 && S.ps[S.turn].human) {
+      const cards = S.deal.hands[S.turn];
+      box.append(h('div', { class: 'acts' },
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => useSet(P.houseWay(cards)) }, 'House way'),
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => useSet(P.bestVsDealer(cards, S.dealerSet)) }, 'Best play'),
+        h('button', { class: 'btn green', type: 'button', onclick: confirmSet }, 'Set hand')));
+    } else if (S.phase === 'done') {
+      box.append(h('div', { class: 'acts', style: { gridTemplateColumns: '1fr' } }, h('button', { class: 'btn big green', type: 'button', onclick: () => { sfx('click'); beginBet(); } }, 'Next hand')));
+    } else box.append(h('div', { class: 'who2' }, S.phase === 'set' ? 'Players are setting their hands…' : 'Dealing…'));
+  }
+  function render() { renderDealer(); renderMsg(); renderSeats(); renderSetter(); renderDock(); }
+
+  function showRules() {
+    Casino.modal('Face Up Pai Gow Poker', h('div', null,
+      h('p', null, 'Everyone, the dealer included, gets seven cards from a 53-card deck with one joker. Split your seven into a ', h('b', null, 'five-card high hand'), ' and a ', h('b', null, 'two-card low hand'), '. The high hand must beat the low hand.'),
+      h('h3', null, 'Face up'),
+      h('p', null, 'The dealer’s cards are dealt face up and set the house way before you set yours, so you know exactly what you have to beat. Tap ', h('b', null, 'Best play'), ' to see the setting that does best against this dealer.'),
+      h('h3', null, 'Winning'),
+      h('p', null, 'Beat the dealer with both hands and you win even money, with no commission. Win one and lose one and it’s a push. Ties go to the dealer. If the dealer has an ', h('b', null, 'ace-high pai gow'), ' (no pair, straight or flush, ace on top), every main bet pushes.'),
+      h('h3', null, 'The joker'),
+      h('p', null, 'The joker counts as an ace, or as any card that completes a straight, flush or straight flush.'),
+      h('h3', null, 'Fortune bonus ($5)'),
+      h('table', null, h('tr', null, h('th', null, 'Seven-card hand'), h('th', { class: 'r' }, 'Pays')), P.FORTUNE.map(([n, pay]) => h('tr', null, h('td', null, n), h('td', { class: 'r' }, pay + ' to 1')))),
+      h('p', null, 'Play money only.')), [{ label: 'Deal me in', cls: '' }]);
+  }
+
+  $('bRules').addEventListener('click', showRules);
+  const snd = $('bSnd'); snd.setAttribute('aria-pressed', !Casino.isMuted()); snd.addEventListener('click', () => { Casino.setMuted(!Casino.isMuted()); snd.setAttribute('aria-pressed', !Casino.isMuted()); sfx('click'); });
+  window.__pg = { S, P, deal, confirmSet, beginBet, render, addChip, toggleFortune, useSet };
+  Casino.pickSeats($('setup'), { game: 'paigow', max: 5, title: 'Take your seats', blurb: 'Up to five players. Seven cards each, the dealer’s hand face up, no commission.', onStart: start });
+  Casino.registerSW();
+})();
+</script>
+</body>
+</html>
