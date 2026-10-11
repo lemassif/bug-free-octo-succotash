@@ -127,6 +127,32 @@ function start() {
     for (const [x, y] of spots) { c.beginPath(); for (let i = 0; i < 5; i++) { const a = i / 5 * TAU - Math.PI / 2; c.lineTo(x + Math.cos(a) * 13, y + Math.sin(a) * 13 * (y === 64 ? 1 : .7)); } c.fill(); }
     const m = new THREE.Mesh(new THREE.SphereGeometry(BR, 24, 16), new THREE.MeshLambertMaterial({ map: tex(cv) })); m.castShadow = true; scene.add(m); return m;
   })();
+  const fireTex = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const c = cv.getContext('2d'), g = c.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, 'rgba(255,255,220,1)'); g.addColorStop(.25, 'rgba(255,210,80,.95)'); g.addColorStop(.55, 'rgba(255,110,20,.6)'); g.addColorStop(1, 'rgba(200,30,0,0)'); c.fillStyle = g; c.fillRect(0, 0, 64, 64); return tex(cv); })();
+  const flames = [];
+  for (let i = 0; i < 160; i++) { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: fireTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })); m.visible = false; scene.add(m); flames.push({ m, life: 0, max: 1, vx: 0, vy: 0, vz: 0 }); }
+  let flameI = 0, fireGlow = 0;
+  const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: fireTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })); core.visible = false; scene.add(core);
+  const fireLight = new THREE.PointLight(0xff7a1a, 0, 9, 1.5); scene.add(fireLight);
+  function updateFire(b, dt) {
+    const on = !!b.fire; fireGlow = clamp(fireGlow + (on ? dt * 6 : -dt * 3), 0, 1);
+    ball.material.emissive.setRGB(1, .35, .05).multiplyScalar(fireGlow * .9);
+    core.visible = fireGlow > .02; core.position.set(b.x, b.z, b.y); core.scale.setScalar(.9 + Math.sin(performance.now() / 40) * .12); core.material.opacity = fireGlow; core.material.color.setRGB(1, .7, .3);
+    fireLight.intensity = fireGlow * 8; fireLight.position.set(b.x, b.z + .2, b.y);
+    if (on) {
+      const n = 7; for (let k = 0; k < n; k++) {
+        const f = flames[flameI++ % flames.length], j = () => (Math.random() - .5);
+        f.life = 0; f.max = .28 + Math.random() * .22; f.m.visible = true;
+        f.m.position.set(b.x + j() * .14 - b.vx * dt * k / n, b.z + j() * .14, b.y + j() * .14 - b.vy * dt * k / n);
+        f.vx = b.vx * .1 + j() * 1.5; f.vy = 1.6 + Math.random() * 1.4; f.vz = b.vy * .1 + j() * 1.5; f.s = .7 + Math.random() * .6;
+      }
+    }
+    for (const f of flames) {
+      if (!f.m.visible) continue; f.life += dt; const u = f.life / f.max; if (u >= 1) { f.m.visible = false; continue; }
+      f.m.position.x += f.vx * dt; f.m.position.y += f.vy * dt; f.m.position.z += f.vz * dt;
+      f.m.scale.setScalar(f.s * (1 - u * .6)); f.m.material.opacity = 1 - u; f.m.material.color.setRGB(1, .62 - u * .45, .12 * (1 - u));
+    }
+  }
   const ballBlob = new THREE.Mesh(new THREE.CircleGeometry(BR * 1.1, 16).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .3, depthWrite: false })); ballBlob.position.y = .015; scene.add(ballBlob);
 
   /* ---------------- players ---------------- */
@@ -175,16 +201,18 @@ function start() {
       mesh(SPH, M.glove, el, .005, -.27, 0, gk ? .06 : .045, gk ? .07 : .055, gk ? .045 : .035);
       return { sh, el };
     };
+    const big = !!p.big, th = big ? 2.3 : 1, ca = big ? 2.1 : 1, bt = big ? 1.55 : 1;   // the big-legged striker gets enormous thighs and calves
+    if (big) mesh(SPH, M.shorts, root, 0, -.04, 0, .19, .15, .34);
     const legs = s => {
-      const hp = new THREE.Group(); hp.position.set(0, -.06, s * .095); root.add(hp);
-      mesh(new THREE.CylinderGeometry(.088, .08, .2, 12), M.shorts, hp, 0, -.08, 0);
-      mesh(CAP(.066, .26), M.skin, hp, 0, -.25, 0);
+      const hp = new THREE.Group(); hp.position.set(0, -.06, s * (big ? .17 : .095)); root.add(hp);
+      mesh(new THREE.CylinderGeometry(.088, .08, .2, 12), M.shorts, hp, 0, -.08, 0, th, 1, th);
+      mesh(CAP(.066, .26), M.skin, hp, big ? .02 : 0, -.25, 0, th, 1, th);
       const kn = new THREE.Group(); kn.position.y = -.44; hp.add(kn);
-      mesh(CAP(.056, .24), M.socks, kn, 0, -.2, 0);
-      mesh(CAP(.058, .04), M.socks, kn, .01, -.07, 0);
+      mesh(CAP(.056, .24), M.socks, kn, big ? -.02 : 0, -.2, 0, ca, 1, ca);
+      mesh(CAP(.058, .04), M.socks, kn, .01, -.07, 0, ca * .95, 1, ca * .95);
       const an = new THREE.Group(); an.position.y = -.42; kn.add(an);
-      const boot = mesh(CAP(.045, .14), M.boot, an, .055, -.035, 0); boot.rotation.z = Math.PI / 2; boot.scale.set(1, 1, 1.05);
-      mesh(new THREE.BoxGeometry(.12, .012, .06), M.bootTrim, an, .05, -.01, 0);
+      const boot = mesh(CAP(.045, .14), M.boot, an, .055 * bt, -.035, 0, bt, bt, bt * 1.05); boot.rotation.z = Math.PI / 2;
+      mesh(new THREE.BoxGeometry(.12, .012, .06), M.bootTrim, an, .05 * bt, -.01, 0, bt, 1, bt);
       return { hp, kn, an };
     };
     const r = { root, spine, head, armL: arm(-1), armR: arm(1), legL: legs(-1), legR: legs(1), p };
@@ -295,6 +323,7 @@ function start() {
     // ball
     const b = G.ball; ball.position.set(b.x, b.z, b.y);
     const sp = Math.hypot(b.vx, b.vy); if (sp > .05) ball.rotateOnWorldAxis(new THREE.Vector3(b.vy / sp, 0, -b.vx / sp), sp * dt / BR);
+    updateFire(b, dt);
     ballBlob.position.set(b.x, .015, b.y); ballBlob.scale.setScalar(1 + b.z * .5); ballBlob.material.opacity = clamp(.35 - b.z * .08, .08, .35);
     // the player you control
     const c = G.ctrl, showRing = c && (G.mode === 'play' || G.mode === 'kickoff' || G.mode === 'restart');

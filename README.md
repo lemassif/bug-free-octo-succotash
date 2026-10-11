@@ -326,7 +326,8 @@ Five-a-side 3D soccer built for young players (the Easy level is tuned for a
 
 - **Real 3D players** with jointed arms and legs, full kits, shirt numbers and
   names, running, dribbling, kicking, slide tackling and goalkeepers who dive.
-  Your name goes on the back of the #10 shirt.
+  Your name goes on the back of the #10 shirt, and your #10 has giant legs:
+  his shots fly a bit harder and the ball bursts into flames (FIREBALL!).
 - **Controls:** slide a thumb on the left half of the screen to run. **PASS**
   passes toward the stick (or switches player when you don't have the ball).
   Hold **SHOOT** to power up and let go to shoot; push the stick up or down to

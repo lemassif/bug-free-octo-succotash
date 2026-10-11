@@ -183,6 +183,7 @@ function newMatch() {
   const pool = NAMES.slice().sort(() => rnd() - .5);
   G.players = [];
   for (let t = 0; t < 2; t++) for (let i = 0; i < 5; i++) G.players.push(makePlayer(t, i, t === 0 && i === 4 ? (G.pname || 'STAR') : pool.pop()));
+  G.players.find(p => p.team === 0 && p.i === 4).big = true;   // your #10 has giant legs and fireball shots
   G.ball = { x: 0, y: 0, z: BR, vx: 0, vy: 0, vz: 0, owner: null, passTo: null, roll: 0, shotBy: null, shotId: 0, saved: -1 };
   G.score = [0, 0]; G.scorers = []; G.clock = G.len * 60; G.t = 0; G.celeb = null; G.lastTouch = null;
   kickoff(0);
@@ -215,7 +216,7 @@ function predictBall() {   // where the free ball will be over the next 2 second
   }
 }
 function kickBall(p, vx, vy, vz) {
-  const b = G.ball, thrown = p.hands; b.owner = null; b.vx = vx; b.vy = vy; b.vz = vz; b.z = Math.max(b.z, BR + .01); p.hands = false;
+  const b = G.ball, thrown = p.hands; b.owner = null; b.fire = false; b.vx = vx; b.vy = vy; b.vz = vz; b.z = Math.max(b.z, BR + .01); p.hands = false;
   p.noTouch = .3; p.anim = thrown && p.role !== 'GK' ? 'throw' : 'kick'; p.animT = 0; G.lastTouch = p; p.mustPass = false; sfx('kick', Math.min(1, hyp(vx, vy) / 25));
 }
 function updateBall(dt) {
@@ -236,7 +237,9 @@ function updateBall(dt) {
     const s = hyp(b.vx, b.vy);
     if (b.z <= BR + .01 && b.vz === 0) { const ns = Math.max(0, s - (DEC + .02 * s * s) * dt); if (s > 0) { b.vx *= ns / s; b.vy *= ns / s; } }
     else if (s > 0) { const k = 1 - .008 * s * dt; b.vx *= k; b.vy *= k; }
+    if (b.fire && s < 6 && b.z < .3) b.fire = false;   // the flames die out as the ball slows
   }
+  if (o) b.fire = false;
   b.roll += hyp(b.x - px, b.y - py) / BR;
   if (G.mode === 'goal') { netStop(b); return; }
   goalLine(px, py);
@@ -298,11 +301,12 @@ function shoot(p, power, aimY) {
   if (p.team === 1) power *= G.diff.power;
   const gk = G.players.find(q => q.team !== p.team && q.role === 'GK');
   if (aimY == null) aimY = (gk && gk.y > 0 ? -1 : 1) * GW * (.55 + rnd() * .25);
-  const dx = gx - b.x, dy = aimY - b.y, dd = hyp(dx, dy) || 1, sp = 15 + power * 12;
+  const dx = gx - b.x, dy = aimY - b.y, dd = hyp(dx, dy) || 1, sp = (15 + power * 12) * (p.big ? 1.15 : 1);
   const err = ((1 - acc) * .3 + Math.pow(power, 3) * .07) * (rnd() - .5) * 2, ang = Math.atan2(dy, dx) + err;
   const vz = 1.0 + power * 3.2 + Math.max(0, dd - 16) * .07;
   kickBall(p, Math.cos(ang) * sp, Math.sin(ang) * sp, vz);
   b.shotBy = p; b.shotId = ++G.shotId; sfx('shot');
+  if (p.big) { b.fire = true; sfx('fire'); toast('FIREBALL!'); }
 }
 function tryTackle(p, chance) {
   const o = G.ball.owner; if (!o || o.team === p.team || o.hands) return false;
@@ -680,6 +684,7 @@ function sfx(k, v) {
   else if (k === 'post') { tone(880, .4, 'triangle', .12, 700); tone(1320, .3, 'sine', .05); }
   else if (k === 'catch') { tone(240, .08, 'sine', .14, 140); noise(.05, .08, 600); }
   else if (k === 'pick') tone(880, .08, 'square', .05, 1320);
+  else if (k === 'fire') { for (let i = 0; i < 4; i++) noise(.5, .16, 500 + i * 300, i * .05); tone(90, .6, 'sawtooth', .06, 40); }
   else if (k === 'goal') { for (let i = 0; i < 6; i++) noise(.9, .16, 900 + i * 200, i * .12); tone(523, .25, 'square', .05, null, .1); tone(659, .25, 'square', .05, null, .3); tone(784, .5, 'square', .05, null, .5); }
 }
 function whistle(n) { if (!AC) return; for (let i = 0; i < n; i++) { const t = i * .45; const a = AC, o = a.createOscillator(), lfo = a.createOscillator(), lg = a.createGain(), g = a.createGain(), t0 = a.currentTime + t, dur = n === 3 && i === 2 ? .8 : .32; o.frequency.value = 2900; lfo.frequency.value = 42; lg.gain.value = 120; lfo.connect(lg); lg.connect(o.frequency); g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.08, t0 + .02); g.gain.setValueAtTime(.08, t0 + dur - .05); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur); o.connect(g); g.connect(a.destination); o.start(t0); lfo.start(t0); o.stop(t0 + dur + .02); lfo.stop(t0 + dur + .02); } }
@@ -746,7 +751,7 @@ function draw2D() {
   ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(X(-PL), Y(-PW), 2 * PL * s, 2 * PW * s); ctx.beginPath(); ctx.moveTo(X(0), Y(-PW)); ctx.lineTo(X(0), Y(PW)); ctx.stroke(); ctx.beginPath(); ctx.arc(X(0), Y(0), 5 * s, 0, TAU); ctx.stroke();
   for (const sd of [-1, 1]) { ctx.strokeRect(X(sd > 0 ? PL - BOX_D : -PL), Y(-BOX_W), BOX_D * s, 2 * BOX_W * s); ctx.fillStyle = '#fff'; ctx.fillRect(X(sd * PL) - (sd > 0 ? 0 : 6), Y(-GW), 6, 2 * GW * s); }
   for (const p of G.players) { const k = G.teams[p.team].kit; ctx.fillStyle = p.role === 'GK' ? '#22c55e' : k.shirt; ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), Math.max(6, .6 * s), 0, TAU); ctx.fill(); if (p === G.ctrl) { ctx.strokeStyle = '#ffd34d'; ctx.lineWidth = 3; ctx.stroke(); } ctx.fillStyle = k.num; ctx.font = '900 10px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(p.num, X(p.x), Y(p.y)); }
-  const b = G.ball; ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.arc(X(b.x), Y(b.y), 4, 0, TAU); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(X(b.x), Y(b.y) - b.z * s * .6, 4 + b.z, 0, TAU); ctx.fill();
+  const b = G.ball; ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.arc(X(b.x), Y(b.y), 4, 0, TAU); ctx.fill(); if (b.fire) { ctx.fillStyle = 'rgba(255,120,20,.55)'; ctx.beginPath(); ctx.arc(X(b.x), Y(b.y) - b.z * s * .6, 10 + b.z, 0, TAU); ctx.fill(); } ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(X(b.x), Y(b.y) - b.z * s * .6, 4 + b.z, 0, TAU); ctx.fill();
 }
 
 /* ================================================================
