@@ -301,6 +301,165 @@ window.Homework = (function () {
     return { id: newId('it'), kind: 'word', word: word, parts: parts };
   }
 
+  /* ----------------------- spelling test ----------------------- */
+
+  /* Misspellings a second-grader actually writes. Each one sounds
+     right and is spelled wrong — "nite", "littel", "jumpt" — which is
+     the whole difficulty of English spelling, and what a spelling
+     test is checking. Ordered so the most telling mistake for a word
+     is tried first. */
+  var SOUND_SWAPS = [
+    [/eir$/, 'ere'],          // their -> there
+    [/oul/, 'u'],             // would -> wud
+    [/cause$/, 'cuz'],        // because -> becuz
+    [/ight/, 'ite'],          // night -> nite
+    [/ck/, 'k'],              // rock -> rok
+    [/ph/, 'f'],              // photo -> foto
+    [/tch/, 'ch'],            // catch -> cach
+    [/dge/, 'ge'],            // bridge -> brige
+    [/^kn/, 'n'],             // knob -> nob
+    [/^wr/, 'r'],             // wrap -> rap
+    [/mb$/, 'm'],             // thumb -> thum
+    [/oa(st)$/, 'o$1'],       // toast -> tost
+    [/oa([^aeiou])$/, 'o$1e'],  // boat -> bote, road -> rode
+    [/ow$/, 'oe'],            // slow -> sloe
+    [/ai/, 'ay'],             // rain -> rayn
+    [/ay$/, 'ai'],            // play -> plai
+    [/ea/, 'ee'],             // beach -> beech
+    [/ee/, 'ea'],             // feet -> feat
+    [/ou/, 'ow'],             // cloud -> clowd
+    [/oi/, 'oy'],             // coin -> coyn
+    [/oy$/, 'oi'],            // toy -> toi
+    [/au/, 'aw'],             // launch -> lawnch
+    [/aw/, 'au'],             // claw -> clau
+    [/ir/, 'ur'],             // bird -> burd
+    [/ur/, 'er'],             // turn -> tern
+    [/er$/, 'ur'],            // faster -> fastur
+    [/le$/, 'el'],            // little -> littel
+    [/ed$/, 't'],             // jumped -> jumpt
+    [/([bdglmnprt])\1(ing|ed|er|y)$/, '$1$2'],   // hopping -> hoping
+    [/c([ei])/, 's$1'],       // city -> sity
+    [/y$/, 'ee'],             // happy -> happee
+    [/^qu/, 'kw']             // quick -> kwick
+  ];
+
+  function vowelSwap(w) {
+    var next = { a: 'e', e: 'i', i: 'e', o: 'u', u: 'o' };
+    // a lone vowel, not half of a vowel team, so the swap is a real slip
+    var m = /([^aeiou])([aeiou])([^aeiouy]|$)/.exec(w);
+    if (!m) return null;
+    var at = m.index + 1;
+    return w.slice(0, at) + next[w[at]] + w.slice(at + 1);
+  }
+
+  /* Swap two neighbouring letters the way a child actually does, in
+     order of how common the slip is:
+       1. a vowel pair or gh reversed   their -> thier, night -> nihgt
+       2. an r and its vowel swapped     bird -> brid
+       3. a vowel and a neighbour, mid-word
+     Never the first letter, which children almost always get right. */
+  function letterSlip(w, n) {
+    if (w.length < 4) return null;
+    var V = /[aeiou]/, tiers = [[], [], [], []];
+    for (var i = 1; i < w.length - 1; i++) {
+      var a = w[i], b = w[i + 1];
+      if (a === b) continue;
+      if ((V.test(a) && V.test(b)) || (a === 'g' && b === 'h')) tiers[0].push(i);
+      else if ((a === 'r' && V.test(b)) || (V.test(a) && b === 'r')) tiers[1].push(i);
+      else if (i >= 2 && i <= w.length - 3 && (V.test(a) || V.test(b))) tiers[2].push(i);
+      else if (i >= 2 && i <= w.length - 3) tiers[3].push(i);
+    }
+    for (var t = 0; t < tiers.length; t++) {
+      if (tiers[t].length) {
+        var at = tiers[t][n % tiers[t].length];
+        return w.slice(0, at) + w[at + 1] + w[at] + w.slice(at + 2);
+      }
+    }
+    return null;
+  }
+
+  function hashWord(w) {
+    var h = 7;
+    for (var i = 0; i < w.length; i++) h = (h * 31 + w.charCodeAt(i)) >>> 0;
+    return h;
+  }
+
+  /* Two wrong spellings for a word: one that SOUNDS right, one that
+     LOOKS nearly right, each tagged with the mistake it represents. */
+  function misspellings(word) {
+    var w = word.toLowerCase(), out = [], seen = {};
+    seen[w] = 1;
+    function add(t, tag) {
+      if (t && !seen[t] && /^[a-z]+$/.test(t) && t.length > 1) { seen[t] = 1; out.push({ t: t, tag: tag }); }
+    }
+    for (var i = 0; i < SOUND_SWAPS.length && out.length < 1; i++) {
+      if (SOUND_SWAPS[i][0].test(w)) add(w.replace(SOUND_SWAPS[i][0], SOUND_SWAPS[i][1]), 'sound-spelling');
+    }
+    if (!out.length) add(vowelSwap(w), 'vowel-swap');
+    var h = hashWord(w);
+    for (var k = 0; k < 4 && out.length < 2; k++) add(letterSlip(w, h + k), 'letter-look');
+    if (out.length < 2) add(vowelSwap(w), 'vowel-swap');
+    // drop one letter of a vowel pair: friend -> frend, because -> becuse
+    var vp = /[aeiou]{2}/.exec(w);
+    if (out.length < 2 && vp) add(w.slice(0, vp.index) + w.slice(vp.index + 1), 'letter-look');
+    if (out.length < 2) add(w + w[w.length - 1], 'letter-look');
+    return out.slice(0, 2);
+  }
+
+  /* "Which is the right way to spell ___?" The word is SAID, never
+     shown — showing it would give the answer away — and the choices
+     are not read aloud, because a speech engine says "nite" and
+     "night" the same way. */
+  function spellItem(word) {
+    var w = String(word || '').toLowerCase().trim();
+    if (!w) return null;
+    var wrong = misspellings(w);
+    if (!wrong.length) return null;
+    return {
+      id: newId('it'),
+      kind: 'spell',
+      word: w,
+      q: 'Listen 🔊 — which is the right way to spell the word?',
+      spoken: 'Which is the right way to spell: ' + w + '?',
+      silentChoices: true,
+      choices: [{ t: w, correct: true }].concat(wrong),
+      hint: 'Say ' + w + ' slowly in your head and picture each part.',
+      show: w + ' is spelled ' + w.split('').join(', ') + '.'
+    };
+  }
+
+  /* Turn a scanned worksheet into a lesson:
+       1. read each word aloud into the microphone (practice)
+       2. a spelling test on the same words, in a different order
+       3. any math problems from the page
+     Reading comes first so the test isn't a cold start, and the test
+     is shuffled so he can't just remember the order. */
+  function buildLesson(title, photoFile, words, mathProblems) {
+    return createPack(title).then(function (p) {
+      var chain = photoFile ? addPhoto(p, photoFile) : Promise.resolve();
+      return chain.then(function () {
+        var reads = [], tests = [], maths = [];
+        (words || []).forEach(function (w) {
+          var r = wordItem(w);
+          if (r) reads.push(r);
+          var s = spellItem(w);
+          if (s) tests.push(s);
+        });
+        for (var i = tests.length - 1; i > 0; i--) {
+          var j = (hashWord(title + i) % (i + 1)), t = tests[i];
+          tests[i] = tests[j]; tests[j] = t;
+        }
+        (mathProblems || []).forEach(function (src) {
+          var parsed = parseMath(src);
+          if (parsed) maths.push(mathItem(parsed));
+        });
+        p.items = reads.concat(tests, maths);
+        p.scanned = true;
+        return savePack(p).then(function () { return p; });
+      });
+    });
+  }
+
   /* A free-form question typed by a grown-up. Wrong answers are
      optional; with none it becomes a say-it-out-loud prompt. */
   function askItem(q, right, wrongs) {
@@ -352,6 +511,7 @@ window.Homework = (function () {
     createPack: createPack, savePack: savePack, deletePack: deletePack,
     addPhoto: addPhoto, photo: photo, removePhoto: removePhoto,
     parseMath: parseMath, mathItem: mathItem, wordItem: wordItem, askItem: askItem,
+    spellItem: spellItem, misspellings: misspellings, buildLesson: buildLesson,
     addItem: addItem, removeItem: removeItem, addMany: addMany,
     stats: stats, defaultTitle: defaultTitle
   };

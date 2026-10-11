@@ -61,20 +61,20 @@
     },
     reading: {
       words: [
-        W('spin', ['sp', 'in'], 'to turn around fast'),
-        W('sun', ['s', 'un'], 'the star that lights our sky'),
-        W('rock', ['r', 'o', 'ck'], 'hard stone')
+        W('sunset', ['sun', 'set'], 'when the sun goes down'),
+        W('sunrise', ['sun', 'rise'], 'when the sun comes up'),
+        W('rotate', ['ro', 'tate'], 'to spin around')
       ],
-      sentence: 'Earth is a big rock that spins in the light of the sun.',
+      sentence: 'Earth will rotate all night long, and the sunset slowly turns into a sunrise.',
       comp: {
-        q: 'What does the word "spins" tell you about Earth?',
+        q: 'What does Earth do to turn a sunset into a sunrise?',
         choices: [
-          C('How Earth moves', 1),
-          C('How big Earth is', 'surface-feature'),
-          C('That Earth is made of rock', 'surface-feature')
+          C('It rotates, like a spinning top', 1),
+          C('The sun drives across the sky', 'literal-appearance'),
+          C('The sun wakes up in the morning', 'animism')
         ],
-        hint: 'Spin is something you DO. It is a movement word.',
-        show: '"Spins" is the movement. "Big" is the size and "rock" is what it is made of.'
+        hint: 'Find the word right after "Earth will".',
+        show: 'Earth rotates. The sun stays put — we spin away from it at sunset and toward it at sunrise.'
       }
     }
   },
@@ -127,20 +127,20 @@
     },
     reading: {
       words: [
-        W('star', ['st', 'ar'], 'a huge ball of burning gas'),
-        W('hot', ['h', 'o', 't'], 'very warm'),
-        W('gas', ['g', 'a', 's'], 'not solid and not liquid — like air')
+        W('sunshine', ['sun', 'shine'], 'light from the sun'),
+        W('distance', ['dis', 'tance'], 'how far away something is'),
+        W('inside', ['in', 'side'], 'in the middle of something')
       ],
-      sentence: 'The sun is a hot ball of gas, and it is the star that is closest to us.',
+      sentence: 'The sun looks big because the distance to it is small, and its sunshine fills the sky.',
       comp: {
-        q: 'The sentence says the sun is "closest to us." What does that explain?',
+        q: 'Why does the sun look so big?',
         choices: [
-          C('Why the sun looks so big and bright', 1),
-          C('Why the sun is made of gas', 'surface-feature'),
-          C('Why the sun is hot', 'surface-feature')
+          C('The distance to it is small', 1),
+          C('Its sunshine is yellow', 'surface-feature'),
+          C('It is the biggest star there is', 'literal-appearance')
         ],
-        hint: 'Closest is about distance. What does distance change — the size, or how big it LOOKS?',
-        show: 'Being closest explains how big it looks to us. It would be hot and gassy no matter where it sat.'
+        hint: 'Look for the word "because". It points at the reason.',
+        show: 'The sun is close, so it looks big. Other stars are far away, so they look like dots.'
       }
     }
   },
@@ -194,20 +194,20 @@
     },
     reading: {
       words: [
-        W('shadow', ['sha', 'dow'], 'dark shape made by blocked light'),
-        W('block', ['bl', 'o', 'ck'], 'to stop something from passing'),
-        W('long', ['l', 'o', 'ng'], 'stretched out far')
+        W('shadow', ['shad', 'ow'], 'the dark shape where light is blocked'),
+        W('sideways', ['side', 'ways'], 'toward the side'),
+        W('noontime', ['noon', 'time'], 'the middle of the day')
       ],
-      sentence: 'When you block the sun, you make a long dark shadow on the grass.',
+      sentence: 'At noontime your shadow is short, but late in the day it stretches out sideways.',
       comp: {
-        q: 'What has to happen FIRST to make a shadow?',
+        q: 'When is your shadow the shortest?',
         choices: [
-          C('Something must block the light', 1),
-          C('The grass must be dark', 'sequence-error'),
-          C('The shadow must get long', 'sequence-error')
+          C('At noontime', 1),
+          C('Late in the day', 'reversed-relation'),
+          C('When it stretches sideways', 'surface-feature')
         ],
-        hint: 'A shadow cannot exist until something gets in the light\'s way.',
-        show: 'Order matters: light shines, something blocks it, THEN the shadow appears.'
+        hint: 'Find the word "short" in the sentence.',
+        show: 'At noontime the sun is high, so shadows are short. Late in the day the sun is low and they stretch.'
       }
     }
   },
@@ -261,20 +261,20 @@
     },
     reading: {
       words: [
-        W('tilt', ['t', 'il', 't'], 'to lean over'),
-        W('warm', ['w', 'ar', 'm'], 'a little bit hot'),
-        W('sun-light', ['sun', 'light'], 'light that comes from the sun')
+        W('summer', ['sum', 'mer'], 'the warmest season'),
+        W('winter', ['win', 'ter'], 'the coldest season'),
+        W('sunbeam', ['sun', 'beam'], 'a line of light from the sun')
       ],
-      sentence: 'When our half of Earth has a tilt toward the sun, the sunlight feels warm.',
+      sentence: 'In summer each sunbeam hits us straight on, but in winter the light comes in at a slant.',
       comp: {
-        q: 'According to the sentence, what makes the sunlight feel warm?',
+        q: 'Why does a summer sunbeam feel hotter than a winter one?',
         choices: [
-          C('Our half is tilted toward the sun', 1),
-          C('The sun gets bigger', 'literal-appearance'),
-          C('Earth stops spinning', 'surface-feature')
+          C('It hits us straight on', 1),
+          C('Summer sunbeams are bigger', 'literal-appearance'),
+          C('Winter has no sunbeams at all', 'overgeneralize')
         ],
-        hint: 'Find the word "tilt" in the sentence and read what comes right after it.',
-        show: 'The tilt toward the sun is the cause. Warm sunlight is the effect.'
+        hint: 'Compare the two halves of the sentence.',
+        show: 'Straight-on light is packed tight and hot. Slanted light spreads out thin and feels cold.'
       }
     }
   },
@@ -328,16 +328,20 @@
     },
     reading: {
       words: [
-        W('east', ['ea', 'st'], 'the sunrise direction'),
-        W('west', ['w', 'e', 'st'], 'the sunset direction'),
-        W('map', ['m', 'a', 'p'], 'a picture of a place from above')
+        W('compass', ['com', 'pass'], 'a tool that shows which way is north'),
+        W('westward', ['west', 'ward'], 'toward the west'),
+        W('bedtime', ['bed', 'time'], 'the time to go to sleep')
       ],
-      sentence: 'The sun comes up in the east and goes down in the west, just like the map shows.',
+      sentence: 'A compass shows that the sun comes up in the east and drifts westward before bedtime.',
       comp: {
-        q: 'If you face the sunrise, which direction are you facing?',
-        choices: [C('East', 1), C('West', 'reversed-relation'), C('Down', 'surface-feature')],
-        hint: 'Sunrise is the coming-up one. Which word goes with coming up?',
-        show: 'Sunrise = east. Sunset = west. Facing a sunrise means you are facing east.'
+        q: 'Which way does the sun seem to drift before bedtime?',
+        choices: [
+          C('Westward', 1),
+          C('Eastward', 'reversed-relation'),
+          C('Toward the compass', 'surface-feature')
+        ],
+        hint: 'Find the word that ends in -ward.',
+        show: 'Up in the east, down in the west — because Earth spins toward the east.'
       }
     }
   },
@@ -392,16 +396,20 @@
     },
     reading: {
       words: [
-        W('shape', ['sh', 'ape'], 'the outline of a thing'),
-        W('side', ['s', 'ide'], 'one face or edge of something'),
-        W('globe', ['gl', 'obe'], 'a ball, often a model of a world')
+        W('halfway', ['half', 'way'], 'in the middle'),
+        W('between', ['be', 'tween'], 'in the space that separates two things'),
+        W('gleaming', ['gleam', 'ing'], 'shining brightly')
       ],
-      sentence: 'The moon is a globe, and we see one side of its bright shape each night.',
+      sentence: 'Halfway between new moon and full moon, we see half of the moon gleaming in the sky.',
       comp: {
-        q: 'The word "globe" tells you the moon is what?',
-        choices: [C('Round like a ball', 1), C('Bright', 'surface-feature'), C('Only visible at night', 'surface-feature')],
-        hint: 'Think about a globe on a teacher\'s desk. What shape is it?',
-        show: 'Globe means ball-shaped. That is why the moon can never really be a sliver.'
+        q: 'What do we see halfway between a new moon and a full moon?',
+        choices: [
+          C('Half of the moon gleaming', 1),
+          C('No moon at all', 'part-whole-mixup'),
+          C('Two moons', 'guess-plausible')
+        ],
+        hint: 'Read what comes after "we see".',
+        show: 'Halfway through the cycle we see half of the moon\'s lit side — a half moon.'
       }
     }
   },
@@ -455,20 +463,20 @@
     },
     reading: {
       words: [
-        W('face', ['f', 'ace'], 'the front side of something'),
-        W('same', ['s', 'ame'], 'not different'),
-        W('side', ['s', 'ide'], 'one surface of a thing')
+        W('always', ['al', 'ways'], 'every single time'),
+        W('keeps', ['keep', 's'], 'holds on to'),
+        W('remain', ['re', 'main'], 'to stay the same')
       ],
-      sentence: 'We always see the same face of the moon, and the far side stays hidden.',
+      sentence: 'The moon always keeps the same face toward us, so its far side will remain hidden.',
       comp: {
-        q: 'Why has nobody on the ground ever seen the far side?',
+        q: 'What stays hidden from us?',
         choices: [
-          C('It is always turned away from Earth', 1),
-          C('It is too dark to see', 'guess-plausible'),
-          C('It is on the other side of the Sun', 'overgeneralize')
+          C('The far side of the moon', 1),
+          C('The face of the moon', 'reversed-relation'),
+          C('The whole moon', 'part-whole-mixup')
         ],
-        hint: 'Reread the sentence. What word describes the far side?',
-        show: 'Hidden means turned away. The far side gets plenty of sunlight — it just never points at us.'
+        hint: 'Find the word "hidden". What comes before it?',
+        show: 'One side always faces us. The far side always faces away.'
       }
     }
   },
@@ -521,16 +529,20 @@
     },
     reading: {
       words: [
-        W('pull', ['p', 'ull'], 'to drag toward you'),
-        W('drop', ['dr', 'o', 'p'], 'to let something fall'),
-        W('weight', ['wei', 'ght'], 'how heavy something is')
+        W('leaf', ['l', 'ea', 'f'], 'a flat green part of a plant'),
+        W('speeds', ['speed', 's'], 'makes something go faster'),
+        W('reach', ['r', 'ea', 'ch'], 'to get to')
       ],
-      sentence: 'Gravity is a pull, so when you drop a stone its weight brings it down fast.',
+      sentence: 'Gravity speeds a rock and a leaf toward the ground, but air slows the leaf before it can reach the dirt.',
       comp: {
-        q: 'What does gravity do in this sentence?',
-        choices: [C('It pulls things down', 1), C('It makes things heavy on purpose', 'animism'), C('It drops the stone from your hand', 'surface-feature')],
-        hint: 'Find the word right after "Gravity is a…"',
-        show: 'Gravity pulls. You are the one who let go — gravity did the rest.'
+        q: 'What slows the leaf down?',
+        choices: [
+          C('The air', 1),
+          C('Gravity', 'reversed-relation'),
+          C('The rock', 'surface-feature')
+        ],
+        hint: 'Find the word "slows". What comes right before it?',
+        show: 'Gravity pulls them both the same. Air pushes back on the wide, flat leaf.'
       }
     }
   },
@@ -584,16 +596,20 @@
     },
     reading: {
       words: [
-        W('tide', ['t', 'ide'], 'rising and falling ocean water'),
-        W('wave', ['w', 'ave'], 'water that rolls and lifts'),
-        W('rise', ['r', 'ise'], 'to go up')
+        W('coast', ['c', 'oa', 'st'], 'where the land meets the sea'),
+        W('beach', ['b', 'ea', 'ch'], 'sand by the water'),
+        W('daily', ['d', 'ai', 'ly'], 'every day')
       ],
-      sentence: 'The tide makes the waves rise up the sand twice in one day.',
+      sentence: 'Twice daily the tide slides up the beach and then slips back down the coast.',
       comp: {
-        q: 'How many times a day does the tide come up, according to the sentence?',
-        choices: [C('Twice', 1), C('One time', 'off-by-one'), C('Every hour', 'guess-plausible')],
-        hint: 'Find the number word near the end of the sentence.',
-        show: 'Twice — because Earth spins through two water bulges every day.'
+        q: 'How often does the tide slide up the beach?',
+        choices: [
+          C('Twice a day', 1),
+          C('Once a day', 'off-by-one'),
+          C('Every minute', 'guess-plausible')
+        ],
+        hint: 'Find the word right before "daily".',
+        show: 'Twice daily — two high tides every day, because Earth spins through two water bulges.'
       }
     }
   },
@@ -647,20 +663,20 @@
     },
     reading: {
       words: [
-        W('jump', ['j', 'u', 'mp'], 'to push off the ground'),
-        W('space', ['sp', 'ace'], 'the huge empty place beyond our air'),
-        W('bounce', ['b', 'ounce'], 'to spring up after landing')
+        W('leap', ['l', 'ea', 'p'], 'a big jump'),
+        W('float', ['fl', 'oa', 't'], 'to drift gently'),
+        W('higher', ['h', 'igh', 'er'], 'farther up')
       ],
-      sentence: 'In space on the moon you can jump high and bounce with every step.',
+      sentence: 'On the moon you can leap six times higher and float back down instead of landing with a thump.',
       comp: {
-        q: 'Why could you bounce with every step on the moon?',
+        q: 'How high can you leap on the moon?',
         choices: [
-          C('Gravity is weaker there', 1),
-          C('The moon ground is springy like a trampoline', 'literal-appearance'),
-          C('Space suits have springs in the boots', 'guess-plausible')
+          C('Six times higher than on Earth', 1),
+          C('The same as on Earth', 'overgeneralize'),
+          C('Not at all', 'guess-plausible')
         ],
-        hint: 'Think back to the lesson. What is six times weaker on the Moon?',
-        show: 'Weaker gravity means each push lifts you farther and brings you down slower.'
+        hint: 'Find the number word in the sentence.',
+        show: 'Six times higher, because the moon\'s pull is six times weaker than Earth\'s.'
       }
     }
   },
@@ -711,16 +727,20 @@
     },
     reading: {
       words: [
-        W('planet', ['plan', 'et'], 'a world orbiting a star'),
-        W('Mars', ['M', 'ar', 's'], 'the red planet next door'),
-        W('order', ['or', 'der'], 'the arrangement, first to last')
+        W('order', ['or', 'der'], 'one after another, in a line'),
+        W('Saturn', ['Sat', 'urn'], 'the sixth planet, with rings'),
+        W('farther', ['far', 'ther'], 'more far away')
       ],
-      sentence: 'Mars is the fourth planet in order, and it is the next one out from Earth.',
+      sentence: 'In order from the sun, Saturn is sixth, so it sits farther out than Earth.',
       comp: {
-        q: 'What position does Mars have?',
-        choices: [C('Fourth from the Sun', 1), C('First from the Sun', 'sequence-error'), C('The last planet', 'surface-feature')],
-        hint: 'Find the number word in the sentence.',
-        show: 'Fourth. Earth is third, so Mars is our next-door neighbor going outward.'
+        q: 'Which is farther from the sun, Saturn or Earth?',
+        choices: [
+          C('Saturn', 1),
+          C('Earth', 'reversed-relation'),
+          C('They are the same distance', 'overgeneralize')
+        ],
+        hint: 'Find the word "farther". Which planet is it talking about?',
+        show: 'Saturn is sixth and Earth is third, so Saturn is much farther out.'
       }
     }
   },
@@ -774,16 +794,20 @@
     },
     reading: {
       words: [
-        W('orbit', ['or', 'bit'], 'the curved path around something'),
+        W('orbit', ['or', 'bit'], 'the path around something'),
         W('circle', ['cir', 'cle'], 'a perfectly round shape'),
-        W('curve', ['c', 'ur', 've'], 'a bend with no corners')
+        W('turning', ['turn', 'ing'], 'going around')
       ],
-      sentence: 'Earth follows a curve, so its orbit is almost a perfect circle.',
+      sentence: 'Earth\'s orbit is almost a circle, with the planet turning around the sun the whole way.',
       comp: {
-        q: 'What shape is Earth\'s orbit closest to?',
-        choices: [C('A circle', 1), C('A square', 'guess-plausible'), C('A straight line', 'literal-appearance')],
-        hint: 'The sentence says "almost a perfect ___".',
-        show: 'Almost a circle — really a gently squashed one, an ellipse.'
+        q: 'What shape is Earth\'s orbit close to?',
+        choices: [
+          C('A circle', 1),
+          C('A square', 'guess-plausible'),
+          C('A straight line', 'literal-appearance')
+        ],
+        hint: 'Find the word "almost".',
+        show: 'Almost a circle — really a gently squashed one.'
       }
     }
   },
@@ -837,16 +861,20 @@
     },
     reading: {
       words: [
-        W('faster', ['fast', 'er'], 'moving more quickly'),
-        W('far', ['f', 'ar'], 'a long way off'),
-        W('year', ['y', 'ear'], 'one lap around the Sun')
+        W('shorter', ['short', 'er'], 'less long'),
+        W('year', ['y', 'ear'], 'one trip around the sun'),
+        W('circling', ['cir', 'cling'], 'going around and around')
       ],
-      sentence: 'A planet that is far from the sun moves slower, so its year is long.',
+      sentence: 'Mercury is circling close to the sun, so its path is shorter and its year is only 88 days.',
       comp: {
-        q: 'What happens to a planet\'s year when the planet is farther out?',
-        choices: [C('The year gets longer', 1), C('The year gets shorter', 'reversed-relation'), C('The year stays the same', 'overgeneralize')],
-        hint: 'Farther, slower, so the lap takes… more time or less time?',
-        show: 'Farther out means a longer year. Neptune\'s year is 165 of ours.'
+        q: 'Why is a year on Mercury so short?',
+        choices: [
+          C('Its path around the sun is shorter', 1),
+          C('Mercury spins very fast', 'overgeneralize'),
+          C('Mercury is the smallest planet', 'guess-plausible')
+        ],
+        hint: 'Find the word "so". What comes before it?',
+        show: 'A shorter trip around the sun means a shorter year. Spinning sets the day, not the year.'
       }
     }
   },
@@ -900,16 +928,20 @@
     },
     reading: {
       words: [
-        W('far', ['f', 'ar'], 'a long way away'),
-        W('start', ['st', 'ar', 't'], 'the beginning'),
-        W('apart', ['a', 'par', 't'], 'separated, not touching')
+        W('marble', ['mar', 'ble'], 'a small glass ball'),
+        W('apart', ['a', 'par', 't'], 'far from each other'),
+        W('stars', ['star', 's'], 'the shining dots in the night sky')
       ],
-      sentence: 'The planets are so far apart that the start of the walk feels long.',
+      sentence: 'If Earth were a marble, the stars and planets would sit so far apart that space is mostly empty.',
       comp: {
-        q: 'What does "far apart" tell you about the planets?',
-        choices: [C('There is a lot of empty space between them', 1), C('They are all the same size', 'surface-feature'), C('They are close together', 'reversed-relation')],
-        hint: 'Apart is the opposite of together.',
-        show: 'Far apart means big gaps of empty space — that is why space feels so lonely and huge.'
+        q: 'What is most of space like?',
+        choices: [
+          C('Empty', 1),
+          C('Crowded with planets', 'reversed-relation'),
+          C('Full of marbles', 'literal-appearance')
+        ],
+        hint: 'Read the last three words of the sentence.',
+        show: 'Mostly empty — the planets are tiny and the gaps between them are huge.'
       }
     }
   },
@@ -963,16 +995,20 @@
     },
     reading: {
       words: [
-        W('Mars', ['M', 'ar', 's'], 'the fourth planet'),
-        W('hard', ['h', 'ar', 'd'], 'not soft'),
-        W('dark', ['d', 'ar', 'k'], 'without light')
+        W('Mars', ['M', 'ar', 's'], 'the red planet'),
+        W('dirt', ['d', 'ir', 't'], 'loose soil'),
+        W('colder', ['cold', 'er'], 'more cold')
       ],
-      sentence: 'The hard red dirt on Mars looks dark when the sun goes down.',
+      sentence: 'The dirt on Mars is red with rust, and the planet is much colder than Earth.',
       comp: {
-        q: 'Why would the Mars dirt look dark?',
-        choices: [C('Because the sun went down', 1), C('Because the dirt is hard', 'surface-feature'), C('Because Mars is far away', 'guess-plausible')],
-        hint: 'Look for the word "when" — it points at the cause.',
-        show: 'No sunlight means no color to see. Same reason your yard looks gray at night.'
+        q: 'Why is the dirt on Mars red?',
+        choices: [
+          C('It has rust in it', 1),
+          C('Mars is very hot', 'reversed-relation'),
+          C('Because it is colder', 'surface-feature')
+        ],
+        hint: 'Find the word "with".',
+        show: 'Rusted iron makes it red — and Mars is freezing, not hot.'
       }
     }
   },
@@ -1027,20 +1063,20 @@
     },
     reading: {
       words: [
-        W('speed', ['sp', 'ee', 'd'], 'how fast something moves'),
-        W('need', ['n', 'ee', 'd'], 'must have'),
-        W('seat', ['s', 'ea', 't'], 'a place to sit')
+        W('powerful', ['pow', 'er', 'ful'], 'very strong'),
+        W('quickly', ['quick', 'ly'], 'fast'),
+        W('strongest', ['strong', 'est'], 'more strong than all the others')
       ],
-      sentence: 'You need to stay in your seat when the rocket picks up speed.',
+      sentence: 'A powerful rocket pushes hot gas down so hard that it quickly shoots up into the sky.',
       comp: {
-        q: 'Why would you need to stay in your seat?',
+        q: 'Which way does a rocket push its hot gas?',
         choices: [
-          C('The rocket is speeding up hard', 1),
-          C('The seat is comfortable', 'surface-feature'),
-          C('There is no gravity yet', 'guess-plausible')
+          C('Down', 1),
+          C('Up', 'reversed-relation'),
+          C('Sideways', 'guess-plausible')
         ],
-        hint: 'What is happening in the second half of the sentence?',
-        show: 'Speeding up hard presses you into the seat — astronauts feel three times their own weight.'
+        hint: 'Find the word "pushes".',
+        show: 'It pushes gas down, and the gas pushes the rocket up. Every push comes in a pair.'
       }
     }
   },
@@ -1094,16 +1130,20 @@
     },
     reading: {
       words: [
-        W('heat', ['h', 'ea', 't'], 'hotness'),
-        W('leak', ['l', 'ea', 'k'], 'to let liquid escape'),
-        W('clean', ['cl', 'ea', 'n'], 'not dirty')
+        W('lighter', ['light', 'er'], 'weighing less'),
+        W('faster', ['fast', 'er'], 'more quickly'),
+        W('useful', ['use', 'ful'], 'helpful')
       ],
-      sentence: 'The team keeps the fuel tank clean so it will not leak in the heat.',
+      sentence: 'As the fuel burns, the rocket gets lighter, and a lighter rocket can go faster.',
       comp: {
-        q: 'Why does the team keep the tank clean?',
-        choices: [C('So it will not leak', 1), C('So it looks nice', 'surface-feature'), C('To make it lighter', 'guess-plausible')],
-        hint: 'The word "so" tells you the reason. Read what comes after it.',
-        show: '"So it will not leak" is the reason. Engineers check for leaks before every single launch.'
+        q: 'Why can the rocket go faster as it flies?',
+        choices: [
+          C('It gets lighter', 1),
+          C('The engine gets stronger', 'guess-plausible'),
+          C('There is no gravity up high', 'overgeneralize')
+        ],
+        hint: 'Read the second half of the sentence.',
+        show: 'The same push on less weight makes more speed.'
       }
     }
   },
@@ -1157,16 +1197,20 @@
     },
     reading: {
       words: [
-        W('see', ['s', 'ee'], 'to look at with your eyes'),
-        W('deep', ['d', 'ee', 'p'], 'going far in'),
-        W('beam', ['b', 'ea', 'm'], 'a narrow line of light')
+        W('brighter', ['bright', 'er'], 'giving more light'),
+        W('faintest', ['faint', 'est'], 'the hardest to see'),
+        W('helpful', ['help', 'ful'], 'giving help')
       ],
-      sentence: 'With a telescope you can see a beam of light from deep in space.',
+      sentence: 'A wide telescope is helpful because it catches more light, so even the faintest stars look brighter.',
       comp: {
-        q: 'What does the telescope help you do?',
-        choices: [C('See light from far away', 1), C('Make light brighter in space', 'literal-appearance'), C('Travel deep into space', 'surface-feature')],
-        hint: 'Find the verb — the doing word — right after "you can".',
-        show: 'It helps you SEE. It does not change the star at all; it just gathers the light that was already coming.'
+        q: 'Why does a wide telescope help you see faint stars?',
+        choices: [
+          C('It catches more light', 1),
+          C('It moves the stars closer', 'literal-appearance'),
+          C('It makes the stars bigger', 'guess-plausible')
+        ],
+        hint: 'Find the word "because".',
+        show: 'Wider means more light caught — that is what makes faint stars show up.'
       }
     }
   },
@@ -1220,16 +1264,20 @@
     },
     reading: {
       words: [
-        W('reach', ['r', 'ea', 'ch'], 'to arrive at'),
-        W('team', ['t', 'ea', 'm'], 'a group working together'),
-        W('week', ['w', 'ee', 'k'], 'seven days')
+        W('quickest', ['quick', 'est'], 'faster than all the others'),
+        W('sunlight', ['sun', 'light'], 'light from the sun'),
+        W('eight', ['eigh', 't'], 'the number 8')
       ],
-      sentence: 'It can take a week for the team to reach the far side of the desert.',
+      sentence: 'Light is the quickest thing there is, but sunlight still takes about eight minutes to reach Earth.',
       comp: {
-        q: 'How long does the trip take?',
-        choices: [C('A week', 1), C('A day', 'guess-plausible'), C('Forever', 'surface-feature')],
-        hint: 'Find the time word in the sentence.',
-        show: 'A week. Even fast things need time to cover big distances — light included.'
+        q: 'How long does sunlight take to reach Earth?',
+        choices: [
+          C('About eight minutes', 1),
+          C('No time at all', 'overgeneralize'),
+          C('About eight hours', 'unit-mixup')
+        ],
+        hint: 'Find the number word.',
+        show: 'Eight minutes. Light is fast, but space is enormous.'
       }
     }
   },
@@ -1284,16 +1332,20 @@
     },
     reading: {
       words: [
-        W('sleep', ['sl', 'ee', 'p'], 'to rest with your eyes closed'),
-        W('meal', ['m', 'ea', 'l'], 'food you sit down to eat'),
-        W('sea', ['s', 'ea'], 'a big body of salt water')
+        W('weightless', ['weight', 'less'], 'not feeling any weight'),
+        W('careful', ['care', 'ful'], 'paying close attention'),
+        W('safely', ['safe', 'ly'], 'without getting hurt')
       ],
-      sentence: 'The crew eat a meal and then sleep while they float high over the sea.',
+      sentence: 'Astronauts feel weightless, so they move with careful hands and sleep safely strapped in.',
       comp: {
-        q: 'Where is the crew while they sleep?',
-        choices: [C('Floating in orbit above the ocean', 1), C('In a boat on the sea', 'surface-feature'), C('On the Moon', 'guess-plausible')],
-        hint: 'The words "float high over" tell you where they are.',
-        show: 'They are in orbit, above the sea — sleeping strapped down so they do not drift into a wall.'
+        q: 'Why do astronauts sleep strapped in?',
+        choices: [
+          C('So they do not float around', 1),
+          C('Because the beds are too small', 'guess-plausible'),
+          C('Because they are careful', 'surface-feature')
+        ],
+        hint: 'What would a weightless astronaut do without straps?',
+        show: 'Weightless means floating. Straps keep them from drifting into the walls.'
       }
     }
   }

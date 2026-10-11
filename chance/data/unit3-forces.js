@@ -61,16 +61,20 @@
     },
     reading: {
       words: [
-        W('strong', ['str', 'o', 'ng'], 'powerful'),
-        W('string', ['str', 'i', 'ng'], 'thin cord'),
-        W('stretch', ['str', 'e', 'tch'], 'to pull longer')
+        W('stronger', ['strong', 'er'], 'having more power'),
+        W('unmoved', ['un', 'moved'], 'not moved at all'),
+        W('straight', ['str', 'aigh', 't'], 'not bent or curved')
       ],
-      sentence: 'A strong pull will stretch the string until it is straight.',
+      sentence: 'When two pulls are equal the wagon stays unmoved, but a stronger pull wins and moves it straight ahead.',
       comp: {
-        q: 'What makes the string straight?',
-        choices: [C('A strong pull', 1), C('The string being long', 'surface-feature'), C('Letting it go loose', 'reversed-relation')],
-        hint: 'Find what is doing the stretching.',
-        show: 'The pull straightens it. Let go and it goes slack — no force, no stretch.'
+        q: 'What happens when one pull is stronger?',
+        choices: [
+          C('The wagon moves toward the stronger pull', 1),
+          C('Nothing happens', 'overgeneralize'),
+          C('The wagon moves toward the weaker pull', 'reversed-relation')
+        ],
+        hint: 'Find the word "stronger".',
+        show: 'Unequal pulls don\'t cancel out — the stronger one wins.'
       }
     }
   },
@@ -126,15 +130,19 @@
     reading: {
       words: [
         W('scrape', ['scr', 'ape'], 'to rub roughly'),
-        W('scratch', ['scr', 'a', 'tch'], 'to scrape a line into something'),
-        W('splash', ['spl', 'a', 'sh'], 'water thrown up')
+        W('unstuck', ['un', 'stuck'], 'free again'),
+        W('scratch', ['scr', 'a', 'tch'], 'to rub a line into something')
       ],
-      sentence: 'The sled will scrape and scratch the dirt, then stop with a splash.',
+      sentence: 'Rough ground will scrape and scratch a sled to a stop, and you have to push to get it unstuck.',
       comp: {
-        q: 'What makes the sled stop on dirt?',
-        choices: [C('Rubbing against the ground', 1), C('The splash', 'sequence-error'), C('Going downhill', 'reversed-relation')],
-        hint: 'Scrape and scratch are both rubbing words. What force is that?',
-        show: 'Friction from the rubbing. The splash happened after it stopped, not the reason it stopped.'
+        q: 'What stops the sled on rough ground?',
+        choices: [
+          C('Rubbing against the rough ground', 1),
+          C('Going downhill', 'reversed-relation'),
+          C('Pushing it', 'sequence-error')
+        ],
+        hint: 'What do "scrape" and "scratch" have in common?',
+        show: 'Rubbing is friction. Rough ground grabs the sled and slows it.'
       }
     }
   },
@@ -191,16 +199,20 @@
     },
     reading: {
       words: [
-        W('straight', ['str', 'aigh', 't'], 'not bent or curved'),
-        W('screw', ['scr', 'ew'], 'a spiral fastener'),
-        W('spring', ['spr', 'i', 'ng'], 'a coil that pushes back')
+        W('unload', ['un', 'load'], 'to take things off'),
+        W('reload', ['re', 'load'], 'to put things back on'),
+        W('strain', ['str', 'ai', 'n'], 'too much hard work')
       ],
-      sentence: 'Push the screw in straight, and the spring will hold the ramp up.',
+      sentence: 'A ramp makes it easy to unload a heavy box and reload it later without a strain on your back.',
       comp: {
-        q: 'What holds the ramp up?',
-        choices: [C('The spring', 1), C('The screw', 'surface-feature'), C('Chance', 'guess-plausible')],
-        hint: 'Read the second half of the sentence.',
-        show: 'The spring holds it. The screw goes in straight — that is a different job in the same sentence.'
+        q: 'What does the ramp make easier?',
+        choices: [
+          C('Moving a heavy box up and down', 1),
+          C('Making the box lighter', 'literal-appearance'),
+          C('Breaking the box', 'guess-plausible')
+        ],
+        hint: 'Find "unload" and "reload".',
+        show: 'The ramp trades a hard lift for an easy long push. The box weighs the same.'
       }
     }
   },
@@ -255,16 +267,20 @@
     },
     reading: {
       words: [
+        W('restart', ['re', 'start'], 'to start again'),
         W('strap', ['str', 'a', 'p'], 'a band that holds things'),
-        W('street', ['str', 'ee', 't'], 'a road in town'),
-        W('spread', ['spr', 'ea', 'd'], 'to open out wide')
+        W('screech', ['scr', 'ee', 'ch'], 'a loud, high sound')
       ],
-      sentence: 'The strap kept him in his seat when the truck stopped in the street.',
+      sentence: 'When the car stopped with a screech, the strap held him in his seat, and then the car could restart.',
       comp: {
-        q: 'What did the strap do?',
-        choices: [C('Kept him from sliding forward', 1), C('Stopped the truck', 'surface-feature'), C('Spread out', 'letter-look')],
-        hint: 'The truck stopped itself. What did the strap stop?',
-        show: 'The strap stopped HIM. Brakes stop the truck; belts stop the passengers.'
+        q: 'What held him in his seat?',
+        choices: [
+          C('The strap', 1),
+          C('The screech', 'surface-feature'),
+          C('The car restarting', 'sequence-error')
+        ],
+        hint: 'Find what "held him".',
+        show: 'His body kept moving when the car stopped — the strap caught him.'
       }
     }
   },
@@ -319,16 +335,20 @@
     },
     reading: {
       words: [
-        W('stack', ['st', 'a', 'ck'], 'a pile'),
-        W('splint', ['spl', 'i', 'nt'], 'a stiff strip that supports something'),
-        W('strap', ['str', 'a', 'p'], 'a holding band')
+        W('unsafe', ['un', 'safe'], 'not safe'),
+        W('spread', ['spr', 'ea', 'd'], 'to open out wide'),
+        W('restack', ['re', 'stack'], 'to pile up again')
       ],
-      sentence: 'He put a splint and a strap on the tall stack so it would not tip.',
+      sentence: 'A tall skinny tower is unsafe, so spread the blocks out wide and restack them on a bigger base.',
       comp: {
-        q: 'Why did he add the splint and strap?',
-        choices: [C('To keep the stack from tipping', 1), C('To make it taller', 'reversed-relation'), C('Because the stack was heavy', 'guess-plausible')],
-        hint: 'Read the very end: "so it would not…"',
-        show: '"So it would not tip." The word "so" always points at the reason.'
+        q: 'How do you make the tower safer?',
+        choices: [
+          C('Spread the blocks out on a wide base', 1),
+          C('Make it taller', 'reversed-relation'),
+          C('Use fewer blocks', 'guess-plausible')
+        ],
+        hint: 'Find the word "so".',
+        show: 'A wide, low base keeps the tower\'s weight over it, so it does not tip.'
       }
     }
   },
@@ -384,16 +404,20 @@
     },
     reading: {
       words: [
-        W('lever', ['le', 'ver'], 'a bar that lifts on a pivot'),
+        W('lever', ['lev', 'er'], 'a bar that lifts things'),
         W('handle', ['han', 'dle'], 'the part you hold'),
-        W('little', ['lit', 'tle'], 'small')
+        W('boulder', ['boul', 'der'], 'a very big rock')
       ],
-      sentence: 'A little pull on the handle of the lever can lift a heavy load.',
+      sentence: 'Push down on the handle of a long lever, and you can lift a boulder much bigger than you.',
       comp: {
-        q: 'What can a little pull do?',
-        choices: [C('Lift something heavy', 1), C('Make the handle bigger', 'surface-feature'), C('Nothing much, it is little', 'literal-appearance')],
+        q: 'What can a long lever help you lift?',
+        choices: [
+          C('A boulder bigger than you', 1),
+          C('Only very small things', 'reversed-relation'),
+          C('The handle', 'surface-feature')
+        ],
         hint: 'Read to the end of the sentence.',
-        show: 'A little pull lifts a heavy load — that is the whole magic of the lever.'
+        show: 'A lever multiplies your push — a little force lifts a big load.'
       }
     }
   },
@@ -447,16 +471,20 @@
     },
     reading: {
       words: [
-        W('rudder', ['rud', 'der'], 'the flap that steers a boat'),
-        W('circle', ['cir', 'cle'], 'a round shape'),
-        W('middle', ['mid', 'dle'], 'the center')
+        W('bigger', ['bigg', 'er'], 'larger'),
+        W('smaller', ['small', 'er'], 'less big'),
+        W('slower', ['slow', 'er'], 'less fast')
       ],
-      sentence: 'The gear turns in a circle around a pin in the middle.',
+      sentence: 'A small gear turns a bigger gear, and the bigger gear spins slower but pushes harder than the smaller one.',
       comp: {
-        q: 'Where is the pin?',
-        choices: [C('In the middle of the gear', 1), C('On the outside teeth', 'surface-feature'), C('On the rudder', 'letter-look')],
-        hint: 'Find the last two words.',
-        show: 'In the middle. That center pin is the axle — the same idea as a lever\'s fulcrum.'
+        q: 'Which gear spins slower?',
+        choices: [
+          C('The bigger gear', 1),
+          C('The smaller gear', 'reversed-relation'),
+          C('They spin at the same speed', 'overgeneralize')
+        ],
+        hint: 'Find the word "slower".',
+        show: 'Bigger gear: slower and stronger. Smaller gear: faster.'
       }
     }
   },
@@ -511,16 +539,20 @@
     },
     reading: {
       words: [
-        W('pulley', ['pul', 'ley'], 'a rope wheel'),
-        W('paddle', ['pad', 'dle'], 'a flat blade for rowing'),
-        W('over', ['o', 'ver'], 'above or across')
+        W('pulley', ['pul', 'ley'], 'a wheel with a rope'),
+        W('bucket', ['buck', 'et'], 'a pail for carrying things'),
+        W('water', ['wa', 'ter'], 'what fills a creek')
       ],
-      sentence: 'Run the rope over the pulley, then pull it down with a steady grip.',
+      sentence: 'Pull down on the rope, and the pulley lifts the bucket of water up out of the well.',
       comp: {
         q: 'Which way do you pull the rope?',
-        choices: [C('Down', 1), C('Up', 'reversed-relation'), C('Sideways', 'guess-plausible')],
-        hint: 'Find the direction word after "pull it".',
-        show: 'Down. The pulley flips your downward pull into an upward lift.'
+        choices: [
+          C('Down', 1),
+          C('Up', 'reversed-relation'),
+          C('Sideways', 'guess-plausible')
+        ],
+        hint: 'Find the word right after "Pull".',
+        show: 'Pull down and the bucket goes up — the pulley flips the direction.'
       }
     }
   },
@@ -574,16 +606,20 @@
     },
     reading: {
       words: [
-        W('wedge', ['we', 'dge'], 'a splitting blade'),
-        W('metal', ['me', 'tal'], 'hard shiny material like iron'),
-        W('sharper', ['sharp', 'er'], 'more able to cut')
+        W('metal', ['met', 'al'], 'hard, shiny material like iron'),
+        W('tighter', ['tight', 'er'], 'held more firmly'),
+        W('sharper', ['sharp', 'er'], 'better at cutting')
       ],
-      sentence: 'A sharper metal wedge will split the log with a smaller push.',
+      sentence: 'Turn a metal screw and it goes in tighter, and a sharper wedge splits a log with less push.',
       comp: {
-        q: 'What does a sharper wedge let you do?',
-        choices: [C('Split the log with less force', 1), C('Make the log bigger', 'surface-feature'), C('Push harder', 'reversed-relation')],
-        hint: 'Read the last three words.',
-        show: 'A smaller push does the same job. Sharp means the ramp is longer and thinner, so it trades more distance for more force.'
+        q: 'What helps a wedge split a log with less push?',
+        choices: [
+          C('Being sharper', 1),
+          C('Being heavier', 'guess-plausible'),
+          C('Turning it', 'surface-feature')
+        ],
+        hint: 'Find the word "sharper".',
+        show: 'A sharper wedge is a longer, thinner ramp: less force, more distance.'
       }
     }
   },
@@ -638,16 +674,20 @@
     },
     reading: {
       words: [
-        W('pedal', ['pe', 'dal'], 'the part your foot pushes'),
-        W('handlebar', ['han', 'dle', 'bar'], 'the steering bar'),
-        W('faster', ['fast', 'er'], 'more quickly')
+        W('pedal', ['ped', 'al'], 'the part your foot pushes'),
+        W('bicycle', ['bi', 'cy', 'cle'], 'a bike'),
+        W('puddle', ['pud', 'dle'], 'a little pool of rainwater')
       ],
-      sentence: 'Hold the handlebar and push the pedal harder to go faster.',
+      sentence: 'Push each pedal of your bicycle hard, and you can zoom right over a puddle.',
       comp: {
-        q: 'What makes the bike go faster?',
-        choices: [C('Pushing the pedal harder', 1), C('Holding the handlebar', 'surface-feature'), C('The gear being easy', 'reversed-relation')],
-        hint: 'Two things happen in this sentence. Which one is about speed?',
-        show: 'Pushing the pedal harder. The handlebar steers — a different job.'
+        q: 'What makes the bicycle go?',
+        choices: [
+          C('Pushing the pedals', 1),
+          C('The puddle', 'surface-feature'),
+          C('Riding downhill', 'guess-plausible')
+        ],
+        hint: 'Find the first word of the sentence.',
+        show: 'The pedals are levers that turn the gears and the wheels.'
       }
     }
   },
@@ -701,16 +741,20 @@
     },
     reading: {
       words: [
-        W('knot', ['kn', 'o', 't'], 'a tied lump in rope'),
-        W('knee', ['kn', 'ee'], 'the joint in the middle of your leg'),
-        W('wrench', ['wr', 'e', 'nch'], 'a tool for turning bolts')
+        W('knob', ['kn', 'o', 'b'], 'a round handle'),
+        W('thumb', ['th', 'u', 'mb'], 'the short, thick finger'),
+        W('magnet', ['mag', 'net'], 'metal that pulls on iron')
       ],
-      sentence: 'He put the wrench on his knee and pulled the knot loose.',
+      sentence: 'Hold the magnet by its knob with your thumb, and it will grab the paperclip without touching it.',
       comp: {
-        q: 'What did he pull loose?',
-        choices: [C('The knot', 1), C('The wrench', 'surface-feature'), C('His knee', 'surface-feature')],
-        hint: 'Read the last three words.',
-        show: 'The knot. Notice that k and w go silent in knot, knee and wrench — you hear "not", "nee", "rench".'
+        q: 'How does the magnet pick up the paperclip?',
+        choices: [
+          C('It pulls without touching', 1),
+          C('You push it with your thumb', 'surface-feature'),
+          C('The knob grabs it', 'literal-appearance')
+        ],
+        hint: 'Find the words "without touching".',
+        show: 'A magnet\'s pull reaches right through the air.'
       }
     }
   },
@@ -765,15 +809,19 @@
     reading: {
       words: [
         W('wrap', ['wr', 'a', 'p'], 'to wind around'),
-        W('know', ['kn', 'ow'], 'to have something in your mind'),
-        W('phone', ['ph', 'one'], 'a thing you talk into')
+        W('know', ['kn', 'ow'], 'to be sure about something'),
+        W('wire', ['w', 'ire'], 'a thin metal thread')
       ],
-      sentence: 'Wrap the wire and you will know why the phone lights up.',
+      sentence: 'Wrap the wire into a full loop, and you will know it works when the bulb lights up.',
       comp: {
-        q: 'What do you do to the wire?',
-        choices: [C('Wrap it', 1), C('Cut it', 'guess-plausible'), C('Know it', 'letter-look')],
-        hint: 'Find the very first word.',
-        show: 'Wrap. The w is silent in wrap and the k is silent in know — and ph says "fff" in phone.'
+        q: 'How do you know the loop is finished?',
+        choices: [
+          C('The bulb lights up', 1),
+          C('The wire gets longer', 'guess-plausible'),
+          C('You wrap it twice', 'surface-feature')
+        ],
+        hint: 'Find the word "when".',
+        show: 'Electricity only flows around a complete loop. The light proves it.'
       }
     }
   },
@@ -827,16 +875,20 @@
     },
     reading: {
       words: [
-        W('knock', ['kn', 'o', 'ck'], 'to hit and make a sound'),
-        W('write', ['wr', 'ite'], 'to make letters'),
-        W('graph', ['gr', 'a', 'ph'], 'a picture that shows numbers')
+        W('photo', ['pho', 'to'], 'a picture from a camera'),
+        W('kneel', ['kn', 'ee', 'l'], 'to rest on your knees'),
+        W('wrong', ['wr', 'o', 'ng'], 'not right')
       ],
-      sentence: 'Write what you see on the graph, then knock on the door when you finish.',
+      sentence: 'Kneel down behind a wall and you cannot snap a photo of the yard, because light will not bend around corners.',
       comp: {
-        q: 'What should you do first?',
-        choices: [C('Write on the graph', 1), C('Knock on the door', 'sequence-error'), C('Open the door', 'guess-plausible')],
-        hint: 'Look for the word "then" — everything before it comes first.',
-        show: 'Write first, then knock. "Then" is a time-order word, and order matters.'
+        q: 'Why can\'t you snap a photo of the yard from behind the wall?',
+        choices: [
+          C('Light does not bend around corners', 1),
+          C('It is too dark behind the wall', 'guess-plausible'),
+          C('Your knees are in the way', 'surface-feature')
+        ],
+        hint: 'Find the word "because".',
+        show: 'Light travels straight. To see around a corner you need a mirror.'
       }
     }
   },
@@ -891,16 +943,20 @@
     },
     reading: {
       words: [
-        W('knew', ['kn', 'ew'], 'understood in the past'),
-        W('wrong', ['wr', 'o', 'ng'], 'not correct'),
-        W('photo', ['pho', 'to'], 'a picture from a camera')
+        W('knock', ['kn', 'o', 'ck'], 'to hit and make a sound'),
+        W('whistle', ['whis', 'tle'], 'a high sound you can blow'),
+        W('listen', ['lis', 'ten'], 'to pay attention to sound')
       ],
-      sentence: 'He knew the photo was wrong when he heard the sound again.',
+      sentence: 'Listen closely: a knock on the door and a whistle both come from something shaking the air.',
       comp: {
-        q: 'What told him the photo was wrong?',
-        choices: [C('Hearing the sound again', 1), C('Looking at the photo', 'surface-feature'), C('Knowing it already', 'letter-look')],
-        hint: 'Find the word "when" and read what comes after it.',
-        show: 'The sound told him. Notice the silent letters: knew sounds like "new", wrong sounds like "rong".'
+        q: 'What makes the sound of a knock and a whistle?',
+        choices: [
+          C('Something shaking the air', 1),
+          C('The door is loud', 'literal-appearance'),
+          C('Listening closely', 'surface-feature')
+        ],
+        hint: 'Find the words "come from".',
+        show: 'All sound is a shake — a vibration traveling through the air.'
       }
     }
   },
@@ -954,16 +1010,20 @@
     },
     reading: {
       words: [
-        W('knife', ['kn', 'ife'], 'a cutting tool'),
-        W('wrist', ['wr', 'i', 'st'], 'the joint at your hand'),
-        W('phase', ['ph', 'ase'], 'a stage of change')
+        W('rainbow', ['rain', 'b', 'ow'], 'an arc of colors in the sky'),
+        W('prism', ['pr', 'is', 'm'], 'clear glass that splits light'),
+        W('knew', ['kn', 'ew'], 'was sure about')
       ],
-      sentence: 'He turned his wrist and the knife caught the light in a bright phase.',
+      sentence: 'He knew the white light held every color when the prism made a rainbow on the wall.',
       comp: {
-        q: 'What caught the light?',
-        choices: [C('The knife', 1), C('His wrist', 'surface-feature'), C('The phase', 'letter-look')],
-        hint: 'Find what comes right before "caught the light".',
-        show: 'The knife caught it. Silent-letter check: knife is "nife", wrist is "rist", phase starts with an f sound.'
+        q: 'What did the prism make on the wall?',
+        choices: [
+          C('A rainbow', 1),
+          C('White light', 'part-whole-mixup'),
+          C('Another prism', 'surface-feature')
+        ],
+        hint: 'Find the word "made".',
+        show: 'The prism split white light into all its colors — a rainbow.'
       }
     }
   },
@@ -1018,16 +1078,20 @@
     },
     reading: {
       words: [
-        W('footbridge', ['foot', 'bridge'], 'a small bridge for walking'),
-        W('sunlight', ['sun', 'light'], 'light from the sun'),
-        W('riverbank', ['ri', 'ver', 'bank'], 'the edge of a river')
+        W('footbridge', ['foot', 'bridge'], 'a bridge for walking'),
+        W('triangle', ['tri', 'an', 'gle'], 'a shape with three sides'),
+        W('railroad', ['rail', 'road'], 'a track for trains')
       ],
-      sentence: 'The footbridge across the riverbank shines in the sunlight.',
+      sentence: 'A footbridge and a railroad bridge both use a triangle shape, because a triangle cannot be squashed.',
       comp: {
-        q: '"Footbridge" is two small words stuck together. What are they?',
-        choices: [C('foot and bridge', 1), C('food and bridge', 'vowel-swap'), C('foot and ridge', 'letter-look')],
-        hint: 'Cover half the word with your finger, then the other half.',
-        show: 'foot + bridge. Splitting a compound word into its two parts makes a long word easy.'
+        q: 'Why do bridges use triangles?',
+        choices: [
+          C('A triangle cannot be squashed', 1),
+          C('Triangles look nice', 'surface-feature'),
+          C('Triangles are lighter', 'guess-plausible')
+        ],
+        hint: 'Find the word "because".',
+        show: 'Push a square and it folds over. A triangle holds its shape.'
       }
     }
   },
@@ -1084,14 +1148,18 @@
       words: [
         W('sailboat', ['sail', 'boat'], 'a boat pushed by wind'),
         W('driftwood', ['drift', 'wood'], 'wood floating in water'),
-        W('downstream', ['down', 'stream'], 'the way the water flows')
+        W('waterproof', ['wa', 'ter', 'proof'], 'keeps water out')
       ],
-      sentence: 'The sailboat and the driftwood both moved downstream in the wind.',
+      sentence: 'A sailboat and a piece of driftwood both float because they push aside enough water to hold them up.',
       comp: {
-        q: 'Which way did they move?',
-        choices: [C('Downstream', 1), C('Upstream', 'reversed-relation'), C('Into the wind', 'surface-feature')],
-        hint: 'Split "downstream" into its two words.',
-        show: 'Down + stream = the way the water goes. Compound words tell you their own meaning if you split them.'
+        q: 'Why does a sailboat float?',
+        choices: [
+          C('It pushes aside enough water', 1),
+          C('Because it is small', 'overgeneralize'),
+          C('Because it is made of wood', 'guess-plausible')
+        ],
+        hint: 'Find the word "because".',
+        show: 'Push aside enough water and the water pushes you back up.'
       }
     }
   },
@@ -1146,16 +1214,20 @@
     },
     reading: {
       words: [
-        W('slingshot', ['sling', 'shot'], 'a Y-shaped thrower with rubber'),
-        W('pullback', ['pull', 'back'], 'how far you draw something back'),
-        W('backyard', ['back', 'yard'], 'the yard behind a house')
+        W('slingshot', ['sling', 'shot'], 'a Y-shaped thrower with a rubber band'),
+        W('backyard', ['back', 'yard'], 'the yard behind a house'),
+        W('rubber', ['rub', 'ber'], 'stretchy material')
       ],
-      sentence: 'A longer pullback on the slingshot sends it across the backyard.',
+      sentence: 'Pull the rubber band back on a slingshot, and the stored energy sends a marshmallow across the backyard.',
       comp: {
-        q: 'What makes it go farther?',
-        choices: [C('A longer pullback', 1), C('A bigger backyard', 'surface-feature'), C('The slingshot itself', 'guess-plausible')],
-        hint: 'Find the words at the very start of the sentence.',
-        show: 'A longer pullback stores more energy, so the shot travels farther.'
+        q: 'Where does the energy come from?',
+        choices: [
+          C('Pulling the rubber band back', 1),
+          C('The marshmallow', 'animism'),
+          C('The backyard', 'surface-feature')
+        ],
+        hint: 'Find the first thing you do.',
+        show: 'Stretching the band stores energy; letting go turns it into motion.'
       }
     }
   },
@@ -1209,20 +1281,20 @@
     },
     reading: {
       words: [
-        W('notebook', ['note', 'book'], 'a book you write your data in'),
+        W('notebook', ['note', 'book'], 'a book you write in'),
         W('workbench', ['work', 'bench'], 'a table for building'),
-        W('setback', ['set', 'back'], 'something that slows your progress')
+        W('something', ['some', 'thing'], 'a thing you are not naming')
       ],
-      sentence: 'He wrote every setback in his notebook and went back to the workbench.',
+      sentence: 'When something breaks, an engineer writes it in a notebook and goes back to the workbench to fix it.',
       comp: {
-        q: 'Why would he write down the setbacks?',
+        q: 'What does an engineer do when something breaks?',
         choices: [
-          C('So he can learn from what went wrong', 1),
-          C('So he remembers to feel bad', 'guess-plausible'),
-          C('Because notebooks are for writing', 'surface-feature')
+          C('Writes it down and goes back to fix it', 1),
+          C('Gives up', 'reversed-relation'),
+          C('Throws it away', 'guess-plausible')
         ],
-        hint: 'Think about today\'s lesson. What did we call a design that broke?',
-        show: 'Setbacks are data. Written down they make the next version better; forgotten, they get repeated.'
+        hint: 'Find the word "when".',
+        show: 'A broken design is data: write it down, change one thing, test again.'
       }
     }
   },
@@ -1286,11 +1358,11 @@
     },
     reading: {
       words: [
-        W('sunrise', ['sun', 'rise'], 'when the sun comes up'),
         W('waterfall', ['wa', 'ter', 'fall'], 'water dropping over a ledge'),
-        W('flashlight', ['flash', 'light'], 'a light you carry')
+        W('flashlight', ['flash', 'light'], 'a light you carry'),
+        W('everything', ['every', 'thing'], 'all of it')
       ],
-      sentence: 'Before sunrise he took a flashlight down to the waterfall to measure the flow.',
+      sentence: 'Before sunrise he took a flashlight to the waterfall and used everything he had learned to measure the flow.',
       comp: {
         q: 'Why did he need a flashlight?',
         choices: [
@@ -1298,8 +1370,8 @@
           C('The waterfall was loud', 'surface-feature'),
           C('To see the fish', 'guess-plausible')
         ],
-        hint: 'What word tells you the time of day? What is the sky like then?',
-        show: 'Before sunrise means dark. Real field scientists are out early — and now that is you.'
+        hint: 'What is the sky like before sunrise?',
+        show: 'Before sunrise means dark. Real scientists start early.'
       }
     }
   }

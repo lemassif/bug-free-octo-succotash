@@ -35,6 +35,7 @@ window.Grownup = (function () {
     phonics: 'Phonics (spoken)',
     comprehension: 'Reading comprehension',
     'homework-math': 'Homework math (from school)',
+    'homework-spelling': 'Homework spelling (from school)',
     'homework-question': 'Homework questions (from school)'
   };
 
@@ -398,25 +399,6 @@ window.Grownup = (function () {
     nameInput.addEventListener('change', function () { Progress.setName(nameInput.value.trim()); });
     nameField.appendChild(nameInput);
     wrap.appendChild(nameField);
-
-    // reading level
-    var lField = el('label', 'field', 'Reading level for the Read & Say words');
-    var lvl = el('select');
-    [[2, 'Grade 2 — two-syllable words, vowel teams, prefixes and suffixes'],
-     [1, 'Grade 1 — short words, one sound at a time']].forEach(function (o) {
-      var op = el('option', null, o[1]);
-      op.value = String(o[0]);
-      if (Curriculum.readingLevel() === o[0]) op.selected = true;
-      lvl.appendChild(op);
-    });
-    lvl.addEventListener('change', function () {
-      Curriculum.setReadingLevel(parseInt(lvl.value, 10));
-      Voice.say(Curriculum.readingLevel() === 2
-        ? 'Reading words set to second grade.'
-        : 'Reading words set to first grade.');
-    });
-    lField.appendChild(lvl);
-    wrap.appendChild(lField);
 
     // voice
     var vField = el('label', 'field', 'Computer voice — used only for lines you have not recorded yourself');

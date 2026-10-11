@@ -62,16 +62,20 @@
     },
     reading: {
       words: [
-        W('shed', ['sh', 'e', 'd'], 'to drop off an old covering'),
-        W('damp', ['d', 'a', 'mp'], 'a little bit wet'),
-        W('thin', ['th', 'in'], 'not thick')
+        W('hiding', ['hid', 'ing'], 'staying out of sight'),
+        W('crawling', ['crawl', 'ing'], 'moving slowly on legs'),
+        W('soaked', ['soak', 'ed'], 'very wet')
       ],
-      sentence: 'A salamander has thin damp skin, and it can shed the old skin as it grows.',
+      sentence: 'A salamander was hiding under a soaked log, crawling slowly through the wet leaves.',
       comp: {
-        q: 'Why does a salamander shed its skin?',
-        choices: [C('Because it is growing', 1), C('Because the skin is damp', 'surface-feature'), C('To scare away birds', 'guess-plausible')],
-        hint: 'Find the last three words of the sentence.',
-        show: '"As it grows" is the reason. A bigger body needs a bigger skin.'
+        q: 'Where was the salamander hiding?',
+        choices: [
+          C('Under a soaked log', 1),
+          C('In the sunny grass', 'reversed-relation'),
+          C('On top of the log', 'guess-plausible')
+        ],
+        hint: 'Find the word "under".',
+        show: 'Under a wet log — damp, shady places are where salamanders live.'
       }
     }
   },
@@ -125,16 +129,20 @@
     },
     reading: {
       words: [
-        W('hatch', ['h', 'a', 'tch'], 'to break out of an egg'),
-        W('chin', ['ch', 'in'], 'the part below your mouth'),
-        W('shell', ['sh', 'e', 'll'], 'a hard outer cover')
+        W('hatched', ['hatch', 'ed'], 'came out of an egg'),
+        W('swimming', ['swim', 'ming'], 'moving through water'),
+        W('changed', ['change', 'd'], 'became different')
       ],
-      sentence: 'The eggs hatch in the pond, and each shell splits as the larva swims out.',
+      sentence: 'The larva hatched in the pond, went swimming with its gills, and later changed into a salamander.',
       comp: {
-        q: 'What happens FIRST?',
-        choices: [C('The shell splits', 1), C('The larva swims out', 'sequence-error'), C('The larva grows legs', 'sequence-error')],
-        hint: 'The larva cannot swim out until something happens to the shell.',
-        show: 'Shell splits, then it swims out, then weeks later it grows legs. Order matters in science.'
+        q: 'What happened FIRST?',
+        choices: [
+          C('The larva hatched', 1),
+          C('It changed into a salamander', 'sequence-error'),
+          C('It went swimming', 'sequence-error')
+        ],
+        hint: 'The first thing in the sentence happened first.',
+        show: 'Hatch, then swim, then change. Order matters in a life cycle.'
       }
     }
   },
@@ -191,16 +199,20 @@
     },
     reading: {
       words: [
-        W('moth', ['m', 'o', 'th'], 'a night-flying insect'),
-        W('chip', ['ch', 'i', 'p'], 'a small broken piece'),
-        W('shade', ['sh', 'ade'], 'a spot out of the sun')
+        W('dipped', ['dip', 'ped'], 'put into water for a moment'),
+        W('drying', ['dry', 'ing'], 'losing its water'),
+        W('resting', ['rest', 'ing'], 'staying still')
       ],
-      sentence: 'In the cool shade under the log, a moth and a wood chip lay in the damp dirt.',
+      sentence: 'We dipped our hands in the creek before we held the salamander, so its skin would not start drying out.',
       comp: {
-        q: 'Why would a salamander like this spot?',
-        choices: [C('It is cool and damp', 1), C('There is a moth to look at', 'surface-feature'), C('It is out in the sun', 'reversed-relation')],
-        hint: 'What two words describe the spot under the log?',
-        show: 'Cool and damp is exactly what skin-breathing needs. (Although a moth makes a fine snack.)'
+        q: 'Why did we dip our hands in the creek?',
+        choices: [
+          C('So the salamander\'s skin would not dry out', 1),
+          C('To wash the salamander', 'guess-plausible'),
+          C('To catch a fish', 'surface-feature')
+        ],
+        hint: 'Find the word "so".',
+        show: 'Wet hands protect the damp skin a salamander breathes through.'
       }
     }
   },
@@ -255,16 +267,20 @@
     },
     reading: {
       words: [
-        W('chunk', ['ch', 'u', 'nk'], 'a thick piece'),
-        W('path', ['p', 'a', 'th'], 'a track to walk on'),
-        W('brush', ['br', 'u', 'sh'], 'thick low bushes')
+        W('rolled', ['roll', 'ed'], 'turned over'),
+        W('digging', ['dig', 'ging'], 'making a hole'),
+        W('living', ['liv', 'ing'], 'being alive')
       ],
-      sentence: 'A chunk of bark fell on the path beside the thick brush.',
+      sentence: 'We rolled the log over and found beetles digging and worms living in the damp dirt.',
       comp: {
-        q: 'Where did the bark land?',
-        choices: [C('On the path', 1), C('In the brush', 'surface-feature'), C('In the creek', 'guess-plausible')],
-        hint: 'Look for the word "on".',
-        show: 'On the path, beside the brush. Little words like "on" and "beside" carry the whole picture.'
+        q: 'What did WE do to find the beetles?',
+        choices: [
+          C('Rolled the log over', 1),
+          C('Dug a hole', 'surface-feature'),
+          C('Climbed a tree', 'guess-plausible')
+        ],
+        hint: 'Find what we did — it is the first thing in the sentence.',
+        show: 'We rolled the log. The beetles were the ones digging.'
       }
     }
   },
@@ -319,16 +335,20 @@
     },
     reading: {
       words: [
-        W('splash', ['spl', 'a', 'sh'], 'the sound water makes when hit'),
-        W('chase', ['ch', 'ase'], 'to run after'),
-        W('thick', ['th', 'i', 'ck'], 'not thin')
+        W('hopping', ['hop', 'ping'], 'jumping along'),
+        W('jumped', ['jump', 'ed'], 'pushed off the ground'),
+        W('creeping', ['creep', 'ing'], 'moving slowly and quietly')
       ],
-      sentence: 'The frog made a splash in the thick weeds, and the fish did not chase it.',
+      sentence: 'The frog went hopping away and jumped into the pond, while the salamander kept creeping under the leaves.',
       comp: {
-        q: 'What did the fish NOT do?',
-        choices: [C('Chase the frog', 1), C('Make a splash', 'surface-feature'), C('Swim in the weeds', 'guess-plausible')],
-        hint: 'Find the words "did not" and read what comes after.',
-        show: 'The fish did not chase. "Did not" flips the meaning of whatever follows it — read those two words carefully.'
+        q: 'Which animal went hopping?',
+        choices: [
+          C('The frog', 1),
+          C('The salamander', 'reversed-relation'),
+          C('Both of them', 'overgeneralize')
+        ],
+        hint: 'Find the word "hopping" and see who is doing it.',
+        show: 'The frog hopped and the salamander crept. Long back legs make the difference.'
       }
     }
   },
@@ -383,16 +403,20 @@
     },
     reading: {
       words: [
-        W('soaking', ['soak', 'ing'], 'getting very wet'),
-        W('floated', ['float', 'ed'], 'stayed on top of water'),
-        W('dripping', ['drip', 'ping'], 'falling in drops')
+        W('cloud', ['cl', 'ou', 'd'], 'a floating mass of tiny water drops'),
+        W('moist', ['m', 'oi', 'st'], 'a little wet'),
+        W('around', ['a', 'round'], 'in a circle')
       ],
-      sentence: 'The soaking leaf floated by while rain was dripping off the branch.',
+      sentence: 'Water rises into a cloud, falls as moist rain, and goes around and around forever.',
       comp: {
-        q: 'Which word tells you something already happened, not that it is happening now?',
-        choices: [C('floated', 1), C('soaking', 'letter-look'), C('dripping', 'letter-look')],
-        hint: 'The ending -ed means it is finished. The ending -ing means it is still going.',
-        show: '"Floated" ends in -ed, so it is done. "Soaking" and "dripping" end in -ing — still happening.'
+        q: 'What happens to water after it rises into a cloud?',
+        choices: [
+          C('It falls as rain', 1),
+          C('It disappears forever', 'literal-appearance'),
+          C('It stays in the cloud', 'guess-plausible')
+        ],
+        hint: 'Read what comes right after "cloud".',
+        show: 'It falls as rain — and the same water goes around again and again.'
       }
     }
   },
@@ -446,16 +470,20 @@
     },
     reading: {
       words: [
-        W('rushing', ['rush', 'ing'], 'moving fast'),
-        W('slipped', ['slip', 'ped'], 'slid by accident'),
-        W('running', ['run', 'ning'], 'moving quickly')
+        W('downhill', ['down', 'hill'], 'toward the bottom of a hill'),
+        W('flowing', ['flow', 'ing'], 'moving like water'),
+        W('ground', ['gr', 'ou', 'nd'], 'the land under your feet')
       ],
-      sentence: 'The rushing creek was running fast when Chance slipped on a wet rock.',
+      sentence: 'The creek keeps flowing downhill, finding the lowest path across the ground.',
       comp: {
-        q: 'What happened to Chance?',
-        choices: [C('He slipped on a rock', 1), C('He was running', 'surface-feature'), C('He fell in the creek', 'guess-plausible')],
-        hint: 'Careful — the creek is the thing that was running. What did CHANCE do?',
-        show: 'He slipped. The creek was running — read who is doing what, because the sentence has two actors.'
+        q: 'Which way does the creek flow?',
+        choices: [
+          C('Downhill', 1),
+          C('Uphill', 'reversed-relation'),
+          C('In a circle', 'guess-plausible')
+        ],
+        hint: 'Split "downhill" into two words.',
+        show: 'Down + hill. Water always takes the lowest path.'
       }
     }
   },
@@ -509,16 +537,20 @@
     },
     reading: {
       words: [
-        W('tumbled', ['tum', 'bled'], 'rolled over and over'),
-        W('cracking', ['crack', 'ing'], 'breaking apart'),
-        W('washed', ['wash', 'ed'], 'carried away by water')
+        W('pounding', ['pound', 'ing'], 'hitting hard again and again'),
+        W('rounded', ['round', 'ed'], 'made round'),
+        W('point', ['p', 'oi', 'nt'], 'a sharp tip')
       ],
-      sentence: 'The stone tumbled and washed downstream while the ice was cracking above.',
+      sentence: 'Pounding water wears every sharp point off a rock until it is smooth and rounded.',
       comp: {
-        q: 'Which direction did the stone go?',
-        choices: [C('Downstream', 1), C('Upstream', 'reversed-relation'), C('It stayed still', 'surface-feature')],
-        hint: 'Find the word that ends in "-stream".',
-        show: 'Downstream. Water only carries things the way it is already going — downhill.'
+        q: 'What makes creek rocks smooth and rounded?',
+        choices: [
+          C('Pounding water wears them down', 1),
+          C('They grew that way', 'animism'),
+          C('Someone sanded them', 'guess-plausible')
+        ],
+        hint: 'Find the first two words of the sentence.',
+        show: 'Water and sand pound the corners off, a little at a time, for years.'
       }
     }
   },
@@ -572,16 +604,20 @@
     },
     reading: {
       words: [
-        W('freezing', ['freez', 'ing'], 'turning to ice'),
-        W('cracked', ['crack', 'ed'], 'split open'),
-        W('floating', ['float', 'ing'], 'resting on top of water')
+        W('outside', ['out', 'side'], 'not in a building'),
+        W('enjoy', ['en', 'joy'], 'to like doing something'),
+        W('boiling', ['boil', 'ing'], 'so hot it bubbles')
       ],
-      sentence: 'The freezing pond had cracked ice floating on the still water.',
+      sentence: 'When it is freezing outside, ice floats on top of the pond and kids enjoy skating on it — but nobody skates on boiling water!',
       comp: {
-        q: 'Where was the ice?',
-        choices: [C('Floating on top of the water', 1), C('At the bottom of the pond', 'reversed-relation'), C('Beside the pond', 'surface-feature')],
-        hint: 'The word "floating" tells you. Floating things sit where?',
-        show: 'On top. Ice always floats, and that keeps the pond alive underneath.'
+        q: 'Why can kids skate on a frozen pond?',
+        choices: [
+          C('Ice floats on top of the water', 1),
+          C('The pond is boiling', 'reversed-relation'),
+          C('The pond is empty', 'guess-plausible')
+        ],
+        hint: 'Find the word "floats".',
+        show: 'Ice floats, so it makes a solid lid on top and the water underneath stays liquid.'
       }
     }
   },
@@ -635,20 +671,20 @@
     },
     reading: {
       words: [
-        W('filling', ['fill', 'ing'], 'putting in until full'),
-        W('measured', ['meas', 'ured'], 'found the exact amount'),
-        W('marked', ['mark', 'ed'], 'made a sign to remember a spot')
+        W('counting', ['count', 'ing'], 'finding out how many'),
+        W('pounds', ['pound', 's'], 'a way to measure weight'),
+        W('about', ['a', 'bout'], 'close to, not exactly')
       ],
-      sentence: 'Chance measured the creek and marked the rock while filling his notebook.',
+      sentence: 'We measured the creek by counting gallons, and each gallon of water weighs about eight pounds.',
       comp: {
-        q: 'Why would he mark the rock?',
+        q: 'How much does one gallon of water weigh?',
         choices: [
-          C('So he can measure the same spot next time', 1),
-          C('So other people stay away', 'guess-plausible'),
-          C('Because the rock was pretty', 'surface-feature')
+          C('About eight pounds', 1),
+          C('About one pound', 'guess-plausible'),
+          C('Eight gallons', 'unit-mixup')
         ],
-        hint: 'Think about yesterday\'s lesson: what makes two measurements comparable?',
-        show: 'A marked rock is a fixed reference point. Same spot every time is what makes the numbers mean something.'
+        hint: 'Find the word "pounds".',
+        show: 'About eight pounds — that is why a full bucket is so heavy.'
       }
     }
   },
@@ -703,20 +739,20 @@
     },
     reading: {
       words: [
-        W('brook', ['br', 'oo', 'k'], 'a small creek'),
-        W('trout', ['tr', 'ou', 't'], 'a cold-water fish'),
-        W('cool', ['c', 'oo', 'l'], 'a little bit cold')
+        W('pool', ['p', 'oo', 'l'], 'a deep, still part of a creek'),
+        W('cool', ['c', 'oo', 'l'], 'a little cold'),
+        W('brook', ['br', 'oo', 'k'], 'a small creek')
       ],
-      sentence: 'A trout will hold still in the cool brook where the water runs fast.',
+      sentence: 'A trout rests in the cool pool of the brook, pulling oxygen out of the water with its gills.',
       comp: {
-        q: 'Why does the trout pick the fast cool water?',
+        q: 'Why does the trout pick the cool pool?',
         choices: [
-          C('More oxygen is there', 1),
-          C('It likes to hold still', 'surface-feature'),
-          C('It is hiding from the sun', 'guess-plausible')
+          C('Cool water holds more oxygen', 1),
+          C('The pool is quiet', 'guess-plausible'),
+          C('Fish only live in pools', 'overgeneralize')
         ],
-        hint: 'Remember today\'s science. What does cold fast water have more of?',
-        show: 'Cold fast water is oxygen-rich. That is why anglers fish the riffles and the shady runs.'
+        hint: 'Think back to today\'s science: what does cool water hold more of?',
+        show: 'Cool water holds more oxygen, and gills need oxygen.'
       }
     }
   },
@@ -773,16 +809,20 @@
     },
     reading: {
       words: [
-        W('down', ['d', 'ow', 'n'], 'toward the ground'),
-        W('float', ['fl', 'oa', 't'], 'to rest on top of water'),
-        W('hook', ['h', 'oo', 'k'], 'a bent piece of metal for fishing')
+        W('hook', ['h', 'oo', 'k'], 'a bent piece of metal for fishing'),
+        W('launched', ['launch', 'ed'], 'sent flying'),
+        W('shook', ['sh', 'oo', 'k'], 'moved back and forth fast')
       ],
-      sentence: 'The hook went down deep, but the float stayed up on top.',
+      sentence: 'I launched my hook past the weeds, and when a fish bit, the bobber shook and went under.',
       comp: {
-        q: 'Which one went under the water?',
-        choices: [C('The hook', 1), C('The float', 'reversed-relation'), C('Both of them', 'surface-feature')],
-        hint: 'Find which word has "down" next to it.',
-        show: 'The hook went down; the float stayed up. That is the whole point of a float — it tells you what the hook is doing.'
+        q: 'How did I know a fish bit?',
+        choices: [
+          C('The bobber shook and went under', 1),
+          C('The hook floated', 'reversed-relation'),
+          C('The weeds moved', 'surface-feature')
+        ],
+        hint: 'Read what happened "when a fish bit".',
+        show: 'The bobber is the signal — it shakes and dives when a fish pulls.'
       }
     }
   },
@@ -837,16 +877,20 @@
     },
     reading: {
       words: [
-        W('mouth', ['m', 'ou', 'th'], 'the opening you eat with'),
         W('food', ['f', 'oo', 'd'], 'what living things eat'),
-        W('crowd', ['cr', 'ow', 'd'], 'a lot of them in one place')
+        W('jaws', ['j', 'aw', 's'], 'the bones that hold the teeth'),
+        W('because', ['be', 'cause'], 'for the reason that')
       ],
-      sentence: 'A crowd of small fish took food into each mouth down in the shade.',
+      sentence: 'Big fish catch small fish in their jaws because every living thing in the creek needs food.',
       comp: {
-        q: 'What were the small fish doing?',
-        choices: [C('Eating', 1), C('Crowding the shade', 'surface-feature'), C('Hiding from a predator', 'guess-plausible')],
-        hint: 'Find the words "took food into".',
-        show: 'They were eating. Watch for the action word — that is what the sentence is really about.'
+        q: 'Why do big fish catch small fish?',
+        choices: [
+          C('They need food', 1),
+          C('They do not like small fish', 'animism'),
+          C('To play a game', 'guess-plausible')
+        ],
+        hint: 'Find the word "because".',
+        show: 'Every animal needs food — that is what links a food chain together.'
       }
     }
   },
@@ -900,20 +944,20 @@
     },
     reading: {
       words: [
-        W('slow', ['sl', 'ow'], 'not fast'),
-        W('cool', ['c', 'oo', 'l'], 'a bit cold'),
-        W('south', ['s', 'ou', 'th'], 'the warm direction, away from north')
+        W('thaw', ['th', 'aw'], 'to melt'),
+        W('scoot', ['sc', 'oo', 't'], 'to move quickly'),
+        W('paused', ['pause', 'd'], 'stopped for a while')
       ],
-      sentence: 'When the cool days come, the slow fish move to the deep south end of the pond.',
+      sentence: 'In cold water the fish paused near the bottom, but after the spring thaw they began to scoot around again.',
       comp: {
-        q: 'Why would fish move to the deep end when it gets cool?',
+        q: 'When did the fish start to scoot around again?',
         choices: [
-          C('Deep water stays warmer in the cold', 1),
-          C('Because they are slow', 'surface-feature'),
-          C('To get closer to the south', 'letter-look')
+          C('After the spring thaw', 1),
+          C('In the coldest water', 'reversed-relation'),
+          C('When they paused', 'sequence-error')
         ],
-        hint: 'Think about swimming in a lake: the top is cold in fall, and the bottom holds its heat longer.',
-        show: 'Deep water holds its warmth. Cold-blooded animals hunt for the warmest water they can find.'
+        hint: 'Find the word "after".',
+        show: 'Warmer water after the thaw speeds them back up — fish are cold-blooded.'
       }
     }
   },
@@ -968,16 +1012,20 @@
     },
     reading: {
       words: [
-        W('throw', ['thr', 'ow'], 'to send through the air'),
-        W('loop', ['l', 'oo', 'p'], 'a circle of line'),
-        W('out', ['ou', 't'], 'away from where you are')
+        W('draw', ['dr', 'aw'], 'to pull back'),
+        W('loop', ['l', 'oo', 'p'], 'a curve that bends back around'),
+        W('swoop', ['sw', 'oo', 'p'], 'to fly down in a curve')
       ],
-      sentence: 'He let the loop of line throw the lure out over the deep pool.',
+      sentence: 'Draw the rod back, let the line make a loop, and watch the lure swoop out over the water.',
       comp: {
-        q: 'What went out over the pool?',
-        choices: [C('The lure', 1), C('The loop of line', 'surface-feature'), C('Chance', 'guess-plausible')],
-        hint: 'The loop did the throwing. What got thrown?',
-        show: 'The lure went out; the loop threw it. Two things in one sentence — figure out who does what.'
+        q: 'What does the lure do at the end?',
+        choices: [
+          C('It swoops out over the water', 1),
+          C('It stays in the boat', 'reversed-relation'),
+          C('It makes a loop', 'surface-feature')
+        ],
+        hint: 'Read the last part of the sentence.',
+        show: 'The rod throws the line, and the lure swoops out in an arc.'
       }
     }
   },
@@ -1033,16 +1081,20 @@
     },
     reading: {
       words: [
-        W('cell', ['c', 'e', 'll'], 'the tiny building block of living things'),
-        W('juice', ['j', 'ui', 'ce'], 'liquid from a plant'),
-        W('center', ['cen', 'ter'], 'the middle')
+        W('giant', ['gi', 'ant'], 'very, very big'),
+        W('cells', ['c', 'ell', 's'], 'the tiny parts living things are made of'),
+        W('little', ['lit', 'tle'], 'small')
       ],
-      sentence: 'Each cell in the center of the trunk can hold juice and water.',
+      sentence: 'A giant oak drinks through tubes made of little cells that carry water all the way to the top.',
       comp: {
-        q: 'What is in the center of the trunk?',
-        choices: [C('Cells that hold water', 1), C('Juice from fruit', 'surface-feature'), C('Roots', 'guess-plausible')],
-        hint: 'Read the beginning: "Each ___ in the center…"',
-        show: 'Cells. When the letter c comes before e or i, it usually says "sss" — cell, center, city.'
+        q: 'How does water get to the top of a giant tree?',
+        choices: [
+          C('Through tubes made of little cells', 1),
+          C('A pump pushes it up', 'guess-plausible'),
+          C('The tree wants it there', 'animism')
+        ],
+        hint: 'Find the word "through".',
+        show: 'Tiny tubes of cells carry it up, pulled by water escaping from the leaves.'
       }
     }
   },
@@ -1097,16 +1149,20 @@
     },
     reading: {
       words: [
-        W('edge', ['e', 'dge'], 'the outside line of something'),
-        W('gentle', ['gen', 'tle'], 'soft and careful'),
-        W('space', ['sp', 'ace'], 'an empty place')
+        W('gentle', ['gen', 'tle'], 'soft and calm'),
+        W('center', ['cen', 'ter'], 'the middle'),
+        W('simple', ['sim', 'ple'], 'easy, not fancy')
       ],
-      sentence: 'A gentle wind moved the edge of the leaf into the open space.',
+      sentence: 'In the center of a leaf, gentle sunlight helps it make sugar out of simple air and water.',
       comp: {
-        q: 'What moved the leaf?',
-        choices: [C('A gentle wind', 1), C('The open space', 'surface-feature'), C('The edge', 'surface-feature')],
-        hint: 'Who or what is doing the moving? Look at the start of the sentence.',
-        show: 'The wind moved it. In "gentle" and "edge" the letter g says "juh" — that happens before e, i and y.'
+        q: 'What does a leaf make its sugar out of?',
+        choices: [
+          C('Air and water, using sunlight', 1),
+          C('Dirt from the ground', 'guess-plausible'),
+          C('Other leaves', 'overgeneralize')
+        ],
+        hint: 'Find the words "out of".',
+        show: 'Air, water and sunlight — a tree is built mostly out of air.'
       }
     }
   },
@@ -1160,16 +1216,20 @@
     },
     reading: {
       words: [
-        W('ridge', ['ri', 'dge'], 'a long raised line, like a hilltop'),
-        W('city', ['ci', 'ty'], 'a big town'),
+        W('orange', ['or', 'ange'], 'the color of a pumpkin'),
+        W('purple', ['pur', 'ple'], 'the color of a grape'),
         W('change', ['ch', 'ange'], 'to become different')
       ],
-      sentence: 'On the ridge above the city, the leaves change color first.',
+      sentence: 'In fall, leaves change color: the green fades away and hidden orange and purple colors show through.',
       comp: {
-        q: 'Where do the leaves change color first?',
-        choices: [C('Up on the ridge', 1), C('In the city', 'surface-feature'), C('In the valley', 'guess-plausible')],
-        hint: 'Find the word "On" at the start.',
-        show: 'On the ridge — it is colder up high, so fall arrives there first.'
+        q: 'Where do the orange and purple colors come from?',
+        choices: [
+          C('They were hidden in the leaf all along', 1),
+          C('The cold paints them on', 'literal-appearance'),
+          C('The tree makes brand new colors', 'guess-plausible')
+        ],
+        hint: 'Find the word "hidden".',
+        show: 'They were there all summer, covered up by the green.'
       }
     }
   },
@@ -1223,20 +1283,20 @@
     },
     reading: {
       words: [
-        W('juicy', ['jui', 'cy'], 'full of liquid'),
-        W('bridge', ['bri', 'dge'], 'something you cross over water on'),
-        W('circle', ['cir', 'cle'], 'a round shape')
+        W('nibble', ['nib', 'ble'], 'to take small bites'),
+        W('edge', ['e', 'dge'], 'the outside line of something'),
+        W('crumble', ['crum', 'ble'], 'to fall apart in little pieces')
       ],
-      sentence: 'Under the bridge a circle of juicy mushrooms grew in the wet dirt.',
+      sentence: 'Bugs nibble at the edge of a dead log until it starts to crumble into soil.',
       comp: {
-        q: 'What were the mushrooms doing there?',
+        q: 'What happens to the log as bugs nibble it?',
         choices: [
-          C('Growing in the wet dirt', 1),
-          C('Crossing the bridge', 'surface-feature'),
-          C('Making a circle on purpose', 'animism')
+          C('It crumbles into soil', 1),
+          C('It grows bigger', 'reversed-relation'),
+          C('It turns back into a tree', 'guess-plausible')
         ],
-        hint: 'Find the action word near the end.',
-        show: 'They grew. In "bridge" and "juicy" watch the soft sounds: dge says "j" and c before y says "sss".'
+        hint: 'Find the word "until".',
+        show: 'Nibbling breaks it into crumbs, and the crumbs become new soil.'
       }
     }
   },
@@ -1290,20 +1350,20 @@
     },
     reading: {
       words: [
-        W('dig', ['d', 'i', 'g'], 'to make a hole'),
-        W('gently', ['gen', 'tly'], 'in a soft careful way'),
-        W('space', ['sp', 'ace'], 'room between things')
+        W('wiggle', ['wig', 'gle'], 'to twist back and forth'),
+        W('gently', ['gent', 'ly'], 'in a soft way'),
+        W('space', ['sp', 'ace'], 'an open area')
       ],
-      sentence: 'Dig gently and give each seed some space in the rich soil.',
+      sentence: 'Worms wiggle through the dirt and gently make space for air and water to reach the roots.',
       comp: {
-        q: 'Why should you give each seed space?',
+        q: 'How do worms help plant roots?',
         choices: [
-          C('So each one has room to grow', 1),
-          C('So the soil stays rich', 'surface-feature'),
-          C('So you can dig gently', 'sequence-error')
+          C('They make space for air and water', 1),
+          C('They eat the roots', 'reversed-relation'),
+          C('They wiggle for fun', 'animism')
         ],
-        hint: 'What happens to plants crowded on top of each other?',
-        show: 'Room to grow. Crowded roots fight each other for water and food.'
+        hint: 'Find the words "make space for".',
+        show: 'Worm tunnels let air and water reach the roots.'
       }
     }
   }

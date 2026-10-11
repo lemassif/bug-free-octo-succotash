@@ -44,30 +44,30 @@ window.Curriculum = (function () {
       n: 1, name: 'Space', em: '🚀',
       blurb: 'The solar system, the Sun and Moon, orbits and rockets.',
       weeks: [
-        { n: 1,  em: '☀️', title: 'Sun, Earth and Shadows', badge: 'Sun Watcher',      phonics: 'short vowels in one-syllable words (sun, spin, rock)' },
-        { n: 2,  em: '🌙', title: 'The Moon and Gravity',   badge: 'Moon Watcher',     phonics: 'magic-e long vowels (shape, side, globe)' },
-        { n: 3,  em: '🪐', title: 'Planets and Orbits',     badge: 'Planet Ranger',    phonics: 'r-controlled vowels (orbit, star, Mars)' },
-        { n: 4,  em: '🔭', title: 'Rockets and Telescopes', badge: 'Rocket Engineer',  phonics: 'vowel teams ee / ea (speed, deep, heat)' }
+        { n: 1,  em: '☀️', title: 'Sun, Earth and Shadows', badge: 'Sun Watcher',      phonics: 'long and short vowels in two-syllable words (sunset, sunrise, inside)' },
+        { n: 2,  em: '🌙', title: 'The Moon and Gravity',   badge: 'Moon Watcher',     phonics: 'vowel teams ai, ay, ee, ea, oa, igh (halfway, between, float)' },
+        { n: 3,  em: '🪐', title: 'Planets and Orbits',     badge: 'Planet Ranger',    phonics: 'r-controlled vowels in longer words (orbit, farther, circle)' },
+        { n: 4,  em: '🔭', title: 'Rockets and Telescopes', badge: 'Rocket Engineer',  phonics: 'suffixes -er, -est, -ful, -less, -ly (brighter, careful, quickly)' }
       ]
     },
     {
       n: 2, name: 'Woods & Water', em: '🦎',
       blurb: 'Salamanders, streams, fish, trees — the science of his own creek.',
       weeks: [
-        { n: 5,  em: '🦎', title: 'Salamanders and Frogs',  badge: 'Salamander Scout', phonics: 'digraphs sh / ch / th (shed, hatch, moth)' },
-        { n: 6,  em: '💧', title: 'Water and Streams',      badge: 'Stream Keeper',    phonics: 'endings -ing / -ed (soaking, floated)' },
-        { n: 7,  em: '🎣', title: 'Fish and Food Webs',     badge: 'Angler Naturalist', phonics: 'oo / ou / ow (brook, trout, down)' },
-        { n: 8,  em: '🌳', title: 'Trees, Leaves and Soil', badge: 'Forest Ranger',    phonics: 'soft c / soft g (cell, edge, ridge)' }
+        { n: 5,  em: '🦎', title: 'Salamanders and Frogs',  badge: 'Salamander Scout', phonics: 'endings -ed and -ing, doubling and dropping e (hopping, hiding)' },
+        { n: 6,  em: '💧', title: 'Water and Streams',      badge: 'Stream Keeper',    phonics: 'vowel sounds oi, oy and ou (moist, enjoy, cloud)' },
+        { n: 7,  em: '🎣', title: 'Fish and Food Webs',     badge: 'Angler Naturalist', phonics: 'oo, au and aw (brook, food, launch, claw)' },
+        { n: 8,  em: '🌳', title: 'Trees, Leaves and Soil', badge: 'Forest Ranger',    phonics: 'soft c, soft g and -le endings (giant, gentle, circle)' }
       ]
     },
     {
       n: 3, name: 'Forces & Machines', em: '⚙️',
       blurb: 'Push, pull, friction, levers, magnets, circuits, and building things that work.',
       weeks: [
-        { n: 9,  em: '💪', title: 'Push, Pull and Friction', badge: 'Force Finder',    phonics: 'blends str / spl / scr (strong, splash, screw)' },
-        { n: 10, em: '🔧', title: 'Simple Machines',         badge: 'Machine Builder', phonics: '-le and -er syllables (handle, lever, rudder)' },
-        { n: 11, em: '🧲', title: 'Magnets, Light and Sound', badge: 'Energy Engineer', phonics: 'silent letters kn / wr / ph (knot, wrench, phone)' },
-        { n: 12, em: '🏗️', title: 'Design and Build',        badge: 'Chief Engineer',  phonics: 'two-syllable compound words (footbridge, sunlight)' }
+        { n: 9,  em: '💪', title: 'Push, Pull and Friction', badge: 'Force Finder',    phonics: 'prefixes un- and re-, three-letter blends (unload, restart, strong)' },
+        { n: 10, em: '🔧', title: 'Simple Machines',         badge: 'Machine Builder', phonics: 'two-syllable words ending in -er, -le and -y (lever, handle, pulley)' },
+        { n: 11, em: '🧲', title: 'Magnets, Light and Sound', badge: 'Energy Engineer', phonics: 'silent letters kn, wr, mb, and ph that says f (knob, wrap, thumb, photo)' },
+        { n: 12, em: '🏗️', title: 'Design and Build',        badge: 'Chief Engineer',  phonics: 'compound words (footbridge, sailboat, notebook)' }
       ]
     }
   ];
@@ -82,6 +82,10 @@ window.Curriculum = (function () {
   }
 
   /* W('orbit', ['or','bit'], 'the path around something')
+
+     Reading words are second-grade level (Common Core RF.2.3) — see
+     each week's phonics focus below. Longer words are split by
+     syllable, because reading in syllables is the grade-2 skill.
 
      `parts` are the SPELLING chunks he taps and decodes. How each
      chunk gets said out loud is not stored here — js/phonics.js
@@ -113,45 +117,6 @@ window.Curriculum = (function () {
     });
   }
 
-  /* ------------------------ reading levels -------------------------
-     The science and math are the same for everyone; the words he
-     decodes are not. The unit files carry the first-grade word set.
-     A level file (data/grade2.js) can supply a harder set — new words,
-     a sentence built from them, and a question about that sentence —
-     for every day, plus its own phonics focus for each week.
-
-     Switching level swaps each day's `reading` in place, so every
-     station, the Word Wall and the recording booth pick it up with no
-     changes of their own. The first-grade set is kept, not
-     overwritten, so a grown-up can step back if a week is too hard. */
-  var levels = {};
-  var currentLevel = 1;
-
-  function addReadingLevel(n, spec) { levels[n] = spec; }
-
-  function setReadingLevel(n) {
-    var L = levels[n];
-    if (n !== 1 && !L) n = 1;
-    days.forEach(function (d) {
-      if (!d._grade1) d._grade1 = { reading: d.reading, phonicsFocus: d.phonicsFocus };
-      if (n === 1) {
-        d.reading = d._grade1.reading;
-        d.phonicsFocus = d._grade1.phonicsFocus;
-        return;
-      }
-      d.reading = (L.days && L.days[d.id]) || d._grade1.reading;
-      d.phonicsFocus = (L.weeks && L.weeks[d.week]) || d._grade1.phonicsFocus;
-    });
-    currentLevel = n;
-    try { localStorage.setItem('chance.readingLevel', String(n)); } catch (e) {}
-    return n;
-  }
-
-  function readingLevel() { return currentLevel; }
-  function readingLevels() {
-    return [1].concat(Object.keys(levels).map(Number)).sort();
-  }
-
   /* --------------------------- lookups ---------------------------- */
   function allDays() { return days; }
   function day(id) { return days.filter(function (d) { return d.id === id; })[0] || null; }
@@ -163,10 +128,7 @@ window.Curriculum = (function () {
     for (var i = 0; i < UNITS.length; i++) {
       var w = UNITS[i].weeks.filter(function (x) { return x.n === n; })[0];
       if (w) {
-        var meta = Object.assign({ unit: UNITS[i].n, unitName: UNITS[i].name }, w);
-        var L = levels[currentLevel];
-        if (L && L.weeks && L.weeks[n]) meta.phonics = L.weeks[n];
-        return meta;
+        return Object.assign({ unit: UNITS[i].n, unitName: UNITS[i].name }, w);
       }
     }
     return null;
@@ -209,8 +171,6 @@ window.Curriculum = (function () {
 
   return {
     C: C, W: W, addDays: addDays,
-    addReadingLevel: addReadingLevel, setReadingLevel: setReadingLevel,
-    readingLevel: readingLevel, readingLevels: readingLevels,
     allDays: allDays, day: day, dayByNumber: dayByNumber,
     daysInUnit: daysInUnit, daysInWeek: daysInWeek,
     units: units, weekMeta: weekMeta, weekBadgeForDate: weekBadgeForDate,

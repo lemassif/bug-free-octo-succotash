@@ -367,6 +367,44 @@ table.tbl th { background: #eef4fb; font-size: 13px; letter-spacing: .5px; }
 .tile-hw { border-color: #ffd9a8; background: #fffaf2; }
 .hw-card { cursor: pointer; }
 
+/* scan: the big camera button, then the word check-list */
+.scan-hero {
+  display: flex; align-items: center; gap: 16px; width: 100%;
+  margin: 6px 0 12px; padding: 20px 18px; text-align: left;
+  font-family: inherit; color: #4a3200; cursor: pointer;
+  border: 0; border-radius: 22px;
+  background: linear-gradient(180deg, #ffd978, var(--sun));
+  box-shadow: 0 6px 0 var(--sun-deep);
+}
+.scan-hero:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--sun-deep); }
+.scan-em { font-size: 54px; line-height: 1; }
+.scan-text { display: flex; flex-direction: column; gap: 4px; }
+.scan-text b { font-size: 22px; }
+.scan-text span { font-size: 15px; opacity: .85; }
+.big-em { font-size: 54px; text-align: center; }
+.scan-list { margin: 6px 0 12px; }
+.scan-row {
+  display: flex; align-items: center; gap: 10px;
+  margin: 8px 0; padding: 6px 10px 6px 6px;
+  background: #fff; border: 2px solid var(--line); border-radius: 14px;
+}
+.scan-row input {
+  flex: 1; min-width: 0; padding: 10px; font-size: 20px; font-family: inherit;
+  border: 0; background: transparent; color: var(--ink);
+}
+.scan-row.off { opacity: .5; }
+.scan-row.off input { text-decoration: line-through; }
+.scan-tick {
+  flex: none; width: 44px; height: 44px; border-radius: 12px;
+  border: 2px solid var(--leaf); background: var(--leaf); color: #fff;
+  font-size: 24px; font-weight: 800; font-family: inherit; cursor: pointer;
+}
+.scan-row.off .scan-tick { background: #fff; }
+.scan-flag {
+  flex: none; font-size: 12px; font-weight: 700; color: #8a5a00;
+  background: #fff1cc; border-radius: 99px; padding: 3px 8px;
+}
+
 /* Page pinch-zoom is disabled app-wide, so a worksheet photo gets its
    own full-screen viewer with a zoom step and a scrollable surface. */
 .photo-full {

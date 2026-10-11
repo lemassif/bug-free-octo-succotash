@@ -25,24 +25,33 @@ window.HWUI = (function () {
     return n;
   }
 
-  /* ============== KID SIDE: pick a worksheet ================= */
+  /* ===================== the Homework screen ====================
+     The camera is the first thing on it. Take the picture, the app
+     reads the words, you check them, and the lesson starts. Past
+     worksheets sit underneath to study again. */
   function renderPicker(body) {
     body.innerHTML = '';
     var list = Homework.packs();
 
-    if (!list.length) {
-      var empty = el('div', 'card');
-      empty.appendChild(el('div', 'big-em', '📸'));
-      empty.appendChild(el('h3', null, 'No homework here yet'));
-      empty.appendChild(note('Ask a grown-up to take a picture of your homework and put it in here.'));
-      var r = el('div', 'row');
-      r.appendChild(App.ui.btn('👨‍👩‍👦', 'Grown-ups', function () { App.go('hwedit'); }));
-      empty.appendChild(r);
-      body.appendChild(empty);
-      return;
-    }
+    var cam = el('button', 'scan-hero');
+    cam.appendChild(el('span', 'scan-em', '📷'));
+    var t = el('span', 'scan-text');
+    t.appendChild(el('b', null, 'Take a picture of homework'));
+    t.appendChild(el('span', null, 'The app reads the words and makes a lesson out of them'));
+    cam.appendChild(t);
+    cam.addEventListener('click', function () { pickPhoto(body, true); });
+    body.appendChild(cam);
 
-    body.appendChild(note('Tap a worksheet to study it.'));
+    var lib = el('div', 'row');
+    lib.appendChild(App.ui.btn('🖼️', 'Use a photo I already took', function () { pickPhoto(body, false); }));
+    lib.appendChild(App.ui.btn('⌨️', 'Type the words instead', function () {
+      showConfirm(body, null, { words: [], math: [], fromList: false }, null);
+    }));
+    body.appendChild(lib);
+
+    if (!list.length) return;
+
+    body.appendChild(el('div', 'week-title', 'HOMEWORK TO STUDY AGAIN'));
     var grid = el('div', 'badge-grid');
     list.forEach(function (p) {
       var card = el('button', 'badge hw-card');
@@ -306,5 +315,195 @@ window.HWUI = (function () {
 
   function openPack(p) { editing = p; }
 
-  return { renderPicker: renderPicker, renderEditor: renderEditor, openPack: openPack };
+  /* -------------------- scan: pick a photo -------------------- */
+  /* capture="environment" opens the iPad's back camera straight away;
+     without it iOS asks "photo library or camera?" every single time. */
+  function pickPhoto(body, useCamera) {
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    if (useCamera) input.setAttribute('capture', 'environment');
+    input.style.display = 'none';
+    input.addEventListener('change', function () {
+      var f = input.files && input.files[0];
+      input.remove();
+      if (f) readPhoto(body, f);
+    });
+    document.body.appendChild(input);
+    input.click();
+  }
+
+  /* ---------------- scan: read the words off it ---------------- */
+  function readPhoto(body, file) {
+    body.innerHTML = '';
+    App.setActions([]);
+    var card = el('div', 'card');
+    card.appendChild(el('div', 'big-em', '🔎'));
+    var status = el('h3', null, 'Reading the words…');
+    card.appendChild(status);
+    var bar = el('div', 'bar');
+    bar.style.cssText = 'height:14px;background:var(--line);border-radius:99px;overflow:hidden;margin:14px 0;';
+    var fill = el('span');
+    fill.style.cssText = 'display:block;height:100%;width:2%;background:linear-gradient(90deg,var(--leaf),var(--sun));transition:width .3s;';
+    bar.appendChild(fill);
+    card.appendChild(bar);
+    card.appendChild(note('This happens on the iPad itself — nothing is sent anywhere. The first time takes a little longer while the word reader loads.'));
+    body.appendChild(card);
+
+    if (!Scan.available()) {
+      return failed(body, file, 'This copy of the app cannot read photos. Open Chance Academy from its home-screen icon (the GitHub link), or type the words instead.');
+    }
+    Scan.read(file, function (label, p) {
+      status.textContent = label;
+      fill.style.width = Math.max(2, Math.round(p * 100)) + '%';
+    }).then(function (res) {
+      var found = Scan.extract(res);
+      showConfirm(body, file, found, res);
+    }).catch(function () {
+      failed(body, file, 'The word reader could not open. Check the wifi and try again — or type the words instead.');
+    });
+  }
+
+  function failed(body, file, msg) {
+    body.innerHTML = '';
+    var card = el('div', 'card');
+    card.appendChild(el('div', 'big-em', '🤔'));
+    card.appendChild(el('h3', null, 'Could not read that photo'));
+    card.appendChild(note(msg));
+    var r = el('div', 'row');
+    r.appendChild(App.ui.btn('📷', 'Try another picture', function () { pickPhoto(body, true); }));
+    r.appendChild(App.ui.btn('⌨️', 'Type the words', function () {
+      showConfirm(body, file, { words: [], math: [], fromList: false }, null);
+    }));
+    card.appendChild(r);
+    body.appendChild(card);
+  }
+
+  /* -------------- scan: a grown-up checks the words --------------
+     The reader is good but not perfect, and drilling a seven-year-old
+     on a misread word would be worse than no lesson at all. So every
+     word and problem is shown here to keep, fix or drop before
+     Chance sees anything. Unsure readings arrive unticked. */
+  function showConfirm(body, file, found, raw) {
+    body.innerHTML = '';
+    App.setActions([]);
+
+    var words = found.words.map(function (w) { return { text: w.word, keep: w.keep, unsure: !w.keep }; });
+    var math = found.math.map(function (m) { return { text: m.source, keep: true }; });
+
+    if (file) {
+      var fig = el('div', 'hw-photo');
+      var img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      img.alt = 'The homework';
+      img.addEventListener('click', function () { App.showPhoto(img.src); });
+      fig.appendChild(img);
+      body.appendChild(fig);
+    }
+
+    var head = el('div', 'card');
+    head.appendChild(el('h3', null, words.length
+      ? 'I found ' + words.length + (words.length === 1 ? ' word' : ' words')
+      : (file ? 'I could not find any words' : 'Type the words')));
+    head.appendChild(note(words.length
+      ? 'Grown-up check: untick anything that is not a homework word, and fix any that are spelled wrong. ' +
+        (words.some(function (w) { return w.unsure; }) ? 'Words I was unsure about start unticked. ' : '') +
+        'Then start the lesson.'
+      : 'Type each homework word in the box below.'));
+    body.appendChild(head);
+
+    var listEl = el('div', 'scan-list');
+    body.appendChild(listEl);
+
+    function row(item, kind) {
+      var r = el('div', 'scan-row' + (item.keep ? '' : ' off'));
+      var tick = el('button', 'scan-tick', item.keep ? '✓' : '');
+      tick.setAttribute('aria-label', item.keep ? 'Keep' : 'Skip');
+      tick.addEventListener('click', function () {
+        item.keep = !item.keep;
+        r.classList.toggle('off', !item.keep);
+        tick.textContent = item.keep ? '✓' : '';
+        refresh();
+      });
+      var input = el('input');
+      input.type = 'text';
+      input.value = item.text;
+      input.autocapitalize = 'none';
+      input.spellcheck = false;
+      input.addEventListener('input', function () { item.text = input.value.trim(); refresh(); });
+      r.appendChild(tick);
+      r.appendChild(input);
+      if (item.unsure) r.appendChild(el('span', 'scan-flag', 'unsure'));
+      return r;
+    }
+
+    function draw() {
+      listEl.innerHTML = '';
+      if (words.length) listEl.appendChild(el('div', 'week-title', 'WORDS'));
+      words.forEach(function (w) { listEl.appendChild(row(w, 'word')); });
+
+      var add = el('div', 'scan-row');
+      var addInput = el('input');
+      addInput.type = 'text';
+      addInput.placeholder = 'Add a word…';
+      addInput.autocapitalize = 'none';
+      var addBtn = el('button', 'scan-tick', '+');
+      addBtn.setAttribute('aria-label', 'Add word');
+      function addWord() {
+        addInput.value.split(/[\s,;]+/).map(function (x) { return x.trim().toLowerCase(); })
+          .filter(Boolean).forEach(function (x) { words.push({ text: x, keep: true }); });
+        draw();
+      }
+      addBtn.addEventListener('click', addWord);
+      addInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') addWord(); });
+      add.appendChild(addBtn);
+      add.appendChild(addInput);
+      listEl.appendChild(add);
+
+      if (math.length) {
+        listEl.appendChild(el('div', 'week-title', 'MATH PROBLEMS'));
+        listEl.appendChild(note('Check the signs — the reader sometimes mistakes ÷ for +.'));
+        math.forEach(function (m) { listEl.appendChild(row(m, 'math')); });
+      }
+      refresh();
+    }
+
+    function chosen() {
+      return {
+        words: words.filter(function (w) { return w.keep && /^[a-zA-Z][a-zA-Z'-]*$/.test(w.text); })
+          .map(function (w) { return w.text.toLowerCase(); }),
+        math: math.filter(function (m) { return m.keep && Homework.parseMath(m.text); })
+          .map(function (m) { return m.text; })
+      };
+    }
+
+    function refresh() {
+      var c = chosen();
+      var n = c.words.length + c.math.length;
+      if (!n) {
+        App.setActions([{ label: 'Back', em: '⬅️', cls: 'ghost', fn: function () { renderPicker(body); } }]);
+        return;
+      }
+      App.setActions([
+        { label: 'Back', em: '⬅️', cls: 'ghost compact', fn: function () { renderPicker(body); } },
+        {
+          label: 'Start the lesson (' + n + ')', em: '▶️', cls: 'sun', fn: function () {
+            var title = (c.words.length ? 'Spelling: ' + c.words.slice(0, 3).join(', ') +
+              (c.words.length > 3 ? '…' : '') : 'Math homework');
+            Homework.buildLesson(title, file, c.words, c.math).then(function (p) {
+              App.go('mission', { day: p, station: 'homework' });
+            });
+          }
+        }
+      ]);
+    }
+
+    draw();
+  }
+
+  return {
+    renderPicker: renderPicker, renderEditor: renderEditor, openPack: openPack,
+    // exposed for the tests
+    _showConfirm: showConfirm, _readPhoto: readPhoto
+  };
 })();
