@@ -32,6 +32,7 @@ const SCRIPTS = [
   'data/unit1-space.js',
   'data/unit2-woods.js',
   'data/unit3-forces.js',
+  'data/grade2.js',
   'js/phonics.js',
   'js/updater.js',
   'js/homework.js',

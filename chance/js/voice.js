@@ -83,10 +83,55 @@ window.Voice = (function () {
   }
   loadSettings();
 
-  /* One silent utterance on the first tap buys us the right to
-     speak later without a gesture. */
+  /* ---------------------------------------------------------------
+     KEEPING THE SOUND ALIVE ON AN iPAD
+
+     Reported: "somehow the sound turned off." Four separate things
+     in the first version could each do that, and every one of them
+     looked identical from the outside — silence, no error:
+
+     1. One failed line poisoned the queue forever. Each line chains
+        onto the one before; a single rejection meant every later
+        .then() was skipped until the app was force-closed.
+     2. iOS pauses the speech engine when the app goes to the
+        background and never resumes it, so after a screen lock or
+        an app switch every line queued silently.
+     3. Audio was only unlocked on the very first tap. A home-screen
+        app resuming from the background can need a fresh gesture.
+     4. Stop() cleared the queue variable but not the chain already
+        built on it, so lines queued before the tap still ran — and
+        iOS drops an utterance spoken in the same tick as cancel().
+
+     The fixes are below: a generation counter, a catch on every
+     queued step, resume() before speaking, a pause after cancel, a
+     re-armed unlock on return from the background, and repair() —
+     which the 🔊 button calls, so "no sound? tap the speaker" works.
+     --------------------------------------------------------------- */
+
+  var generation = 0;        // bumped by stop(); queued lines from before it skip
+
+  /* How many lines are queued or playing. The app shows a Stop
+     button whenever this is above zero, on every screen. */
+  var inFlight = 0;
+  var talkListeners = [];
+  function setInFlight(delta) {
+    var was = inFlight > 0;
+    inFlight = Math.max(0, inFlight + delta);
+    var now = inFlight > 0;
+    if (was !== now) talkListeners.forEach(function (fn) { try { fn(now); } catch (e) {} });
+  }
+  function onTalking(fn) { talkListeners.push(fn); }
+
+  var lastCancel = 0;        // when cancel() last ran — iOS drops speech right after
+  var stalls = 0;            // utterances that never started; >0 means wedged
+
+  /* A silent utterance inside a tap buys the right to speak later
+     without one. Re-armed every time the app comes back to the
+     front, because iOS may have taken that right away. */
   function unlock() {
-    if (unlocked || !synth) return;
+    if (!synth) return;
+    try { synth.resume(); } catch (e) {}
+    if (unlocked) return;
     unlocked = true;
     resolveVoice();
     try {
@@ -97,10 +142,67 @@ window.Voice = (function () {
   }
 
   function stop() {
+    generation++;
+    if (inFlight) setInFlight(-inFlight);
     if (window.Recordings) Recordings.stop();
-    if (!synth) { queueTail = Promise.resolve(); return; }
-    try { synth.cancel(); } catch (e) {}
     queueTail = Promise.resolve();
+    if (!synth) return;
+    try { synth.cancel(); } catch (e) {}
+    lastCancel = Date.now();
+  }
+
+  /* Back from the background (screen lock, app switch, home button).
+     The engine is probably paused, the queue holds lines nobody is
+     waiting for, and audio may need re-unlocking on the next tap. */
+  function onReturn() {
+    stop();
+    try { if (synth) synth.resume(); } catch (e) {}
+    unlocked = false;
+    stalls = 0;
+    resolveVoice();
+    if (window.Recordings && Recordings.rearm) Recordings.rearm();
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') onReturn();
+  });
+  window.addEventListener('pageshow', function (e) { if (e.persisted) onReturn(); });
+
+  /* Everything at once, called from inside a tap so iOS accepts the
+     unlock. This is what the 🔊 button runs before it replays. */
+  function repair() {
+    onReturn();
+    unlock();
+    if (window.Recordings) Recordings.unlock();
+  }
+
+  /* Get the engine into a state where speak() will actually play. */
+  function wake() {
+    if (!synth) return Promise.resolve();
+    try { synth.resume(); } catch (e) {}
+    var wait = Math.max(0, 140 - (Date.now() - lastCancel));
+    if (stalls > 0) {
+      // the last line never started: the engine is wedged
+      stalls = 0;
+      try { synth.cancel(); } catch (e) {}
+      lastCancel = Date.now();
+      wait = 160;
+    }
+    if (!wait) return Promise.resolve();
+    return pause(wait).then(function () { try { synth.resume(); } catch (e) {} });
+  }
+
+  /* For the grown-up sound check: what the engine thinks it is doing. */
+  function diagnose() {
+    return {
+      available: !!synth,
+      voices: synth ? (synth.getVoices() || []).length : 0,
+      voice: chosen ? chosen.name : 'device default',
+      paused: !!(synth && synth.paused),
+      speaking: !!(synth && synth.speaking),
+      muted: muted,
+      stalls: stalls,
+      unlocked: unlocked
+    };
   }
 
   /* say(text, opts) -> Promise that settles when the phrase finishes.
@@ -118,36 +220,57 @@ window.Voice = (function () {
     if (muted) return Promise.resolve();
     if (opts.interrupt) stop();
 
-    queueTail = queueTail.then(function () {
+    var gen = generation;
+    setInFlight(1);
+    var step = queueTail.then(function () {
+      if (gen !== generation) return;          // Stop was tapped after this was queued
       var kind = opts.kind || 'say';
       if (window.Recordings && Recordings.has(text, kind)) {
         return Recordings.play(text, kind).then(function (played) {
-          if (!played) return speak(text, opts);
+          if (!played && gen === generation) return speak(text, opts);
         });
       }
       return speak(text, opts);
-    });
-    return queueTail;
+    })
+      // One bad line must never silence every line after it.
+      .catch(function () {})
+      // only count down lines from the current generation — Stop has
+      // already zeroed the count for everything older
+      .then(function () { if (gen === generation) setInFlight(-1); });
+    queueTail = step;
+    return step;
   }
 
   /* the synthesized fallback */
   function speak(text, opts) {
     if (!synth) return Promise.resolve();
-    return new Promise(function (done) {
-      if (!chosen) resolveVoice();
-      var u = new SpeechSynthesisUtterance(String(text));
-      if (chosen) { u.voice = chosen; u.lang = chosen.lang || 'en-US'; }
-      else u.lang = 'en-US';
-      u.rate = opts.rate != null ? opts.rate : settings.rate;
-      u.pitch = opts.pitch != null ? opts.pitch : settings.pitch;
-      u.volume = opts.volume != null ? opts.volume : settings.volume;
-      var finished = false;
-      function finish() { if (!finished) { finished = true; done(); } }
-      u.onend = finish;
-      u.onerror = finish;
-      // Safety net: if the engine silently drops an utterance we keep moving.
-      setTimeout(finish, Math.min(20000, 1400 + String(text).length * 95));
-      try { synth.speak(u); } catch (e) { finish(); }
+    return wake().then(function () {
+      return new Promise(function (done) {
+        var finished = false, started = false;
+        function finish() { if (!finished) { finished = true; done(); } }
+        try {
+          if (!chosen) resolveVoice();
+          var u = new SpeechSynthesisUtterance(String(text));
+          // A voice object can go stale after the app is backgrounded
+          // and iOS reloads its voice list; fall back rather than throw.
+          try { if (chosen) { u.voice = chosen; u.lang = chosen.lang || 'en-US'; } else u.lang = 'en-US'; }
+          catch (e) { u.lang = 'en-US'; }
+          u.rate = opts.rate != null ? opts.rate : settings.rate;
+          u.pitch = opts.pitch != null ? opts.pitch : settings.pitch;
+          u.volume = opts.volume != null ? opts.volume : settings.volume;
+          u.onstart = function () { started = true; stalls = 0; };
+          u.onend = finish;
+          u.onerror = finish;
+          // Safety net: if the engine silently drops an utterance we keep moving.
+          var safety = Math.min(20000, 1400 + String(text).length * 95);
+          // Never started at all: the engine is wedged — fix it before the
+          // next line. This must run BEFORE the safety net, or a short line
+          // gets quietly "finished" and the wedge is never noticed.
+          setTimeout(function () { if (!started && !finished) stalls++; }, Math.min(2500, safety - 100));
+          setTimeout(finish, safety);
+          synth.speak(u);
+        } catch (e) { finish(); }
+      });
     });
   }
 
@@ -323,7 +446,8 @@ window.Voice = (function () {
 
   return {
     say: say, sayLines: sayLines, sayPhoneme: sayPhoneme, sayChunk: sayChunk, soundOut: soundOut,
-    stop: stop, unlock: unlock, pause: pause,
+    stop: stop, unlock: unlock, pause: pause, repair: repair, diagnose: diagnose,
+    onTalking: onTalking, isTalking: function () { return inFlight > 0; },
     listen: listen, abortListen: abortListen, canListen: canListen, match: match, norm: norm,
     get settings() { return settings; },
     setMuted: function (m) { muted = !!m; if (muted) stop(); },

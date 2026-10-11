@@ -60,13 +60,27 @@ window.Recordings = (function () {
         var d = req.result;
         if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE, { keyPath: 'id' });
       };
-      req.onsuccess = function () { db = req.result; resolve(db); };
+      req.onsuccess = function () {
+        db = req.result;
+        // iOS closes IndexedDB connections while a home-screen app is
+        // in the background; forget it so the next call reconnects
+        db.onclose = function () { db = null; };
+        db.onversionchange = function () { try { db.close(); } catch (e) {} db = null; };
+        resolve(db);
+      };
       req.onerror = function () { reject(req.error); };
     });
   }
 
   function tx(mode) {
-    return open().then(function (d) { return d.transaction(STORE, mode).objectStore(STORE); });
+    return open().then(function (d) {
+      try { return d.transaction(STORE, mode).objectStore(STORE); }
+      catch (e) {
+        // "The database connection is closing" — reconnect once
+        db = null;
+        return open().then(function (d2) { return d2.transaction(STORE, mode).objectStore(STORE); });
+      }
+    });
   }
 
   function init() {
@@ -135,9 +149,16 @@ window.Recordings = (function () {
   /* ---------------------- playback ------------------------ */
   /* One element, unlocked once. iOS will not let us create a new
      Audio() mid-lesson and play it without a fresh tap. */
+  var needsUnlock = true;
+
+  /* After the app returns from the background iOS may want a fresh
+     gesture before it plays audio again, so this is re-armed then. */
+  function rearm() { needsUnlock = true; }
+
   function unlock() {
-    if (player) return;
-    player = new Audio();
+    if (player && !needsUnlock) return;
+    needsUnlock = false;
+    if (!player) player = new Audio();
     player.preload = 'auto';
     // a 0.05s silent wav, just to satisfy the gesture requirement
     player.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';
@@ -318,8 +339,12 @@ window.Recordings = (function () {
       id: 'sounds', em: '🔤', name: 'Letter sounds',
       blurb: 'Say each one as a pure sound — "ffff", not "eff". Recorded once, each of these works in every word ' +
              'across all 60 days, and it is the one thing the computer voice genuinely cannot do.',
-      lines: Phonics.allChunks().map(function (c) {
-        return { text: c.chunk, kind: 'sound', note: 'as in "' + (c.anchor || c.example) + '"' };
+      /* Only graphemes with an anchor word — f, sh, igh, -le. Plain
+         syllables like "sun" and "set" (grade 2 splits by syllable) are
+         said perfectly well by the computer, so recording them adds
+         nothing and would bury the ones that matter. */
+      lines: Phonics.allChunks().filter(function (c) { return c.anchor; }).map(function (c) {
+        return { text: c.chunk, kind: 'sound', note: 'as in "' + c.anchor + '"' };
       })
     });
 
@@ -365,7 +390,7 @@ window.Recordings = (function () {
 
   return {
     isReady: function () { return ready; },
-    has: has, play: play, stop: stop, unlock: unlock,
+    has: has, play: play, stop: stop, unlock: unlock, rearm: rearm,
     save: save, remove: remove, clearAll: clearAll,
     canRecord: canRecord, startRecording: startRecording, stopRecording: stopRecording,
     isRecording: isRecording, cancelRecording: cancelRecording,

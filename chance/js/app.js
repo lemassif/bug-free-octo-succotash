@@ -79,10 +79,10 @@ window.App = (function () {
   function missionExits() {
     return [
       {
-        /* 🔇 rather than ⏹ — the crossed-out speaker reads as "no more
-           talking" to a 7-year-old, and it mirrors the 🔊 read-it-again
-           button in the top bar. ⏹ renders as a tiny grey square. */
-        label: 'Stop', em: '🔇', cls: 'ghost compact', fn: function (btn) {
+        /* 🛑, not ⏹ or 🔇. ⏹ renders as a tiny grey square on some
+           devices and 🔇 reads as a volume setting; a stop sign means
+           stop to every seven-year-old there is. */
+        label: 'Stop', em: '🛑', cls: 'ghost compact stop', fn: function (btn) {
           Voice.stop();
           hideCoach();
           // silent by itself, so show that the tap landed
@@ -448,8 +448,10 @@ window.App = (function () {
       var grid = el('div', 'badge-grid');
       byWeek[wk].forEach(function (w) {
         var n = el('div', 'badge');
-        n.appendChild(el('span', 'nm', w.w));
-        n.appendChild(el('span', 'dt', w.parts.join(' · ')));
+        // block-level, so the word sits above its split instead of
+        // running into it ("sunsetsun · set")
+        n.appendChild(el('div', 'nm', w.w));
+        n.appendChild(el('div', 'dt', w.parts.join(' · ')));
         n.addEventListener('click', function () {
           Voice.stop();
           Voice.soundOut(w.w, w.parts);
@@ -522,20 +524,53 @@ window.App = (function () {
   }
 
   /* ------------------------------ BOOT --------------------------- */
+  /* ---------------------- STOP, EVERYWHERE ----------------------
+     Inside a lesson, Stop lives in the bottom bar. Everywhere else —
+     the Word Wall, the picture menu, the grown-up area, the voice
+     booth — a stop sign floats up the moment the app starts talking
+     and goes away when it is quiet. So whenever there is sound, there
+     is a way to make it stop. */
+  function setupStopButton() {
+    var b = el('button', 'float-stop');
+    b.setAttribute('aria-label', 'Stop talking');
+    b.appendChild(el('span', null, '🛑'));
+    b.appendChild(el('span', null, 'Stop'));
+    b.hidden = true;
+    b.addEventListener('click', function () {
+      Voice.stop();
+      hideCoach();
+      b.hidden = true;
+    });
+    document.body.appendChild(b);
+    Voice.onTalking(function (talking) {
+      // the lesson bar already carries its own Stop
+      b.hidden = !talking || currentScreen === 'mission';
+    });
+  }
+
   function boot() {
+    /* Reading level: grade 2 unless a grown-up has stepped him back. */
+    var savedLevel = null;
+    try { savedLevel = parseInt(localStorage.getItem('chance.readingLevel'), 10); } catch (e) {}
+    Curriculum.setReadingLevel(savedLevel || 2);
+
     ['home', 'mission', 'map', 'rewards', 'wordwall', 'grownup', 'studio', 'homework', 'hwedit'].forEach(function (k) {
       screens[k] = $('screen-' + k);
     });
 
-    // Any first tap unlocks iOS speech.
+    /* Every tap re-confirms that audio is allowed. Unlocking only on
+       the first tap was one of the reasons the sound could vanish: a
+       home-screen app coming back from the background can need a
+       fresh gesture, and there would never be another one. Cheap when
+       nothing needs doing — both calls return straight away. */
     var unlock = function () {
       Voice.unlock();
       if (window.Recordings) Recordings.unlock();
-      document.removeEventListener('touchstart', unlock);
-      document.removeEventListener('click', unlock);
     };
-    document.addEventListener('touchstart', unlock, { once: true });
-    document.addEventListener('click', unlock, { once: true });
+    document.addEventListener('touchstart', unlock, { passive: true });
+    document.addEventListener('click', unlock);
+
+    setupStopButton();
 
     document.body.addEventListener('click', function (e) {
       var t = e.target.closest('[data-go]');
@@ -556,7 +591,10 @@ window.App = (function () {
       if (e.key === 'Enter' || e.key === ' ') startMission(Progress.nextDay());
     });
     $('btnGrownups').addEventListener('click', function () { go('grownup'); });
-    $('btnReplay').addEventListener('click', function () { if (replayFn) replayFn(); });
+    $('btnReplay').addEventListener('click', function () {
+      Voice.repair();            // inside a tap, so iOS accepts the re-unlock
+      if (replayFn) replayFn();
+    });
     $('overlay').addEventListener('click', function (e) { if (e.target === $('overlay')) closeSheet(); });
 
     go('home');

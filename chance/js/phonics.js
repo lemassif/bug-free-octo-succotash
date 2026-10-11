@@ -147,6 +147,20 @@ window.Phonics = (function () {
     tly: { a: 'softly', a2: 'gently', lead: 't l y says tlee' },
     ed: { a: 'landed', a2: 'floated', lead: 'the ending e d' },
     ing: { a: 'going', a2: 'jumping' },
+    ble: { a: 'table', a2: 'bubble', lead: 'b l e says bul' },
+    ple: { a: 'apple', a2: 'purple', lead: 'p l e says pul' },
+    gle: { a: 'jungle', a2: 'giggle', lead: 'g l e says gul' },
+
+    /* ---- grade 2: suffixes and prefixes ---- */
+    ly: { a: 'slowly', a2: 'softly', lead: 'l y says lee' },
+    est: { a: 'biggest', a2: 'fastest', lead: 'e s t says est' },
+    ful: { a: 'careful', a2: 'helpful', lead: 'f u l says ful' },
+    un: { a: 'unpack', a2: 'undo', lead: 'u n says un' },
+
+    /* ---- grade 2: silent letters and other teams ---- */
+    mb: { a: 'lamb', a2: 'climb', lead: 'm b, with a silent b, says m' },
+    nd: { a: 'hand', a2: 'sand' },
+    eigh: { a: 'weigh', a2: 'sleigh', lead: 'e i g h says ay' },
 
     /* ---- odd fragments this curriculum happens to need ---- */
     wei: { a: 'way', a2: 'weigh', lead: 'w e i says way' },
@@ -176,7 +190,20 @@ window.Phonics = (function () {
     // ea: the bread sound, not the eat sound
     'spread:1': { a: 'bread', a2: 'head', lead: 'e a says short e' },
     // unstressed a at the start of a word
-    'apart:0': { a: 'about', a2: 'ago', lead: 'a says uh' }
+    'apart:0': { a: 'about', a2: 'ago', lead: 'a says uh' },
+    'around:0': { a: 'about', a2: 'ago', lead: 'a says uh' },
+    'about:0': { a: 'ago', a2: 'away', lead: 'a says uh' },
+    // soft g and soft c, where the plain letter entry would say it hard
+    'giant:0': { a: 'giraffe', a2: 'gym', lead: 'g i says ji' },
+    'cells:0': { a: 'city', a2: 'cent', lead: 'c says s' },
+    // oo: book sound
+    'shook:1': { a: 'book', a2: 'look', lead: 'o o says oo' },
+    /* the prefix re-. Not a general table entry: as a plain chunk it
+       would make the splitter say "ree" in red, rest and rent too. */
+    'remain:0': { a: 'redo', a2: 'replay', lead: 'r e says ree' },
+    'reload:0': { a: 'redo', a2: 'replay', lead: 'r e says ree' },
+    'restart:0': { a: 'redo', a2: 'replay', lead: 'r e says ree' },
+    'restack:0': { a: 'redo', a2: 'replay', lead: 'r e says ree' }
   };
 
   function key(chunk) { return String(chunk || '').toLowerCase(); }
@@ -184,6 +211,15 @@ window.Phonics = (function () {
   function entryFor(chunk, word, index) {
     var o = OVERRIDES[String(word || '').toLowerCase() + ':' + index];
     if (o) return o;
+    /* A y that ends a word is a vowel, not the y in "yes". With another
+       vowel before it, it says ee (happy, plenty); with none, it says
+       long i (fly, sky). */
+    var wl = String(word || '').toLowerCase();
+    if (key(chunk) === 'y' && index > 0 && /y$/.test(wl)) {
+      return /[aeiou]/.test(wl.slice(0, -1))
+        ? { a: 'happy', a2: 'puppy', lead: 'y says ee' }
+        : { a: 'fly', a2: 'sky', lead: 'y says long i' };
+    }
     return CHUNKS[key(chunk)] || null;
   }
 
@@ -307,9 +343,28 @@ window.Phonics = (function () {
      grown-up, who can always override it by typing the split with
      hyphens ("sh-ad-ow"). It is not used for the 180 curriculum
      words — those are split by hand in the data files. */
+  var ENDINGS = { le: 1, ble: 1, ple: 1, gle: 1, tle: 1, dle: 1, cle: 1, ed: 1, ly: 1, ing: 1, est: 1, ful: 1 };
+
   function split(word) {
     var w = String(word || '').toLowerCase().replace(/[^a-z]/g, '');
     if (!w) return [];
+
+    /* Peel a suffix off first, the way it is taught: "big + gest" is
+       not the point, "bigg + est" is — the doubled consonant before the
+       ending is the lesson. Only when there is a real stem in front:
+       "red" is r-e-d, not r + "ed"; "rest" is not r + "est". */
+    var endingsLongestFirst = Object.keys(ENDINGS).sort(function (a, b) { return b.length - a.length; });
+    for (var k = 0; k < endingsLongestFirst.length; k++) {
+      var end = endingsLongestFirst[k];
+      if (w.length > end.length + 1 && w.slice(-end.length) === end) {
+        var stem = w.slice(0, -end.length);
+        if (/[aeiouy]/.test(stem)) return greedy(stem).concat(end);
+      }
+    }
+    return greedy(w);
+  }
+
+  function greedy(w) {
     var sizes = [4, 3, 2];
     var out = [], i = 0;
     while (i < w.length) {
@@ -318,6 +373,8 @@ window.Phonics = (function () {
         var n = sizes[s];
         if (i + n > w.length) continue;
         var piece = w.substr(i, n);
+        // endings are peeled in split(); inside a stem they are not endings
+        if (ENDINGS[piece]) continue;
         if (CHUNKS[piece]) hit = piece;
       }
       if (!hit) hit = w[i];
