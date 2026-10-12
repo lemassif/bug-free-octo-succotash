@@ -70,6 +70,10 @@
   a.card.learn { background: linear-gradient(160deg, rgba(24,58,96,.7), rgba(10,26,47,.85)); border-color: rgba(126,224,168,.35); }
   @media (hover: hover) { a.card.learn:hover { border-color: rgba(126,224,168,.75); } }
   .play.learn { background: linear-gradient(180deg, #a8f0c8, #4fc98a); }
+  .name.island { color: #ffc98a; letter-spacing: 2px; }
+  a.card.journal { background: linear-gradient(160deg, rgba(20,70,107,.75), rgba(10,30,48,.88)); border-color: rgba(255,201,138,.35); }
+  @media (hover: hover) { a.card.journal:hover { border-color: rgba(255,201,138,.8); } }
+  .play.journal { background: linear-gradient(180deg, #ffd9a8, #e8833a); }
   .desc { font-size: 13px; opacity: .78; line-height: 1.45; }
   .play {
     margin-top: 6px; font-weight: 800; letter-spacing: 1px; font-size: 15px;
@@ -81,9 +85,38 @@
 </head>
 <body>
   <h1>RETRO ARCADE</h1>
-  <p class="sub">Ten hand-built games &amp; one learning academy · works on desktop, iPhone &amp; iPad</p>
+  <p class="sub">Ten hand-built games, one learning academy &amp; our camp journal · works on desktop, iPhone &amp; iPad</p>
 
   <div class="games">
+    <a class="card journal" href="island/">
+      <!-- Island Dreams: pine island and cottage at sunset -->
+      <svg class="art" viewBox="0 0 300 132" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs>
+          <linearGradient id="isky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#14466b"/><stop offset=".6" stop-color="#e8833a"/><stop offset="1" stop-color="#fbcd82"/>
+          </linearGradient>
+          <linearGradient id="iwater" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1e5f8c"/><stop offset="1" stop-color="#0a3255"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="132" rx="12" fill="url(#isky)"/>
+        <circle cx="150" cy="80" r="22" fill="#ffe296"/>
+        <path d="M0 84 H300 V120 a12 12 0 0 1 -12 12 H12 a12 12 0 0 1 -12 -12 Z" fill="url(#iwater)"/>
+        <g fill="#fac878"><rect x="128" y="90" width="44" height="3" rx="1.5"/><rect x="134" y="98" width="32" height="3" rx="1.5"/><rect x="140" y="106" width="20" height="3" rx="1.5"/></g>
+        <ellipse cx="150" cy="85" rx="92" ry="7" fill="#1c3020"/>
+        <g fill="#183020">
+          <path d="M78 85 L92 40 L106 85 Z"/><path d="M96 85 L112 26 L128 85 Z"/><path d="M120 85 L130 50 L140 85 Z"/>
+          <path d="M168 85 L180 44 L192 85 Z"/><path d="M182 85 L198 22 L214 85 Z"/><path d="M204 85 L214 52 L224 85 Z"/>
+        </g>
+        <path d="M138 66 L150 56 L162 66 Z" fill="#9a2a1e"/><rect x="141" y="66" width="18" height="19" fill="#ebe1cd"/>
+        <rect x="146" y="74" width="5" height="11" fill="#5a3c28"/><rect x="153" y="70" width="4" height="4" fill="#ffd26e"/>
+        <text x="150" y="126" text-anchor="middle" font-family="Trebuchet MS, system-ui, sans-serif" font-size="11" font-weight="800" fill="#ffe2b8">THOUSAND ISLANDS · SINCE 2023</text>
+      </svg>
+      <span class="name island">ISLAND DREAMS</span>
+      <span class="desc">Our family journal from camp on the St. Lawrence. Write what happened, who was there and what we did, and add photos from the camera or library.</span>
+      <span class="play journal">OPEN ▶</span>
+    </a>
+
     <a class="card learn" href="chance/">
       <!-- Chance Academy: ringed planet over a green hill -->
       <svg class="art" viewBox="0 0 300 132" preserveAspectRatio="xMidYMid meet" aria-hidden="true">

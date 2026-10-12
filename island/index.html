@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Island Dreams">
+<meta name="theme-color" content="#14466b">
+<meta name="description" content="Our family's journal of summers at camp in the Thousand Islands.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="stylesheet" href="app.css?v=1.0.0">
+<title>Island Dreams</title>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" id="btnBack" aria-label="Back" hidden>‹</button>
+  <a class="brand" href="#/" aria-label="Island Dreams journal">
+    <img src="icon-192.png" alt="" width="36" height="36">
+    <span>Island Dreams</span>
+  </a>
+  <button class="icon-btn" id="btnSettings" aria-label="Settings" hidden>⚙︎</button>
+</header>
+
+<div class="banner" id="localBanner" hidden>
+  This journal is only saved on this device.
+  <a href="#/settings">How to share it with the family</a>
+</div>
+
+<main id="app" aria-live="polite">
+  <p class="loading">Loading the journal…</p>
+</main>
+
+<a class="fab" id="fabNew" href="#/new" hidden>＋ New entry</a>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lb-close" id="lbClose" aria-label="Close">✕</button>
+  <button class="lb-nav lb-prev" id="lbPrev" aria-label="Previous photo">‹</button>
+  <img id="lbImg" alt="">
+  <button class="lb-nav lb-next" id="lbNext" aria-label="Next photo">›</button>
+  <div class="lb-count" id="lbCount"></div>
+</div>
+
+<script src="config.js?v=1.0.0"></script>
+<script type="module" src="js/app.js?v=1.0.0"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+</script>
+</body>
+</html>

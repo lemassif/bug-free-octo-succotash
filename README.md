@@ -4,6 +4,7 @@
 >
 > | App | File | Description |
 > |------|------|-------------|
+> | **Island Dreams** | [`island/`](island/index.html) | our family journal from camp in the Thousand Islands: entries, who was there, what we did, photos — see [`ISLAND.md`](ISLAND.md) |
 > | **Chance Academy** | [`chance/`](chance/index.html) | a 60-day science, math &amp; phonics curriculum for a curious second-grader — see [`CHANCE.md`](CHANCE.md) |
 > | **Cubert** | [`cubert.html`](cubert.html) | cube-hopping isometric arcade with 20 levels you can start from — see [`CUBERT.md`](CUBERT.md) |
 > | **Miner 2049er** | [`miner.html`](miner.html) | platformer (documented below) |
