@@ -56,15 +56,16 @@ create table if not exists public.photos (
 );
 create index if not exists photos_entry_id on public.photos (entry_id);
 
--- Every fish caught, with its photo, for the Fish Board. Length is in
--- inches; the smallest fish of the summer makes its catcher King (or
--- Queen) of the Little Fish.
+-- Every fish caught, with its photo, for the Fish Board. Chance's
+-- six-pound smallmouth bass (caught at age four) is The Big One
+-- (big_one = true); every other fish makes its catcher King of the
+-- Little Fish. Nothing is measured.
 create table if not exists public.fish (
   id         uuid primary key default gen_random_uuid(),
   entry_id   uuid not null references public.entries (id) on delete cascade,
   caught_by  text not null default '' check (length(caught_by) <= 40),
   species    text not null default '' check (length(species) <= 40),
-  length_in  numeric(5, 2) check (length_in > 0 and length_in < 100),
+  big_one    boolean not null default false,
   path       text unique,
   thumb_path text unique,
   width      int,
@@ -73,6 +74,7 @@ create table if not exists public.fish (
   created_at timestamptz not null default now()
 );
 create index if not exists fish_entry_id on public.fish (entry_id);
+alter table public.fish add column if not exists big_one boolean not null default false;
 
 -- The choices in the "Who was there?" and "What did we do?" drop-downs.
 -- Anyone in the family can add to them or remove from them in the app.

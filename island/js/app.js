@@ -5,7 +5,7 @@
      #/new         write an entry
      #/entry/<id>  read one entry
      #/edit/<id>   change or delete an entry
-     #/fish        the Fish Board: every fish, giant to smallest
+     #/fish        the Fish Board: The Big One and the Kings of the Little Fish
      #/settings    family list, drop-down lists, sharing
 
    Everything a person typed is put on the page with textContent,
@@ -14,7 +14,7 @@
 import { createStore } from './store.js';
 import { preparePhoto } from './photos.js';
 
-export const VERSION = '1.1.0';
+export const VERSION = '1.2.0';
 const REPO_GUIDE = 'https://github.com/lemassif/bug-free-octo-succotash/blob/main/ISLAND.md';
 const DRAFT_KEY = 'island-dreams-draft';
 const PENDING_EMAIL_KEY = 'island-dreams-email';
@@ -40,7 +40,6 @@ const state = {
   options: [],
   members: [],
   filter: { q: '', year: '' },
-  fishYear: null,
   dirty: false
 };
 
@@ -161,15 +160,8 @@ function entryUrl(id) {
 const withPhoto = (list) => list.filter((p) => p.path);
 const pictures = (e) => [...e.photos, ...withPhoto(e.fish)];
 
-function inches(n) {
-  return (Math.round(Number(n) * 100) / 100).toString() + '″';
-}
-
 function fishLine(f) {
-  const bits = [];
-  if (f.length_in != null) bits.push(inches(f.length_in));
-  bits.push(f.species || 'fish');
-  return bits.join(' ') + (f.caught_by ? ' — ' + f.caught_by : '');
+  return (f.species || 'fish') + (f.caught_by ? ' — ' + f.caught_by : '');
 }
 
 /* Every fish with its entry, for the Fish Board. year '' means all summers. */
@@ -182,35 +174,14 @@ function allFish(year) {
   return out;
 }
 
-/* The smallest and biggest measured fish of each summer. Ties share the title. */
-function seasonRecords() {
-  const byYear = new Map();
-  allFish('').filter((f) => f.length_in != null).forEach((f) => {
-    const y = f.entry.entry_date.slice(0, 4);
-    if (!byYear.has(y)) byYear.set(y, []);
-    byYear.get(y).push(f);
-  });
-  const out = new Map();
-  for (const [y, list] of byYear) {
-    const min = Math.min(...list.map((f) => Number(f.length_in)));
-    const max = Math.max(...list.map((f) => Number(f.length_in)));
-    out.set(y, {
-      smallest: list.filter((f) => Number(f.length_in) === min),
-      biggest: list.filter((f) => Number(f.length_in) === max)
-    });
-  }
-  return out;
-}
-
-function fishBadges(f, year, records) {
-  const r = records.get(year);
-  if (!r) return [];
-  const out = [];
-  if (r.smallest.some((x) => x.id === f.id)) out.push(h('span', { class: 'badge king' }, `👑 King of the Little Fish ${year}`));
-  if (r.biggest.some((x) => x.id === f.id) && !(r.smallest.length && r.biggest[0].length_in === r.smallest[0].length_in)) {
-    out.push(h('span', { class: 'badge big' }, `🏆 Biggest fish ${year}`));
-  }
-  return out;
+/* Chance's rule. At four years old he caught a six-pound smallmouth
+   bass: that fish is The Big One. Next to it every other fish is a
+   little fish, so whoever catches any other fish is King of the Little
+   Fish. Nobody measures anything. */
+function fishBadge(f) {
+  return f.big_one
+    ? h('span', { class: 'badge big' }, '🏆 The Big One')
+    : h('span', { class: 'badge king' }, '👑 King of the Little Fish');
 }
 
 /* ------------------------------------------------------------------ */
@@ -502,67 +473,49 @@ async function fillThumbs(pairs) {
 /*  Fish Board                                                         */
 /* ------------------------------------------------------------------ */
 
-/* Chance's rule: whoever catches the smallest fish of the summer is
-   King of the Little Fish. The board crowns them, shows the biggest
-   catch too, and lists every fish from giant to smallest. */
+/* The Big One at the top, then every King of the Little Fish, newest
+   first, a summer at a time. */
 function renderFishBoard() {
-  const years = [...new Set(allFish('').map((f) => f.entry.entry_date.slice(0, 4)))].sort().reverse();
-  if (!years.length) {
-    show(h('section', { class: 'card welcome' },
-      h('h2', null, '🐟 Fish Board'),
-      h('p', null, 'No fish yet. When you write an entry, tap ', h('strong', null, '＋ Add a fish'),
-        ' and snap a picture: the giant ones and the tiny ones.'),
-      h('p', null, 'Measure each one! The smallest fish of the summer makes its catcher ',
-        h('strong', null, '👑 King of the Little Fish'), '.')));
-    return;
-  }
-  if (state.fishYear == null || (state.fishYear && !years.includes(state.fishYear))) state.fishYear = years[0];
-  const year = state.fishYear;
-  const records = seasonRecords();
+  const fish = allFish('');
+  const bigOnes = fish.filter((f) => f.big_one);
+  const little = fish.filter((f) => !f.big_one);
   const thumbs = [];
+  const gallery = withPhoto([...bigOnes, ...little]);
+  const tile = (f) => fishTile(f, f.entry, thumbs, gallery, true);
+  const nodes = [];
 
-  const yearSel = h('select', { 'aria-label': 'Summer', onchange: () => { state.fishYear = yearSel.value; renderFishBoard(); } },
-    years.map((y) => h('option', { value: y, selected: y === year }, 'Summer ' + y)),
-    h('option', { value: '', selected: year === '' }, 'All summers'));
+  nodes.push(bigOnes.length
+    ? h('section', { class: 'card big-one' },
+      h('h2', null, '🏆 The Big One'),
+      h('p', { class: 'muted small' }, 'Every other fish is a little fish next to this one.'),
+      h('div', { class: 'fish-list' }, bigOnes.map(tile)))
+    : h('section', { class: 'card big-one' },
+      h('h2', null, '🏆 The Big One'),
+      h('p', null, 'Chance’s six-pound smallmouth bass, caught when he was four, belongs here.'),
+      h('p', { class: 'small muted' }, 'Write an entry for the day he caught it, tap ＋ Add a fish, add the photo, and tick 🏆 The Big One.')));
 
-  const fish = allFish(year);
-  const measured = fish.filter((f) => f.length_in != null).sort((a, b) => b.length_in - a.length_in);
-  const unmeasured = fish.filter((f) => f.length_in == null);
-  const ranked = [...measured, ...unmeasured];
-  const gallery = withPhoto(ranked);
-  const tile = (f) => fishTile(f, f.entry, thumbs, gallery, records, true);
+  const byYear = new Map();
+  little.forEach((f) => {
+    const y = f.entry.entry_date.slice(0, 4);
+    if (!byYear.has(y)) byYear.set(y, []);
+    byYear.get(y).push(f);
+  });
+  const years = [...byYear.keys()].sort().reverse();
 
-  const nodes = [h('div', { class: 'filters' }, yearSel)];
-
-  if (year && records.has(year)) {
-    const r = records.get(year);
-    nodes.push(h('section', { class: 'card crown' },
-      h('h2', null, '👑 King of the Little Fish'),
-      h('p', { class: 'muted small' }, 'Smallest fish of summer ' + year),
-      h('div', { class: 'fish-list' }, r.smallest.map(tile))));
-    if (r.biggest[0].length_in !== r.smallest[0].length_in) {
-      nodes.push(h('section', { class: 'card' },
-        h('h2', null, '🏆 Biggest fish'),
-        h('p', { class: 'muted small' }, 'Biggest fish of summer ' + year),
-        h('div', { class: 'fish-list' }, r.biggest.map(tile))));
-    }
-  }
-
-  if (!year && records.size) {
+  if (!years.length) {
     nodes.push(h('section', { class: 'card crown' },
       h('h2', null, '👑 Kings of the Little Fish'),
-      h('ul', { class: 'kings' }, [...records.keys()].sort().reverse().map((y) => {
-        const r = records.get(y);
-        return h('li', null, h('strong', null, y + ': '),
-          r.smallest.map((f) => `${f.caught_by || 'Someone'} (${inches(f.length_in)} ${f.species || 'fish'})`).join(' and '));
-      }))));
+      h('p', null, 'Catch any fish and you’re King of the Little Fish. Add it to an entry with ＋ Add a fish.')));
   }
-
-  nodes.push(h('section', { class: 'card' },
-    h('h2', null, 'Every fish, giant to smallest'),
-    h('p', { class: 'muted small' }, `${fish.length} ${fish.length === 1 ? 'fish' : 'fish'}` +
-      (unmeasured.length ? ` · ${unmeasured.length} not measured, listed last` : '')),
-    h('div', { class: 'fish-list' }, ranked.map(tile))));
+  for (const y of years) {
+    const list = byYear.get(y);
+    const kings = [...new Set(list.map((f) => f.caught_by).filter(Boolean))];
+    nodes.push(h('section', { class: 'card crown' },
+      h('h2', null, `👑 Kings of the Little Fish ${y}`),
+      h('p', { class: 'muted small' }, `${list.length} ${list.length === 1 ? 'fish' : 'fish'}` +
+        (kings.length ? ' · ' + kings.join(', ') : '')),
+      h('div', { class: 'fish-list' }, list.map(tile))));
+  }
 
   show(...nodes);
   fillThumbs(thumbs);
@@ -592,7 +545,7 @@ function renderView(id) {
       h('div', { class: 'chips' }, ordered('activity', e.activities).map((a) => h('span', { class: 'chip activity' }, icon(a) + ' ' + a)))) : null,
     e.body ? h('div', { class: 'body' }, e.body) : null,
     e.fish.length ? h('div', { class: 'section' }, h('h4', null, `Fish caught (${e.fish.length})`),
-      h('div', { class: 'fish-list' }, e.fish.map((f) => fishTile(f, e, thumbs, withPhoto(e.fish), seasonRecords())))) : null,
+      h('div', { class: 'fish-list' }, e.fish.map((f) => fishTile(f, e, thumbs, withPhoto(e.fish))))) : null,
     e.photos.length ? h('div', { class: 'photo-grid' }, e.photos.map((p, i) => {
       const img = h('img', { alt: `Photo ${i + 1}`, loading: 'lazy' });
       thumbs.push([p, img]);
@@ -607,9 +560,8 @@ function renderView(id) {
   fillThumbs(thumbs);
 }
 
-/* One fish: its photo (tap for full screen), length, species and catcher. */
-function fishTile(f, e, thumbs, gallery, records, showDate) {
-  const year = e.entry_date.slice(0, 4);
+/* One fish: its photo (tap for full screen), kind, catcher and title. */
+function fishTile(f, e, thumbs, gallery, showDate) {
   let pic;
   if (f.path) {
     const img = h('img', { alt: fishLine(f), loading: 'lazy' });
@@ -621,11 +573,10 @@ function fishTile(f, e, thumbs, gallery, records, showDate) {
   }
   return h('div', { class: 'fish-tile' }, pic,
     h('div', { class: 'fish-info' },
-      h('div', { class: 'fish-size' }, f.length_in != null ? inches(f.length_in) : 'Not measured'),
-      h('div', null, f.species || 'Fish'),
+      h('div', { class: 'fish-kind' }, f.species || 'Fish'),
       f.caught_by ? h('div', { class: 'muted small' }, 'Caught by ' + f.caught_by) : null,
       showDate ? h('a', { class: 'small', href: '#/entry/' + e.id }, fmtDate(e, { short: true })) : null,
-      ...fishBadges(f, year, records)));
+      fishBadge(f)));
 }
 
 function entryText(e) {
@@ -852,8 +803,7 @@ function renderEdit(id) {
   const removed = [];                                  // saved, marked for removal
   const pending = [];                                  // new: { key, img, url }
   const fishItems = (existing ? existing.fish : []).map((f) => ({
-    key: f.id, saved: f, caught_by: f.caught_by, species: f.species,
-    length_in: f.length_in == null ? '' : String(Number(f.length_in)), img: null, url: null
+    key: f.id, saved: f, caught_by: f.caught_by, species: f.species, big_one: !!f.big_one, img: null, url: null
   }));
   const fishRemoved = [];                              // saved fish marked for removal
 
@@ -946,7 +896,7 @@ function renderEdit(id) {
 
   function addFish() {
     fishItems.push({
-      key: crypto.randomUUID(), saved: null, species: '', length_in: '', img: null, url: null,
+      key: crypto.randomUUID(), saved: null, species: '', img: null, url: null, big_one: false,
       caught_by: form.people.size === 1 ? [...form.people][0] : ''
     });
     if (!form.activities.has(FISH_ACTIVITY)) {
@@ -964,8 +914,6 @@ function renderEdit(id) {
   async function onSave(ev) {
     ev.preventDefault();
     if (!form.entry_date) { toast('Please pick a date.'); date.focus(); return; }
-    const badFish = fishItems.findIndex((it) => it.length_in !== '' && !(Number(it.length_in) > 0 && Number(it.length_in) < 100));
-    if (badFish >= 0) { toast(`Fish ${badFish + 1}: the length should be a number of inches, like 7 or 12.5.`, true); return; }
     save.disabled = true;
     save.textContent = 'Saving…';
     try {
@@ -1050,7 +998,7 @@ function renderEdit(id) {
     (activities = multiSelect({ kind: 'activity', id: 'msActivities', prompt: 'Choose activities', addPrompt: 'Add a new activity',
       selected: form.activities, onChange: markDirty })),
     h('label', null, 'Fish 🎣'),
-    h('p', { class: 'small muted hint' }, 'Snap every fish, giant or tiny, and measure it. The smallest of the summer wins 👑 King of the Little Fish.'),
+    h('p', { class: 'small muted hint' }, 'Snap every fish. Next to Chance’s six-pound smallmouth, every fish is a little fish, so whoever catches one is 👑 King of the Little Fish.'),
     fishBox,
     h('button', { type: 'button', class: 'btn add-fish', onclick: addFish }, '＋ Add a fish'),
     h('datalist', { id: 'speciesList' }, SPECIES.map((sp) => h('option', { value: sp }))),
@@ -1074,12 +1022,10 @@ function renderEdit(id) {
 
 function fishChanged(it) {
   const f = it.saved;
-  const len = it.length_in === '' ? null : Number(it.length_in);
-  const old = f.length_in == null ? null : Number(f.length_in);
-  return !!it.img || it.caught_by.trim() !== f.caught_by || it.species.trim() !== f.species || len !== old;
+  return !!it.img || it.big_one !== !!f.big_one || it.caught_by.trim() !== f.caught_by || it.species.trim() !== f.species;
 }
 
-/* One fish in the entry form: photo, who caught it, kind, length. */
+/* One fish in the entry form: photo, who caught it, kind. */
 function fishEditor(it, index, { people, onChange, onRemove }) {
   const n = index + 1;
   const pic = h('div', { class: 'fish-photo' });
@@ -1125,8 +1071,6 @@ function fishEditor(it, index, { people, onChange, onRemove }) {
     names.map((p) => h('option', { value: p, selected: p === it.caught_by }, p)));
   const kind = h('input', { type: 'text', id: `fishKind${n}`, list: 'speciesList', maxlength: 40, value: it.species,
     placeholder: 'e.g. Yellow perch', oninput: () => { it.species = kind.value; onChange(); } });
-  const len = h('input', { type: 'number', id: `fishLen${n}`, inputmode: 'decimal', min: '0.25', max: '99', step: '0.25',
-    value: it.length_in, placeholder: 'inches', oninput: () => { it.length_in = len.value.trim(); onChange(); } });
 
   drawPic();
   return h('div', { class: 'fish-edit' },
@@ -1137,10 +1081,11 @@ function fishEditor(it, index, { people, onChange, onRemove }) {
       h('button', { type: 'button', class: 'btn', onclick: () => camera.click() }, '📷 Take photo'),
       h('button', { type: 'button', class: 'btn', onclick: () => library.click() }, '🖼️ Choose photo')),
     camera, library, status,
-    h('div', { class: 'two' },
-      h('div', null, h('label', { for: `fishWho${n}` }, 'Who caught it?'), who),
-      h('div', null, h('label', { for: `fishLen${n}` }, 'Length (inches)'), len)),
-    h('label', { for: `fishKind${n}` }, 'Kind of fish'), kind);
+    h('label', { for: `fishWho${n}` }, 'Who caught it?'), who,
+    h('label', { for: `fishKind${n}` }, 'Kind of fish'), kind,
+    h('label', { class: 'crown-pick' },
+      h('input', { type: 'checkbox', checked: it.big_one, onchange: (ev) => { it.big_one = ev.target.checked; onChange(); } }),
+      h('span', null, '🏆 This is The Big One')));
 }
 
 /* ------------------------------------------------------------------ */

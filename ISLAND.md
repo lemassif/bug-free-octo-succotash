@@ -18,9 +18,9 @@ iPad, open it in Safari, tap Share, then **Add to Home Screen**.
 - **What did we do?** Also a multi-select drop-down: Fish caught, Campfires,
   Boat sightings, Tubing, Swimming, Cooking on the boat, Geocaching,
   Sightseeing, Fireworks. You can add new activities here too.
-- **Fish.** **＋ Add a fish** once for every fish, giant or tiny. Each fish
-  gets its own photo (camera or library), who caught it, the kind of fish
-  (suggestions include the river's usual catches) and its length in inches.
+- **Fish.** Tap **＋ Add a fish** once for each fish. Each one gets its own
+  photo (camera or library), who caught it, and the kind of fish. The
+  kind-of-fish box suggests the river's usual catches. Nothing gets measured.
   Adding a fish ticks "Fish caught" for you.
 - **Headline** (optional) and the **journal entry** itself.
 - **Photos.** **Take a photo** opens the camera. **Choose photos** opens the
@@ -31,16 +31,17 @@ choice off a list in Settings (⚙︎); older entries that use it keep it.
 
 ## Fish Board
 
-The **🐟 Fish Board** tab follows Chance's rule: whoever catches the
-**smallest fish of the summer is King of the Little Fish**.
+The **🐟 Fish Board** tab runs on Chance's rule. When he was four, Chance
+caught a six-pound smallmouth bass. That fish is **🏆 The Big One**, and next
+to it every other fish is a little fish. So whoever catches any other fish is
+**👑 King of the Little Fish**.
 
-- For each summer it crowns the 👑 King of the Little Fish and shows the
-  🏆 biggest fish, both with photos.
-- Below that, every fish is ranked from giant to smallest. Fish without a
-  length are listed last, so measure them to get them ranked.
-- **All summers** lists every year's king.
-- Ties share the crown. The same crown and trophy badges also appear on
-  the entry where the fish was caught.
+- **The Big One** sits at the top with its photo. To put it there, write an
+  entry for the day Chance caught it, add the fish, and tick
+  **🏆 This is The Big One**.
+- **Kings of the Little Fish** come next, one card per summer. Each card shows
+  every other fish with its photo and who caught it, and lists that summer's
+  kings.
 
 ## Reading and sharing
 

@@ -261,7 +261,7 @@ textarea { resize: vertical; line-height: 1.55; }
 .fish-tile { display: grid; grid-template-columns: 112px 1fr; gap: 12px; align-items: start; }
 .fish-tile .thumb { width: 112px; cursor: zoom-in; }
 .fish-tile .thumb.empty { display: grid; place-items: center; font-size: 40px; cursor: default; }
-.fish-size { font-size: 24px; font-weight: 800; color: var(--river); line-height: 1.2; }
+.fish-kind { font-size: 20px; font-weight: 800; color: var(--river); line-height: 1.25; }
 .badge {
   display: inline-block; margin-top: 6px; margin-right: 6px; padding: 3px 10px; border-radius: 999px;
   font-size: 14px; font-weight: 700;
@@ -269,8 +269,12 @@ textarea { resize: vertical; line-height: 1.55; }
 .badge.king { background: #fff1c2; color: #7a5200; }
 .badge.big { background: var(--river-soft); color: var(--river); }
 .card.crown { border: 2px solid #e8b931; }
-.kings { margin: 8px 0 0; padding-left: 20px; }
-.kings li { margin: 4px 0; }
+.card.big-one { border: 3px solid var(--river); background: linear-gradient(180deg, var(--river-soft), var(--card) 60%); }
+.crown-pick {
+  display: flex; align-items: center; gap: 10px; margin-top: 12px; min-height: 48px;
+  padding: 8px 12px; border-radius: 12px; border: 2px solid #e8b931; background: var(--card); cursor: pointer;
+}
+.crown-pick input { width: 24px; height: 24px; accent-color: #c99a12; flex: none; }
 
 /* ---- settings ---- */
 .members { list-style: none; padding: 0; margin: 12px 0; }

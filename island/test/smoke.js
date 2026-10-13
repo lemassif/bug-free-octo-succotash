@@ -69,24 +69,19 @@ function check(cond, msg) {
   const chipCount = await page.$$eval('.ms .chip', (els) => els.length);
   check(chipCount === 4, 'ticked choices show as chips (3 people + 1 activity)');
 
-  // ---- two fish: a tiny one with a photo, a big one without
+  // ---- two fish: Chance's Big One with a photo, and PAPA's little fish
   await page.click('button:has-text("Add a fish")');
   check(await page.isVisible('.ms .chip.activity:has-text("Fish caught")'), 'adding a fish ticks "Fish caught"');
+  check(await page.$$('#fishLen1') .then((x) => x.length === 0), 'nothing asks for a length');
   await page.setInputFiles('.fish-edit:nth-child(1) input[type=file]:not([capture])', PHOTO);
   await page.waitForSelector('.fish-edit:nth-child(1) .fish-photo img');
   await page.selectOption('#fishWho1', 'Chance');
-  await page.fill('#fishKind1', 'Yellow perch');
-  await page.fill('#fishLen1', '2.5');
+  await page.fill('#fishKind1', 'Smallmouth bass');
+  await page.check('.fish-edit:nth-child(1) .crown-pick input');
   await page.click('button:has-text("Add a fish")');
   await page.selectOption('#fishWho2', 'PAPA');
-  await page.fill('#fishKind2', 'Northern pike');
-  await page.fill('#fishLen2', '31');
+  await page.fill('#fishKind2', 'Yellow perch');
   await page.click('button:has-text("Add a fish")');
-  await page.fill('#fishLen3', '-4');
-  await page.click('button[type=submit]');
-  await page.waitForTimeout(300);
-  check(await page.isVisible('form.edit') && await page.$eval('#fishLen3', (i) => !i.validity.valid),
-    'a nonsense fish length is refused before saving');
   await page.click('.fish-edit:nth-child(3) button:has-text("Remove")');
   check(await page.$$eval('.fish-edit', (e) => e.length) === 2, 'a fish can be removed from the form');
 
@@ -104,8 +99,8 @@ function check(cond, msg) {
   check(/July 14, 2024/.test(viewText), 'saved entry shows its date');
   check(await page.$$eval('article .chip.person', (e) => e.map((x) => x.textContent).join(',')) === 'PAPA,Chance,Uncle Bob', 'people show in list order');
   check((await page.textContent('article')).includes('Fish caught (2)'), 'entry lists its two fish');
-  check(await page.isVisible('.fish-tile:has-text("Chance") .badge.king'), 'Chance’s 2.5″ perch is crowned King of the Little Fish');
-  check(await page.isVisible('.fish-tile:has-text("PAPA") .badge.big'), 'PAPA’s pike is marked biggest fish');
+  check(await page.isVisible('.fish-tile:has-text("Chance") .badge.big'), 'Chance’s smallmouth is The Big One');
+  check(await page.isVisible('.fish-tile:has-text("PAPA") .badge.king'), 'PAPA’s perch makes him King of the Little Fish');
   await page.waitForFunction(() => [...document.querySelectorAll('article .photo-grid img')].filter((i) => i.complete && i.naturalWidth).length === 2);
   check(true, 'both photos load on the entry');
   await shot('04-entry');
@@ -123,23 +118,22 @@ function check(cond, msg) {
   const mailto = await page.getAttribute('.share-box a[href^="mailto:"]', 'href');
   const mailBody = decodeURIComponent(mailto.split('body=')[1]);
   check(mailBody.includes('Who: PAPA, Chance, Uncle Bob') && mailBody.includes('What: Fish caught, Swimming'), 'email share includes who and what');
-  check(mailBody.includes('Fish: 2.5″ Yellow perch — Chance; 31″ Northern pike — PAPA'), 'email share lists the fish');
+  check(mailBody.includes('Fish: Smallmouth bass — Chance; Yellow perch — PAPA'), 'email share lists the fish');
 
   // ---- Fish Board
   await page.click('#btnBack');
   await page.click('#tabs a[data-tab=fish]');
-  await page.waitForSelector('.card.crown');
-  check((await page.textContent('.card.crown')).includes('Caught by Chance'), 'Fish Board crowns the smallest fish');
-  const order = await page.$$eval('section:has(h2:has-text("giant to smallest")) .fish-size', (e) => e.map((x) => x.textContent));
-  check(order.join(',') === '31″,2.5″', 'Fish Board ranks giant to smallest');
+  await page.waitForSelector('.card.big-one');
+  check((await page.textContent('.card.big-one')).includes('Caught by Chance'), 'Fish Board puts Chance’s Big One on top');
+  const crown = await page.textContent('.card.crown');
+  check(crown.includes('Kings of the Little Fish 2024') && crown.includes('Caught by PAPA') && !crown.includes('Chance'),
+    'every other fish is listed under Kings of the Little Fish');
   check(await page.isVisible('#fabNew') && await page.isVisible('#tabs'), 'tabs and New entry show on the Fish Board');
-  await page.click('.card.crown .thumb');
+  await page.click('.card.big-one .thumb');
   await page.waitForFunction(() => { const i = document.getElementById('lbImg'); return i.complete && i.naturalWidth > 0; });
-  check(true, 'the king’s fish photo opens full screen');
+  check(true, 'The Big One’s photo opens full screen');
   await page.click('#lbClose');
   await shot('04b-fishboard');
-  await page.selectOption('.filters select', '');
-  check((await page.textContent('.kings')).includes('2024: Chance'), 'All summers lists every year’s king');
   await page.click('#tabs a[data-tab=journal]');
 
   // ---- list and search
@@ -159,15 +153,15 @@ function check(cond, msg) {
   await page.click('a:has-text("Edit")');
   await page.waitForSelector('form.edit');
   check(await page.$$eval('.photo-grid.edit .thumb', (e) => e.length) === 2, 'edit shows saved photos');
-  check(await page.inputValue('#fishLen2') === '31', 'edit shows saved fish');
-  await page.fill('#fishLen2', '33.5');
+  check(await page.inputValue('#fishKind2') === 'Yellow perch', 'edit shows saved fish');
+  await page.fill('#fishKind2', 'Rock bass');
   await page.click('.photo-grid.edit .thumb .remove');
   await page.fill('#fBody', 'Calm morning off the dock. Changed.');
   await page.click('button[type=submit]');
   await page.waitForSelector('article.entry');
   check((await page.textContent('article .body')).includes('Changed.'), 'edits are saved');
   check(await page.$$eval('article .photo-grid .thumb', (e) => e.length) === 1, 'removed photo is gone');
-  check((await page.textContent('article')).includes('33.5″'), 'fish length edit is saved');
+  check((await page.textContent('article')).includes('Rock bass'), 'fish edits are saved');
 
   // ---- survives a reload
   await page.reload();

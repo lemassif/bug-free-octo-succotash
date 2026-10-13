@@ -14,8 +14,8 @@
    and a thumbnail (480 px), both JPEG. The list only ever loads
    thumbnails, which matters on the river's slow connection.
 
-   Fish are their own records (who caught it, species, length in
-   inches, one photo) hung off an entry, so the Fish Board can rank
+   Fish are their own records (who caught it, species, one photo,
+   and whether it is The Big One) hung off an entry, so the Fish Board can show
    every fish ever caught. A fish row carries path/thumb_path just
    like a photo row, so photoUrls() and the lightbox take either. */
 
@@ -168,7 +168,7 @@ class CloudStore {
     await this.removeFiles(photo);
   }
 
-  /* fish: { caught_by, species, length_in }, img: a prepared photo or null */
+  /* fish: { caught_by, species, big_one }, img: a prepared photo or null */
   async addFish(entryId, fish, img) {
     const files = img ? await this.upload(entryId, img) : {};
     const { data, error } = await this.sb.from('fish')
@@ -257,12 +257,7 @@ function tidy(entry) {
 }
 
 function fishFields(f) {
-  const n = Number(f.length_in);
-  return {
-    caught_by: clean(f.caught_by),
-    species: clean(f.species),
-    length_in: f.length_in === '' || f.length_in == null || !(n > 0) ? null : Math.round(n * 100) / 100
-  };
+  return { caught_by: clean(f.caught_by), species: clean(f.species), big_one: !!f.big_one };
 }
 
 function loadScript(src) {
