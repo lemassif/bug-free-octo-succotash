@@ -25,7 +25,7 @@ export const DEFAULT_PEOPLE = [
 ];
 
 export const DEFAULT_ACTIVITIES = [
-  'Fish caught', 'Campfires', 'Boat sightings', 'Tubing', 'Swimming',
+  'Fish caught', 'Campfires', 'Ship sightings', 'Tubing', 'Swimming',
   'Cooking on the boat', 'Geocaching', 'Sightseeing', 'Fireworks'
 ];
 

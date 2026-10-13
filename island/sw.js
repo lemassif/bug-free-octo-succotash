@@ -8,7 +8,7 @@
    the next open; the saved copy is used when the network is missing
    or slower than 4 seconds. */
 
-const CACHE = 'island-dreams-v1.2.2';
+const CACHE = 'island-dreams-v1.2.3';
 const ASSETS = [
   './',
   './index.html',

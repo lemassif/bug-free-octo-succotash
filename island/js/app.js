@@ -14,13 +14,13 @@
 import { createStore } from './store.js';
 import { preparePhoto } from './photos.js';
 
-export const VERSION = '1.2.2';
+export const VERSION = '1.2.3';
 const REPO_GUIDE = 'https://github.com/lemassif/bug-free-octo-succotash/blob/main/ISLAND.md';
 const DRAFT_KEY = 'island-dreams-draft';
 const PENDING_EMAIL_KEY = 'island-dreams-email';
 
 const ICONS = {
-  'Fish caught': '🎣', 'Campfires': '🔥', 'Boat sightings': '🚢',
+  'Fish caught': '🎣', 'Campfires': '🔥', 'Ship sightings': '🚢',
   'Tubing': '🛟', 'Swimming': '🏊', 'Cooking on the boat': '🍳', 'Geocaching': '🧭',
   'Sightseeing': '📸', 'Fireworks': '🎆'
 };

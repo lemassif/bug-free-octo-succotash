@@ -62,7 +62,7 @@ function check(cond, msg) {
 
   await page.click('#msActivities');
   const acts = await page.$$eval('.ms-panel .ms-opt span', (els) => els.map((e) => e.textContent.replace(/^\S+ /, '')));
-  check(acts.join(',') === 'Fish caught,Campfires,Boat sightings,Tubing,Swimming,Cooking on the boat,Geocaching,Sightseeing,Fireworks',
+  check(acts.join(',') === 'Fish caught,Campfires,Ship sightings,Tubing,Swimming,Cooking on the boat,Geocaching,Sightseeing,Fireworks',
     'What list has the 9 starting activities in order');
   await page.check('.ms-opt:has-text("Swimming") input');
   await page.click('.ms-panel .ms-done');

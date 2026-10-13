@@ -140,7 +140,7 @@ select kind, label from (values
   (13, 'person', 'Tatiana'),
   (14, 'activity', 'Fish caught'),
   (15, 'activity', 'Campfires'),
-  (16, 'activity', 'Boat sightings'),
+  (16, 'activity', 'Ship sightings'),
   (17, 'activity', 'Tubing'),
   (18, 'activity', 'Swimming'),
   (19, 'activity', 'Cooking on the boat'),

@@ -16,7 +16,7 @@ iPad, open it in Safari, tap Share, then **Add to Home Screen**.
   Susan, Joshua, Jackie, Rebekah, Satomi, Sora, Katie, Lorenzo, Haru, Chance,
   Tatiana. The last line of the list adds someone new.
 - **What did we do?** Also a multi-select drop-down: Fish caught, Campfires,
-  Boat sightings, Tubing, Swimming, Cooking on the boat, Geocaching,
+  Ship sightings, Tubing, Swimming, Cooking on the boat, Geocaching,
   Sightseeing, Fireworks. You can add new activities here too.
 - **Fish.** Tap **＋ Add a fish** once for each fish. Each one gets its own
   photo (camera or library), who caught it, and the kind of fish. The
