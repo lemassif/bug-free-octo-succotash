@@ -15,15 +15,34 @@ iPad, open it in Safari, tap Share, then **Add to Home Screen**.
 - **Who was there?** A drop-down where you can tick more than one: PAPA, MEMA,
   Susan, Joshua, Jackie, Rebekah, Satomi, Sora, Katie, Lorenzo, Haru, Chance,
   Tatiana. The last line of the list adds someone new.
-- **What did we do?** Also a multi-select drop-down: Fish caught, Campfire,
-  Boating, Boat sightings, Tubing, Swimming, Cooking on the boat, Geocaching,
+- **What did we do?** Also a multi-select drop-down: Fish caught, Campfires,
+  Boat sightings, Tubing, Swimming, Cooking on the boat, Geocaching,
   Sightseeing, Fireworks. You can add new activities here too.
+- **Fish.** **＋ Add a fish** once for every fish, giant or tiny. Each fish
+  gets its own photo (camera or library), who caught it, the kind of fish
+  (suggestions include the river's usual catches) and its length in inches.
+  Adding a fish ticks "Fish caught" for you.
 - **Headline** (optional) and the **journal entry** itself.
 - **Photos.** **Take a photo** opens the camera. **Choose photos** opens the
   photo library and lets you pick several at once.
 
 Anything added to either list is saved for the whole family. You can take a
 choice off a list in Settings (⚙︎); older entries that use it keep it.
+
+## Fish Board
+
+The **🐟 Fish Board** tab follows Chance's rule: whoever catches the
+**smallest fish of the summer is King of the Little Fish**.
+
+- For each summer it crowns the 👑 King of the Little Fish and shows the
+  🏆 biggest fish, both with photos.
+- Below that, every fish is ranked from giant to smallest. Fish without a
+  length are listed last, so measure them to get them ranked.
+- **All summers** lists every year's king.
+- Ties share the crown. The same crown and trophy badges also appear on
+  the entry where the fish was caught.
+
+## Reading and sharing
 
 The journal lists entries newest first, grouped by year. You can search it
 and filter it by year. Tap a photo to view it full screen and swipe between
@@ -124,9 +143,4 @@ node island/test/smoke.js
 
 ## Not built yet
 
-- **Writing with no signal.** The app opens offline, but saving needs a
-  connection. If a save fails, the form stays open to try again. The words of
-  an unsaved new entry are kept on the device even if the app is closed;
-  unsaved photos are not.
-- **Fish details** (count, species, size) and other per-activity details.
 - **Notifications** when someone adds an entry.

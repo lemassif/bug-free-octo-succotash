@@ -12,7 +12,12 @@
 
    Every photo is stored twice: a full copy (longest side 1600 px)
    and a thumbnail (480 px), both JPEG. The list only ever loads
-   thumbnails, which matters on the river's slow connection. */
+   thumbnails, which matters on the river's slow connection.
+
+   Fish are their own records (who caught it, species, length in
+   inches, one photo) hung off an entry, so the Fish Board can rank
+   every fish ever caught. A fish row carries path/thumb_path just
+   like a photo row, so photoUrls() and the lightbox take either. */
 
 export const DEFAULT_PEOPLE = [
   'PAPA', 'MEMA', 'Susan', 'Joshua', 'Jackie', 'Rebekah', 'Satomi',
@@ -20,8 +25,8 @@ export const DEFAULT_PEOPLE = [
 ];
 
 export const DEFAULT_ACTIVITIES = [
-  'Fish caught', 'Campfire', 'Boating', 'Boat sightings', 'Tubing',
-  'Swimming', 'Cooking on the boat', 'Geocaching', 'Sightseeing', 'Fireworks'
+  'Fish caught', 'Campfires', 'Boat sightings', 'Tubing', 'Swimming',
+  'Cooking on the boat', 'Geocaching', 'Sightseeing', 'Fireworks'
 ];
 
 export function createStore(config) {
@@ -94,9 +99,9 @@ class CloudStore {
   }
 
   async listEntries() {
-    const { data, error } = await this.sb.from('entries').select('*, photos(*)');
+    const { data, error } = await this.sb.from('entries').select('*, photos(*), fish(*)');
     if (error) throw error;
-    data.forEach((e) => { e.photos = (e.photos || []).sort(byCreated); });
+    data.forEach(tidy);
     return data;
   }
 
@@ -112,14 +117,14 @@ class CloudStore {
     const q = entry.id
       ? this.sb.from('entries').update({ ...row, updated_at: new Date().toISOString() }).eq('id', entry.id)
       : this.sb.from('entries').insert(row);
-    const { data, error } = await q.select('*, photos(*)').single();
+    const { data, error } = await q.select('*, photos(*), fish(*)').single();
     if (error) throw error;
-    data.photos = (data.photos || []).sort(byCreated);
-    return data;
+    return tidy(data);
   }
 
   async deleteEntry(entry) {
-    const paths = (entry.photos || []).flatMap((p) => [p.path, p.thumb_path]);
+    const paths = [...(entry.photos || []), ...(entry.fish || [])]
+      .flatMap((p) => [p.path, p.thumb_path]).filter(Boolean);
     if (paths.length) {
       const { error } = await this.sb.storage.from(BUCKET).remove(paths);
       if (error) throw error;
@@ -128,20 +133,30 @@ class CloudStore {
     if (error) throw error;
   }
 
-  async addPhoto(entryId, img) {
-    const id = crypto.randomUUID();
-    const path = `${entryId}/${id}.jpg`;
-    const thumb = `${entryId}/${id}-t.jpg`;
+  /* Uploads the full photo and its thumbnail under a fresh name. */
+  async upload(entryId, img) {
+    const name = crypto.randomUUID();
+    const path = `${entryId}/${name}.jpg`;
+    const thumb = `${entryId}/${name}-t.jpg`;
     const bucket = this.sb.storage.from(BUCKET);
     for (const [p, blob] of [[path, img.full], [thumb, img.thumb]]) {
       const { error } = await bucket.upload(p, blob, { contentType: 'image/jpeg', upsert: false });
       if (error) throw error;
     }
+    return { path, thumb_path: thumb, width: img.width, height: img.height };
+  }
+
+  async removeFiles(row) {
+    const paths = [row.path, row.thumb_path].filter(Boolean);
+    if (paths.length) await this.sb.storage.from(BUCKET).remove(paths);
+  }
+
+  async addPhoto(entryId, img) {
+    const files = await this.upload(entryId, img);
     const { data, error } = await this.sb.from('photos')
-      .insert({ id, entry_id: entryId, path, thumb_path: thumb, width: img.width, height: img.height })
-      .select().single();
+      .insert({ entry_id: entryId, ...files }).select().single();
     if (error) {
-      await bucket.remove([path, thumb]);
+      await this.removeFiles(files);
       throw error;
     }
     return data;
@@ -150,13 +165,45 @@ class CloudStore {
   async deletePhoto(photo) {
     const { error } = await this.sb.from('photos').delete().eq('id', photo.id);
     if (error) throw error;
-    await this.sb.storage.from(BUCKET).remove([photo.path, photo.thumb_path]);
+    await this.removeFiles(photo);
+  }
+
+  /* fish: { caught_by, species, length_in }, img: a prepared photo or null */
+  async addFish(entryId, fish, img) {
+    const files = img ? await this.upload(entryId, img) : {};
+    const { data, error } = await this.sb.from('fish')
+      .insert({ entry_id: entryId, ...fishFields(fish), ...files }).select().single();
+    if (error) {
+      if (img) await this.removeFiles(files);
+      throw error;
+    }
+    return data;
+  }
+
+  /* img: a new photo to replace the old one, or null to keep it */
+  async updateFish(old, fish, img) {
+    const files = img ? await this.upload(old.entry_id, img) : {};
+    const { data, error } = await this.sb.from('fish')
+      .update({ ...fishFields(fish), ...files }).eq('id', old.id).select().single();
+    if (error) {
+      if (img) await this.removeFiles(files);
+      throw error;
+    }
+    if (img) await this.removeFiles(old);
+    return data;
+  }
+
+  async deleteFish(fish) {
+    const { error } = await this.sb.from('fish').delete().eq('id', fish.id);
+    if (error) throw error;
+    await this.removeFiles(fish);
   }
 
   /* Returns Map(photo.id -> url). Signs every missing link in one request. */
   async photoUrls(photos, size) {
     const key = (p) => (size === 'thumb' ? p.thumb_path : p.path);
     const soon = Date.now() + 5 * 60 * 1000;
+    photos = photos.filter((p) => p.path);
     const need = photos.map(key).filter((k) => !(this.urls.get(k) && this.urls.get(k).expires > soon));
     if (need.length) {
       const { data, error } = await this.sb.storage.from(BUCKET).createSignedUrls(need, URL_LIFETIME);
@@ -203,6 +250,21 @@ class CloudStore {
   }
 }
 
+function tidy(entry) {
+  entry.photos = (entry.photos || []).sort(byCreated);
+  entry.fish = (entry.fish || []).sort(byCreated);
+  return entry;
+}
+
+function fishFields(f) {
+  const n = Number(f.length_in);
+  return {
+    caught_by: clean(f.caught_by),
+    species: clean(f.species),
+    length_in: f.length_in === '' || f.length_in == null || !(n > 0) ? null : Math.round(n * 100) / 100
+  };
+}
+
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     const s = document.createElement('script');
@@ -228,12 +290,17 @@ class LocalStore {
 
   async init() {
     this.db = await new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, 1);
-      req.onupgradeneeded = () => {
+      const req = indexedDB.open(DB_NAME, 2);
+      req.onupgradeneeded = (ev) => {
         const db = req.result;
-        db.createObjectStore('entries', { keyPath: 'id' });
-        db.createObjectStore('photos', { keyPath: 'id' }).createIndex('entry_id', 'entry_id');
-        db.createObjectStore('options', { keyPath: 'key' });
+        if (ev.oldVersion < 1) {
+          db.createObjectStore('entries', { keyPath: 'id' });
+          db.createObjectStore('photos', { keyPath: 'id' }).createIndex('entry_id', 'entry_id');
+          db.createObjectStore('options', { keyPath: 'key' });
+        }
+        if (ev.oldVersion < 2) {
+          db.createObjectStore('fish', { keyPath: 'id' });
+        }
       };
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => reject(req.error);
@@ -268,9 +335,10 @@ class LocalStore {
   async signOut() {}
 
   async listEntries() {
-    const [entries, photos] = await Promise.all([this.all('entries'), this.all('photos')]);
+    const [entries, photos, fish] = await Promise.all([this.all('entries'), this.all('photos'), this.all('fish')]);
     entries.forEach((e) => {
       e.photos = photos.filter((p) => p.entry_id === e.id).map(stripBlobs).sort(byCreated);
+      e.fish = fish.filter((f) => f.entry_id === e.id).map(stripBlobs).sort(byCreated);
     });
     return entries;
   }
@@ -292,11 +360,13 @@ class LocalStore {
     };
     await this.put('entries', row);
     const photos = (await this.all('photos')).filter((p) => p.entry_id === row.id);
-    return { ...row, photos: photos.map(stripBlobs).sort(byCreated) };
+    const fish = (await this.all('fish')).filter((f) => f.entry_id === row.id);
+    return { ...row, photos: photos.map(stripBlobs).sort(byCreated), fish: fish.map(stripBlobs).sort(byCreated) };
   }
 
   async deleteEntry(entry) {
     for (const p of entry.photos || []) await this.deletePhoto(p);
+    for (const f of entry.fish || []) await this.deleteFish(f);
     await this.del('entries', entry.id);
   }
 
@@ -309,12 +379,40 @@ class LocalStore {
     return stripBlobs(row);
   }
 
-  async deletePhoto(photo) {
+  forget(id) {
     for (const size of ['thumb', 'full']) {
-      const k = photo.id + size;
+      const k = id + size;
       if (this.urls.has(k)) { URL.revokeObjectURL(this.urls.get(k)); this.urls.delete(k); }
     }
+  }
+
+  async deletePhoto(photo) {
+    this.forget(photo.id);
     await this.del('photos', photo.id);
+  }
+
+  async addFish(entryId, fish, img) {
+    const row = {
+      id: crypto.randomUUID(), entry_id: entryId, created_at: new Date().toISOString(), ...fishFields(fish),
+      ...(img ? { path: 'local', thumb_path: 'local', width: img.width, height: img.height, full: img.full, thumb: img.thumb } : {})
+    };
+    await this.put('fish', row);
+    return stripBlobs(row);
+  }
+
+  async updateFish(old, fish, img) {
+    const row = { ...(await this.get('fish', old.id)), ...fishFields(fish) };
+    if (img) {
+      this.forget(old.id);
+      Object.assign(row, { path: 'local', thumb_path: 'local', width: img.width, height: img.height, full: img.full, thumb: img.thumb });
+    }
+    await this.put('fish', row);
+    return stripBlobs(row);
+  }
+
+  async deleteFish(fish) {
+    this.forget(fish.id);
+    await this.del('fish', fish.id);
   }
 
   async photoUrls(photos, size) {
@@ -322,8 +420,8 @@ class LocalStore {
     for (const p of photos) {
       const k = p.id + size;
       if (!this.urls.has(k)) {
-        const row = await this.get('photos', p.id);
-        if (!row) continue;
+        const row = (await this.get('photos', p.id)) || (await this.get('fish', p.id));
+        if (!row || !row.full) continue;
         this.urls.set(k, URL.createObjectURL(size === 'thumb' ? row.thumb : row.full));
       }
       out.set(p.id, this.urls.get(k));

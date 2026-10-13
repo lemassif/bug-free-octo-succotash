@@ -56,6 +56,24 @@ create table if not exists public.photos (
 );
 create index if not exists photos_entry_id on public.photos (entry_id);
 
+-- Every fish caught, with its photo, for the Fish Board. Length is in
+-- inches; the smallest fish of the summer makes its catcher King (or
+-- Queen) of the Little Fish.
+create table if not exists public.fish (
+  id         uuid primary key default gen_random_uuid(),
+  entry_id   uuid not null references public.entries (id) on delete cascade,
+  caught_by  text not null default '' check (length(caught_by) <= 40),
+  species    text not null default '' check (length(species) <= 40),
+  length_in  numeric(5, 2) check (length_in > 0 and length_in < 100),
+  path       text unique,
+  thumb_path text unique,
+  width      int,
+  height     int,
+  added_by   text default lower(auth.jwt() ->> 'email'),
+  created_at timestamptz not null default now()
+);
+create index if not exists fish_entry_id on public.fish (entry_id);
+
 -- The choices in the "Who was there?" and "What did we do?" drop-downs.
 -- Anyone in the family can add to them or remove from them in the app.
 create table if not exists public.options (
@@ -73,11 +91,12 @@ alter table public.members enable row level security;
 alter table public.entries enable row level security;
 alter table public.photos  enable row level security;
 alter table public.options enable row level security;
+alter table public.fish    enable row level security;
 
 do $$
 declare t text;
 begin
-  foreach t in array array['members', 'entries', 'photos', 'options'] loop
+  foreach t in array array['members', 'entries', 'photos', 'options', 'fish'] loop
     execute format('drop policy if exists "family only" on public.%I', t);
     execute format(
       'create policy "family only" on public.%I for all to authenticated
@@ -118,15 +137,14 @@ select kind, label from (values
   (12, 'person', 'Chance'),
   (13, 'person', 'Tatiana'),
   (14, 'activity', 'Fish caught'),
-  (15, 'activity', 'Campfire'),
-  (16, 'activity', 'Boating'),
-  (17, 'activity', 'Boat sightings'),
-  (18, 'activity', 'Tubing'),
-  (19, 'activity', 'Swimming'),
-  (20, 'activity', 'Cooking on the boat'),
-  (21, 'activity', 'Geocaching'),
-  (22, 'activity', 'Sightseeing'),
-  (23, 'activity', 'Fireworks')
+  (15, 'activity', 'Campfires'),
+  (16, 'activity', 'Boat sightings'),
+  (17, 'activity', 'Tubing'),
+  (18, 'activity', 'Swimming'),
+  (19, 'activity', 'Cooking on the boat'),
+  (20, 'activity', 'Geocaching'),
+  (21, 'activity', 'Sightseeing'),
+  (22, 'activity', 'Fireworks')
 ) as seed (n, kind, label)
 where not exists (select 1 from public.options)
 order by n;

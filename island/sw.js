@@ -8,7 +8,7 @@
    the next open; the saved copy is used when the network is missing
    or slower than 4 seconds. */
 
-const CACHE = 'island-dreams-v1.0.0';
+const CACHE = 'island-dreams-v1.1.0';
 const ASSETS = [
   './',
   './index.html',
@@ -50,7 +50,7 @@ self.addEventListener('fetch', (e) => {
 
   e.respondWith((async () => {
     const cache = await caches.open(CACHE);
-    const plain = url.origin + url.pathname; // ?v=1.0.0 and ?v=1.1.0 share one copy
+    const plain = url.origin + url.pathname; // ?v=1.1.0 and ?v=1.2.0 share one copy
     try {
       const resp = await Promise.race([
         fetch(new Request(req.url, { cache: 'no-cache', credentials: 'same-origin' })),

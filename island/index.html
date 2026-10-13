@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png" type="image/png">
-<link rel="stylesheet" href="app.css?v=1.0.0">
+<link rel="stylesheet" href="app.css?v=1.1.0">
 <title>Island Dreams</title>
 </head>
 <body>
@@ -30,6 +30,11 @@
   <a href="#/settings">How to share it with the family</a>
 </div>
 
+<nav class="tabs" id="tabs" aria-label="Sections" hidden>
+  <a href="#/" data-tab="journal">📖 Journal</a>
+  <a href="#/fish" data-tab="fish">🐟 Fish Board</a>
+</nav>
+
 <main id="app" aria-live="polite">
   <p class="loading">Loading the journal…</p>
 </main>
@@ -46,8 +51,8 @@
   <div class="lb-count" id="lbCount"></div>
 </div>
 
-<script src="config.js?v=1.0.0"></script>
-<script type="module" src="js/app.js?v=1.0.0"></script>
+<script src="config.js?v=1.1.0"></script>
+<script type="module" src="js/app.js?v=1.1.0"></script>
 <script>
   if ('serviceWorker' in navigator) {
     addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
