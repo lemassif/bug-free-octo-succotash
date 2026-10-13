@@ -14,7 +14,7 @@
 import { createStore } from './store.js';
 import { preparePhoto } from './photos.js';
 
-export const VERSION = '1.2.0';
+export const VERSION = '1.2.1';
 const REPO_GUIDE = 'https://github.com/lemassif/bug-free-octo-succotash/blob/main/ISLAND.md';
 const DRAFT_KEY = 'island-dreams-draft';
 const PENDING_EMAIL_KEY = 'island-dreams-email';
@@ -176,12 +176,13 @@ function allFish(year) {
 
 /* Chance's rule. At four years old he caught a six-pound smallmouth
    bass: that fish is The Big One. Next to it every other fish is a
-   little fish, so whoever catches any other fish is King of the Little
-   Fish. Nobody measures anything. */
+   little fish, so the PERSON who catches any other fish is King of the
+   Little Fish. The crown goes on the catcher, never on the fish.
+   Nobody measures anything. */
 function fishBadge(f) {
-  return f.big_one
-    ? h('span', { class: 'badge big' }, '🏆 The Big One')
-    : h('span', { class: 'badge king' }, '👑 King of the Little Fish');
+  if (f.big_one) return h('span', { class: 'badge big' }, '🏆 The Big One');
+  if (f.caught_by) return h('span', { class: 'badge king' }, `👑 ${f.caught_by}, King of the Little Fish`);
+  return null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -481,14 +482,14 @@ function renderFishBoard() {
   const little = fish.filter((f) => !f.big_one);
   const thumbs = [];
   const gallery = withPhoto([...bigOnes, ...little]);
-  const tile = (f) => fishTile(f, f.entry, thumbs, gallery, true);
+  const tile = (f, noCrown) => fishTile(f, f.entry, thumbs, gallery, { showDate: true, noCrown });
   const nodes = [];
 
   nodes.push(bigOnes.length
     ? h('section', { class: 'card big-one' },
       h('h2', null, '🏆 The Big One'),
       h('p', { class: 'muted small' }, 'Every other fish is a little fish next to this one.'),
-      h('div', { class: 'fish-list' }, bigOnes.map(tile)))
+      h('div', { class: 'fish-list' }, bigOnes.map((f) => tile(f))))
     : h('section', { class: 'card big-one' },
       h('h2', null, '🏆 The Big One'),
       h('p', null, 'Chance’s six-pound smallmouth bass, caught when he was four, belongs here.'),
@@ -505,16 +506,24 @@ function renderFishBoard() {
   if (!years.length) {
     nodes.push(h('section', { class: 'card crown' },
       h('h2', null, '👑 Kings of the Little Fish'),
-      h('p', null, 'Catch any fish and you’re King of the Little Fish. Add it to an entry with ＋ Add a fish.')));
+      h('p', null, 'Catch any fish and you’re King of the Little Fish. Add it to an entry with ＋ Add a fish, and pick who caught it.')));
   }
+  // each summer: every catcher is crowned, with the little fish that won it
   for (const y of years) {
-    const list = byYear.get(y);
-    const kings = [...new Set(list.map((f) => f.caught_by).filter(Boolean))];
+    const byCatcher = new Map();
+    byYear.get(y).forEach((f) => {
+      const who = f.caught_by || '';
+      if (!byCatcher.has(who)) byCatcher.set(who, []);
+      byCatcher.get(who).push(f);
+    });
     nodes.push(h('section', { class: 'card crown' },
       h('h2', null, `👑 Kings of the Little Fish ${y}`),
-      h('p', { class: 'muted small' }, `${list.length} ${list.length === 1 ? 'fish' : 'fish'}` +
-        (kings.length ? ' · ' + kings.join(', ') : '')),
-      h('div', { class: 'fish-list' }, list.map(tile))));
+      [...byCatcher].map(([who, list]) => h('div', { class: 'king-group' },
+        h('h3', null, who ? `👑 ${who}` : 'Caught by someone'),
+        h('p', { class: 'muted small' }, who
+          ? `King of the Little Fish · ${list.length} little ${list.length === 1 ? 'fish' : 'fish'}`
+          : 'Pick who caught these in their entry to crown them.'),
+        h('div', { class: 'fish-list' }, list.map((f) => tile(f, true)))))));
   }
 
   show(...nodes);
@@ -561,7 +570,10 @@ function renderView(id) {
 }
 
 /* One fish: its photo (tap for full screen), kind, catcher and title. */
-function fishTile(f, e, thumbs, gallery, showDate) {
+/* opts.showDate links to the entry; opts.noCrown leaves the catcher's
+   crown off when a heading above already crowns them. */
+function fishTile(f, e, thumbs, gallery, opts) {
+  const { showDate, noCrown } = opts || {};
   let pic;
   if (f.path) {
     const img = h('img', { alt: fishLine(f), loading: 'lazy' });
@@ -574,9 +586,11 @@ function fishTile(f, e, thumbs, gallery, showDate) {
   return h('div', { class: 'fish-tile' }, pic,
     h('div', { class: 'fish-info' },
       h('div', { class: 'fish-kind' }, f.species || 'Fish'),
-      f.caught_by ? h('div', { class: 'muted small' }, 'Caught by ' + f.caught_by) : null,
+      // a little fish's crown already names its catcher; under a king's
+      // heading on the board the catcher is the heading
+      f.caught_by && f.big_one ? h('div', { class: 'muted small' }, 'Caught by ' + f.caught_by) : null,
       showDate ? h('a', { class: 'small', href: '#/entry/' + e.id }, fmtDate(e, { short: true })) : null,
-      fishBadge(f)));
+      noCrown && !f.big_one ? null : fishBadge(f)));
 }
 
 function entryText(e) {
@@ -998,7 +1012,7 @@ function renderEdit(id) {
     (activities = multiSelect({ kind: 'activity', id: 'msActivities', prompt: 'Choose activities', addPrompt: 'Add a new activity',
       selected: form.activities, onChange: markDirty })),
     h('label', null, 'Fish 🎣'),
-    h('p', { class: 'small muted hint' }, 'Snap every fish. Next to Chance’s six-pound smallmouth, every fish is a little fish, so whoever catches one is 👑 King of the Little Fish.'),
+    h('p', { class: 'small muted hint' }, 'Snap every fish and pick who caught it. Next to Chance’s six-pound smallmouth, every fish is a little fish, so whoever catches one is 👑 King of the Little Fish.'),
     fishBox,
     h('button', { type: 'button', class: 'btn add-fish', onclick: addFish }, '＋ Add a fish'),
     h('datalist', { id: 'speciesList' }, SPECIES.map((sp) => h('option', { value: sp }))),

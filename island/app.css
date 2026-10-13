@@ -269,6 +269,9 @@ textarea { resize: vertical; line-height: 1.55; }
 .badge.king { background: #fff1c2; color: #7a5200; }
 .badge.big { background: var(--river-soft); color: var(--river); }
 .card.crown { border: 2px solid #e8b931; }
+.king-group { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+.king-group h3 { font-size: 22px; margin: 0; }
+.king-group p { margin: 2px 0 6px; }
 .card.big-one { border: 3px solid var(--river); background: linear-gradient(180deg, var(--river-soft), var(--card) 60%); }
 .crown-pick {
   display: flex; align-items: center; gap: 10px; margin-top: 12px; min-height: 48px;

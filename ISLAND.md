@@ -39,9 +39,10 @@ to it every other fish is a little fish. So whoever catches any other fish is
 - **The Big One** sits at the top with its photo. To put it there, write an
   entry for the day Chance caught it, add the fish, and tick
   **🏆 This is The Big One**.
-- **Kings of the Little Fish** come next, one card per summer. Each card shows
-  every other fish with its photo and who caught it, and lists that summer's
-  kings.
+- **Kings of the Little Fish** come next, one card per summer. The crown
+  goes on the **person**, not the fish. Each catcher gets a 👑 heading with
+  their name, and their little fish are listed under it with photos. In an
+  entry, a little fish shows "👑 PAPA, King of the Little Fish".
 
 ## Reading and sharing
 

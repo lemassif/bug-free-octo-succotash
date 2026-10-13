@@ -100,7 +100,8 @@ function check(cond, msg) {
   check(await page.$$eval('article .chip.person', (e) => e.map((x) => x.textContent).join(',')) === 'PAPA,Chance,Uncle Bob', 'people show in list order');
   check((await page.textContent('article')).includes('Fish caught (2)'), 'entry lists its two fish');
   check(await page.isVisible('.fish-tile:has-text("Chance") .badge.big'), 'Chance’s smallmouth is The Big One');
-  check(await page.isVisible('.fish-tile:has-text("PAPA") .badge.king'), 'PAPA’s perch makes him King of the Little Fish');
+  check((await page.textContent('.fish-tile:has-text("PAPA") .badge.king')) === '👑 PAPA, King of the Little Fish', 'the crown names PAPA, the catcher, not the fish');
+  check(!(await page.isVisible('.fish-tile:has-text("Chance") .badge.king')), 'Chance’s Big One gets no little-fish crown');
   await page.waitForFunction(() => [...document.querySelectorAll('article .photo-grid img')].filter((i) => i.complete && i.naturalWidth).length === 2);
   check(true, 'both photos load on the entry');
   await shot('04-entry');
@@ -126,8 +127,9 @@ function check(cond, msg) {
   await page.waitForSelector('.card.big-one');
   check((await page.textContent('.card.big-one')).includes('Caught by Chance'), 'Fish Board puts Chance’s Big One on top');
   const crown = await page.textContent('.card.crown');
-  check(crown.includes('Kings of the Little Fish 2024') && crown.includes('Caught by PAPA') && !crown.includes('Chance'),
-    'every other fish is listed under Kings of the Little Fish');
+  check(crown.includes('Kings of the Little Fish 2024') && !crown.includes('Chance'), 'every other fish is listed under Kings of the Little Fish');
+  check((await page.textContent('.card.crown .king-group h3')) === '👑 PAPA', 'the board crowns the catcher by name');
+  check(await page.$$eval('.card.crown .fish-tile .badge.king', (e) => e.length) === 0, 'fish on the board carry no crown of their own');
   check(await page.isVisible('#fabNew') && await page.isVisible('#tabs'), 'tabs and New entry show on the Fish Board');
   await page.click('.card.big-one .thumb');
   await page.waitForFunction(() => { const i = document.getElementById('lbImg'); return i.complete && i.naturalWidth > 0; });
