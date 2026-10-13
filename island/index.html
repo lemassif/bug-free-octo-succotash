@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png" type="image/png">
-<link rel="stylesheet" href="app.css?v=1.2.1">
+<link rel="stylesheet" href="app.css?v=1.2.2">
 <title>Island Dreams</title>
 </head>
 <body>
@@ -43,6 +43,16 @@
 
 <div class="toast" id="toast" role="status" hidden></div>
 
+<div class="ask" id="ask" role="alertdialog" aria-modal="true" aria-labelledby="askText" hidden>
+  <div class="ask-box">
+    <p id="askText"></p>
+    <div class="row">
+      <button class="btn" id="askNo" type="button">Cancel</button>
+      <button class="btn primary" id="askYes" type="button">OK</button>
+    </div>
+  </div>
+</div>
+
 <div class="lightbox" id="lightbox" hidden>
   <button class="lb-close" id="lbClose" aria-label="Close">✕</button>
   <button class="lb-nav lb-prev" id="lbPrev" aria-label="Previous photo">‹</button>
@@ -51,8 +61,8 @@
   <div class="lb-count" id="lbCount"></div>
 </div>
 
-<script src="config.js?v=1.2.1"></script>
-<script type="module" src="js/app.js?v=1.2.1"></script>
+<script src="config.js?v=1.2.2"></script>
+<script type="module" src="js/app.js?v=1.2.2"></script>
 <script>
   if ('serviceWorker' in navigator) {
     addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));

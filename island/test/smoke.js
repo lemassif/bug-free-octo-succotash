@@ -29,7 +29,7 @@ function check(cond, msg) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
-  page.on('dialog', (d) => d.accept());
+  page.on('dialog', (d) => { errors.push('browser dialog used: ' + d.message()); d.dismiss(); });
   const shot = async (name) => { if (SHOTS) await page.screenshot({ path: path.join(SHOTS, name + '.png'), fullPage: true }); };
 
   await page.goto(BASE);
@@ -174,7 +174,10 @@ function check(cond, msg) {
   await page.goto(BASE + '#/new');
   await page.waitForSelector('form.edit');
   await page.fill('#fBody', 'Half-written thought');
-  await page.click('#btnBack'); // the leave-without-saving prompt is accepted
+  await page.click('#btnBack');
+  await page.waitForSelector('#ask:not([hidden])');
+  check((await page.textContent('#askText')).includes('Leave without saving'), 'leaving an unsaved entry asks first, in the page');
+  await page.click('#askYes');
   await page.waitForSelector('.entry-card');
   await page.click('#fabNew');
   await page.waitForSelector('form.edit');
@@ -187,7 +190,8 @@ function check(cond, msg) {
   await page.waitForSelector('section.card');
   check(await page.isVisible('.chip.person:has-text("Uncle Bob")'), 'added person appears in the settings list');
   await page.click('.chip.person:has-text("Uncle Bob")');
-  await page.waitForFunction(() => !document.body.textContent.includes('Uncle Bob'));
+  await page.click('#askYes');
+  await page.waitForFunction(() => ![...document.querySelectorAll('main .chip')].some((c) => c.textContent.includes('Uncle Bob')));
   check(true, 'a person can be taken off the list');
   await page.fill('section:has(h2:has-text("What did we do")) .ms-add input', 'Kayaking');
   await page.click('section:has(h2:has-text("What did we do")) .ms-add button');
@@ -204,6 +208,10 @@ function check(cond, msg) {
   await page.click('.entry-card');
   await page.click('a:has-text("Edit")');
   await page.click('button:has-text("Delete this entry")');
+  await page.click('#askNo');
+  check(await page.isVisible('form.edit'), 'Cancel keeps the entry');
+  await page.click('button:has-text("Delete this entry")');
+  await page.click('#askYes');
   await page.waitForSelector('.welcome');
   check(true, 'entry can be deleted');
 

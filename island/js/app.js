@@ -14,7 +14,7 @@
 import { createStore } from './store.js';
 import { preparePhoto } from './photos.js';
 
-export const VERSION = '1.2.1';
+export const VERSION = '1.2.2';
 const REPO_GUIDE = 'https://github.com/lemassif/bug-free-octo-succotash/blob/main/ISLAND.md';
 const DRAFT_KEY = 'island-dreams-draft';
 const PENDING_EMAIL_KEY = 'island-dreams-email';
@@ -78,6 +78,29 @@ function toast(msg, long) {
   t.hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { t.hidden = true; }, long ? 7000 : 3500);
+}
+
+/* An in-page "Are you sure?" box. Browser confirm() boxes are tiny on a
+   phone and some places (like an embedded preview) block them. */
+function askConfirm(text, yesLabel, danger) {
+  const box = $('ask');
+  $('askText').textContent = text;
+  const yes = $('askYes');
+  const no = $('askNo');
+  yes.textContent = yesLabel || 'OK';
+  yes.className = 'btn ' + (danger ? 'danger-fill' : 'primary');
+  box.hidden = false;
+  no.focus();
+  return new Promise((resolve) => {
+    const done = (answer) => {
+      box.hidden = true;
+      yes.onclick = no.onclick = box.onkeydown = null;
+      resolve(answer);
+    };
+    yes.onclick = () => done(true);
+    no.onclick = () => done(false);
+    box.onkeydown = (e) => { if (e.key === 'Escape') done(false); };
+  });
 }
 
 function errorText(e) {
@@ -349,12 +372,16 @@ function route() {
   if (ignoreHash) { ignoreHash = false; return; }
   if (!state.signedIn) return;
   if (state.dirty && location.hash !== currentHash) {
-    if (!confirm('Leave without saving this entry?')) {
-      ignoreHash = true;
-      location.hash = currentHash;
-      return;
-    }
-    state.dirty = false;
+    // stay on the form while asking; go on only if they say so
+    const target = location.hash;
+    ignoreHash = true;
+    location.hash = currentHash;
+    askConfirm('Leave without saving this entry?', 'Leave', true).then((ok) => {
+      if (!ok) return;
+      state.dirty = false;
+      location.hash = target;
+    });
+    return;
   }
   currentHash = location.hash;
   const hash = location.hash || '#/';
@@ -980,7 +1007,7 @@ function renderEdit(id) {
   }
 
   async function onDelete() {
-    if (!confirm('Delete this entry and its photos for everyone? This cannot be undone.')) return;
+    if (!(await askConfirm('Delete this entry and its photos for everyone? This cannot be undone.', 'Delete', true))) return;
     try {
       await store.deleteEntry({
         ...existing,
@@ -1127,14 +1154,14 @@ function renderSettings() {
     h('p', null, 'On iPhone or iPad: open this page in Safari, tap the Share button, then “Add to Home Screen”. On Android: tap ⋮ then “Add to Home screen”.'),
     h('div', { class: 'row' },
       h('button', { class: 'btn', type: 'button', onclick: async () => {
-        try { await navigator.clipboard.writeText(appUrl); toast('Link copied.'); } catch (e) { prompt('Copy this link:', appUrl); }
+        try { await navigator.clipboard.writeText(appUrl); toast('Link copied.'); } catch (e) { toast('Copy this link: ' + appUrl, true); }
       } }, '🔗 Copy the app link'))));
 
   if (store.mode === 'cloud') {
     sections.push(h('section', { class: 'card' },
       h('p', null, 'Signed in as ', h('strong', null, state.email)),
       h('button', { class: 'btn', type: 'button', onclick: async () => {
-        if (state.dirty && !confirm('Sign out without saving?')) return;
+        if (state.dirty && !(await askConfirm('Sign out without saving?', 'Sign out', true))) return;
         state.dirty = false;
         await store.signOut();
       } }, 'Sign out')));
@@ -1152,7 +1179,7 @@ function familySection(appUrl) {
       h('div', null, h('strong', null, m.name || m.email), m.name ? h('div', { class: 'small muted' }, m.email) : null),
       m.email === state.email ? h('span', { class: 'small muted' }, 'you') : h('button', {
         type: 'button', class: 'btn link danger', onclick: async () => {
-          if (!confirm(`Remove ${m.name || m.email} from the family list? They will no longer be able to open the journal. Their entries stay.`)) return;
+          if (!(await askConfirm(`Remove ${m.name || m.email} from the family list? They will no longer be able to open the journal. Their entries stay.`, 'Remove', true))) return;
           try {
             await store.removeMember(m.email);
             state.members = await store.listMembers();
@@ -1203,7 +1230,7 @@ function listSection(kind, heading, addPrompt) {
     chips.replaceChildren(...optionLabels(kind).map((l) => h('button', {
       type: 'button', class: 'chip ' + kind + ' removable', 'aria-label': `Remove ${l} from the list`,
       onclick: async () => {
-        if (!confirm(`Take “${l}” off the list? Entries that already have it keep it.`)) return;
+        if (!(await askConfirm(`Take “${l}” off the list? Entries that already have it keep it.`, 'Take it off', true))) return;
         try {
           await store.removeOption(kind, l);
           state.options = await store.listOptions();

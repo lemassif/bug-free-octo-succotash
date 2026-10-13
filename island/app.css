@@ -288,6 +288,19 @@ textarea { resize: vertical; line-height: 1.55; }
 .add-member .btn { margin-top: 14px; width: 100%; }
 section .chips + .ms-add { margin-top: 14px; }
 
+/* ---- in-page confirm ---- */
+.ask {
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center;
+  padding: 16px; background: rgba(10, 20, 30, .55);
+}
+.ask-box {
+  width: min(100%, 440px); background: var(--card); color: var(--ink);
+  border-radius: var(--radius); padding: 22px; box-shadow: 0 12px 40px rgba(0, 0, 0, .35);
+}
+.ask-box p { margin: 0 0 6px; font-size: 19px; }
+.ask-box .row .btn { flex: 1 1 120px; }
+.btn.danger-fill { background: var(--danger); border-color: var(--danger); color: var(--card); }
+
 /* ---- toast and lightbox ---- */
 .toast {
   position: fixed; left: 50%; transform: translateX(-50%); z-index: 30;
