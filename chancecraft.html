@@ -22,6 +22,16 @@
   #hud { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
   #topbar { position: absolute; left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); top: max(8px, env(safe-area-inset-top)); display: flex; align-items: flex-start; gap: 10px; }
   #hearts { font-size: 20px; line-height: 1; letter-spacing: -1px; text-shadow: 0 2px 0 #000; white-space: nowrap; }
+  #fuel { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 11px; font-weight: 900; color: #ffd34d; text-shadow: 0 1px 0 #000; }
+  #fuelTrack { width: 120px; height: 9px; border-radius: 5px; background: rgba(0,0,0,.55); border: 2px solid rgba(0,0,0,.6); overflow: hidden; }
+  #fuelFill { height: 100%; width: 100%; background: linear-gradient(90deg, #ff6a1a, #ffd34d); }
+  #fuel.low span { color: #ff6a6a; }
+  .slot.more { width: 58px; font-size: 10px; font-weight: 900; line-height: 1.15; text-align: center; color: #ffd34d; }
+  #blockGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; width: min(100%, 720px); }
+  .bk { border: 0; border-radius: 8px; background: rgba(255,255,255,.08); color: #fff; font: inherit; font-weight: 800; font-size: 11px; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bk img { width: 44px; height: 44px; image-rendering: pixelated; }
+  .lv.build { grid-column: 1 / -1; background: linear-gradient(180deg, #c8902a, #7a5212); min-height: 64px; }
+  .lv.build .n { font-size: 20px; }
   #lvl { font-size: 13px; font-weight: 900; background: rgba(0,0,0,.45); padding: 5px 9px; border-radius: 8px; margin-top: 4px; }
   #partsBox { margin: 0 auto; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,.5); padding: 6px 12px; border-radius: 12px; font-weight: 900; font-size: 16px; }
   #arrow { width: 26px; height: 26px; display: grid; place-items: center; font-size: 22px; color: var(--gold); transition: transform .08s linear; }
@@ -100,7 +110,7 @@
 <div id="hud" class="hide">
   <div id="damage"></div>
   <div id="topbar">
-    <div><div id="hearts"></div><div id="lvl"></div></div>
+    <div><div id="hearts"></div><div id="fuel"><span>JET</span><div id="fuelTrack"><div id="fuelFill"></div></div></div><div id="lvl"></div></div>
     <div id="partsBox"><span id="arrow">▲</span><span id="parts">0/3</span><span id="dist"></span></div>
   </div>
   <div id="bossbar" class="hide"><div id="bossname"></div><div id="bossTrack"><div id="bossFill"></div></div></div>
@@ -113,7 +123,7 @@
   <div id="look"></div>
   <div id="joyZone"><div id="joyHint">MOVE<br>HERE</div></div>
   <div id="joyBase"></div><div id="joyKnob"></div>
-  <button class="tb" id="bJump" type="button">JUMP</button>
+  <button class="tb" id="bJump" type="button">JUMP<br><small style="font-size:10px">HOLD = FLY</small></button>
   <button class="tb" id="bMine" type="button">MINE</button>
   <button class="tb" id="bBuild" type="button">BUILD</button>
   <button class="tb hide" id="bBoat" type="button">BOAT</button>
@@ -138,12 +148,13 @@
   <div class="panel help">
     <h2 class="px" style="margin:0 0 6px;color:var(--gold)">How to play</h2>
     <p><b>Move:</b> left thumb on the left side. <b>Look:</b> drag anywhere else.</p>
+    <p><b>JUMP</b> twice for a double jump. <b>Hold JUMP</b> in the air to blast up with your <b>jet boosters</b>. When the fuel runs out, keep holding to <b>glide with your wings</b>. Fuel fills up again on the ground.</p>
     <p><b>MINE:</b> hold it while aiming the + at a block to dig it out. It also hits monsters.</p>
-    <p><b>BUILD:</b> puts the block you picked at the bottom where the + is pointing. Build stairs and towers to reach high places!</p>
+    <p><b>BUILD:</b> puts the block you picked at the bottom where the + is pointing. Blocks never run out. Tap <b>ALL BLOCKS</b> to pick from every kind of block. Try the <b>Build World</b> on the level map to build anything you like!</p>
     <p><b>Boat parts</b> glow gold with a beam of light. The arrow at the top points to the nearest one. Some are buried, some are on tall pillars, some are on other islands.</p>
     <p><b>BOAT:</b> walk up to your boat and press BOAT to ride it. Find every part, then get back in your boat to finish the level.</p>
     <p><b>Bosses</b> on levels 7, 14 and 20. Watch their attacks and jump out of the way!</p>
-    <p><b>Keyboard:</b> WASD move, mouse look (click first), Space jump, left click mine, right click build, 1-8 pick a block, E boat, V camera, Esc pause.</p>
+    <p><b>Keyboard:</b> WASD move, mouse look (click first), Space jump, left click mine, right click build, 1-8 pick a block, Q all blocks, hold Space to fly, E boat, V camera, Esc pause.</p>
   </div>
   <button class="btn" id="helpBack">Got it</button>
 </section>
@@ -171,6 +182,13 @@
   <button class="btn" id="resume">Resume</button>
   <button class="btn ghost" id="toMap">Level map</button>
   <button class="btn ghost" id="restartLvl">Restart level</button>
+  <button class="btn ghost hide" id="newWorld">New Build World</button>
+</section>
+
+<section class="screen dim hide" id="blocks">
+  <h2 class="px" style="margin:0;font-size:26px;color:#8fe36a;text-shadow:2px 2px 0 #12240a">PICK A BLOCK</h2>
+  <div id="blockGrid"></div>
+  <button class="btn ghost" id="blocksClose">Close</button>
 </section>
 
 <section class="screen dim hide" id="ending">

@@ -135,13 +135,20 @@ if (renderer) boot();
 function boot() {
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(72, 1, .05, 400); camera.rotation.order = 'YXZ'; scene.add(camera);
-const hemi = new THREE.HemisphereLight(0xffffff, 0x556644, 1.1); scene.add(hemi);
-const sunL = new THREE.DirectionalLight(0xffffff, .7); sunL.position.set(-.4, 1, .3); scene.add(sunL);
+const hemi = new THREE.HemisphereLight(0xffffff, 0x556644, .95); scene.add(hemi);
+const sunL = new THREE.DirectionalLight(0xfff1d8, 1.05); sunL.castShadow = true; sunL.shadow.mapSize.set(2048, 2048);
+{ const c = sunL.shadow.camera; c.left = -34; c.right = 34; c.top = 34; c.bottom = -34; c.near = 1; c.far = 160; } sunL.shadow.bias = -.0006; sunL.shadow.normalBias = .04;
+scene.add(sunL); scene.add(sunL.target);
+const SUN_DIR = new THREE.Vector3(-.45, .85, .3).normalize();
+const shadowy = o => { o.traverse(m => { if (m.isMesh && !(m.material && m.material.transparent && m.material.opacity < .5)) { m.castShadow = true; m.receiveShadow = true; } }); return o; };
+const waveU = { value: 0 };
+const addWaves = (mat, amp) => { mat.onBeforeCompile = sh => { sh.uniforms.uTime = waveU; sh.vertexShader = 'uniform float uTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vec4 wp = modelMatrix * vec4(position, 1.0);\n  transformed.y += (sin(wp.x * 1.3 + uTime * 2.0) + cos(wp.z * 1.1 + uTime * 1.6)) * ' + amp.toFixed(3) + ';'); }; };
 const atlasTex = new THREE.CanvasTexture(atlasCanvas); atlasTex.magFilter = THREE.NearestFilter; atlasTex.minFilter = THREE.NearestFilter; atlasTex.generateMipmaps = false; atlasTex.colorSpace = THREE.SRGBColorSpace;
 const matSolid = new THREE.MeshLambertMaterial({ map: atlasTex, vertexColors: true, alphaTest: .5 });
-const matWater = new THREE.MeshLambertMaterial({ map: atlasTex, vertexColors: true, transparent: true, opacity: .78, depthWrite: false });
+const matWater = new THREE.MeshLambertMaterial({ map: atlasTex, vertexColors: true, transparent: true, opacity: .72, depthWrite: false }); addWaves(matWater, .045);
 const lam = (c, o) => new THREE.MeshLambertMaterial(Object.assign({ color: c }, o || {}));
 const BOX = new THREE.BoxGeometry(1, 1, 1);
 
@@ -194,7 +201,7 @@ function buildChunk(cx, cz) {
     if (!I2.length) return null;
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P2, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N2, 3));
     g.setAttribute('uv', new THREE.Float32BufferAttribute(U2, 2)); g.setAttribute('color', new THREE.Float32BufferAttribute(C2, 3)); g.setIndex(I2); g.computeBoundingSphere();
-    const m = new THREE.Mesh(g, mat); m.matrixAutoUpdate = false; m.updateMatrix(); worldGroup.add(m); return m;
+    const m = new THREE.Mesh(g, mat); m.matrixAutoUpdate = false; m.updateMatrix(); m.receiveShadow = true; m.castShadow = mat === matSolid; worldGroup.add(m); return m;
   };
   const ch = chunks[cz * NCX + cx];
   ch.solid = mk(P, N, U, C, I, matSolid, ch.solid); ch.water = mk(WP, WN, WU, WC, WI, matWater, ch.water); if (ch.water) ch.water.renderOrder = 2; ch.dirty = false;
@@ -245,7 +252,7 @@ const BOATS = [
   ['Ultimate Star Rocket', 'Solid gold. The best ship in the galaxy!'],
 ];
 const LV = [
-  null,
+  { name: 'Build World', world: 'earth', biome: 'creative', creative: true, spots: [], mobs: [], tip: 'Build anything you like! Fly with your jet boosters. Everything you build is saved.' },
   { name: 'Grassy Island', world: 'earth', biome: 'meadow', spots: ['surface', 'buried', 'pillar'], mobs: [['slime', 1]], tip: 'Use MINE to dig and BUILD to stack blocks. Climb your own tower to reach the high part!' },
   { name: 'Forest Isles', world: 'earth', biome: 'forest', spots: ['surface', 'tree', 'island', 'buried'], mobs: [['slime', 3]], tip: 'One part is on another island. Hop in your boat to get there.' },
   { name: 'Sandy Desert', world: 'earth', biome: 'desert', spots: ['surface', 'buried', 'pillar', 'island'], mobs: [['zombie', 3], ['slime', 1]], tip: 'Watch out for cactus and zombies!' },
@@ -268,6 +275,7 @@ const LV = [
   { name: 'BOSS: Alien Overlord', world: 'space', biome: 'boss3', boss: 'overlord', spots: [], mobs: [['alien', 2]], tip: 'Break the 4 red power crystals to knock the UFO down, then hit the Overlord!' },
 ];
 const BIOMES = {
+  creative: { top: B.GRASS, fill: B.DIRT, beach: B.SAND, tree: 'oak', trees: .006, sky: 0x7fc4ff, fog: 0xc4e6ff, r: 33, h: 2, isl: 0, flat: true },
   meadow: { top: B.GRASS, fill: B.DIRT, beach: B.SAND, tree: 'oak', trees: .012, sky: 0x8fd0ff, fog: 0xbfe4ff, r: 20, h: 6, isl: 2 },
   forest: { top: B.GRASS, fill: B.DIRT, beach: B.SAND, tree: 'oak', trees: .05, sky: 0x86c8f5, fog: 0xb8dff7, r: 21, h: 7, isl: 3 },
   desert: { top: B.SAND, fill: B.SAND, beach: B.SAND, tree: 'cactus', trees: .02, sky: 0xa8d8ff, fog: 0xf2e6c4, r: 22, h: 5, isl: 2 },
@@ -421,7 +429,7 @@ function generate(L) {
    Models: player, monsters, bosses, boats, parts
    ================================================================ */
 const box = (w, h, d, mat, x, y, z, parent) => { const m = new THREE.Mesh(BOX, mat); m.scale.set(w, h, d); m.position.set(x || 0, y || 0, z || 0); if (parent) parent.add(m); return m; };
-function personModel(shirt, skin, pants, hair) {
+function personModel(shirt, skin, pants, hair, gear) {
   const g = new THREE.Group(), M = { shirt: lam(shirt), skin: lam(skin), pants: lam(pants), hair: lam(hair), eye: lam(0x1a1a2a), white: lam(0xffffff) };
   const head = new THREE.Group(); head.position.y = 1.5; g.add(head);
   box(.5, .5, .5, M.skin, 0, .25, 0, head); box(.52, .14, .52, M.hair, 0, .46, 0, head); box(.52, .3, .1, M.hair, 0, .32, .22, head);
@@ -429,7 +437,19 @@ function personModel(shirt, skin, pants, hair) {
   box(.5, .7, .26, M.shirt, 0, 1.12, 0, g);
   const limb = (x, y, mat, mat2) => { const p = new THREE.Group(); p.position.set(x, y, 0); g.add(p); box(.24, .7, .24, mat, 0, -.35, 0, p); if (mat2) box(.25, .2, .25, mat2, 0, -.6, 0, p); return p; };
   const armL = limb(-.37, 1.45, M.shirt, M.skin), armR = limb(.37, 1.45, M.shirt, M.skin), legL = limb(-.13, .75, M.pants), legR = limb(.13, .75, M.pants);
-  return { g, head, armL, armR, legL, legR };
+  const out = { g, head, armL, armR, legL, legR };
+  if (gear) {
+    // jet boosters on the back
+    const metal = lam(0x9aa3b4), red = lam(0xe8323c), flameM = new THREE.MeshBasicMaterial({ color: 0xffa020, transparent: true, opacity: .9 }); out.flames = [];
+    box(.42, .3, .1, metal, 0, 1.2, .18, g);
+    for (const s of [-1, 1]) { const tank = new THREE.Mesh(new THREE.CylinderGeometry(.09, .09, .55, 10), metal); tank.position.set(s * .14, 1.12, .26); g.add(tank); const cap = new THREE.Mesh(new THREE.ConeGeometry(.09, .16, 10), red); cap.position.set(s * .14, 1.47, .26); g.add(cap);
+      const f = new THREE.Mesh(new THREE.ConeGeometry(.08, .5, 10), flameM); f.rotation.x = Math.PI; f.position.set(s * .14, .6, .26); f.visible = false; g.add(f); out.flames.push(f); }
+    // folding wings
+    const feather = lam(0xf4f6fb), tip = lam(new THREE.Color(shirt).getHex());
+    const wing = s => { const p = new THREE.Group(); p.position.set(s * .2, 1.38, .22); g.add(p); box(1.2, .04, .42, feather, s * .6, 0, .08, p); box(.9, .04, .26, feather, s * .5, -.02, .38, p); box(.3, .05, .44, tip, s * 1.13, 0, .1, p); return p; };
+    out.wingL = wing(-1); out.wingR = wing(1);
+  }
+  return out;
 }
 function mobModel(type) {
   const m = MOBS[type], g = new THREE.Group(), col = lam(m.col, { emissive: 0x000000 }), eye = lam(0x111111), red = lam(0xff2a2a, { emissive: 0x880000 });
@@ -543,22 +563,27 @@ const stars = (() => { const n = 1500, p = []; const R = rng(3); for (let i = 0;
 const earthBall = (() => { const cv = document.createElement('canvas'); cv.width = 256; cv.height = 128; const c = cv.getContext('2d'); c.fillStyle = '#2a6fd0'; c.fillRect(0, 0, 256, 128); const R = rng(5); for (let i = 0; i < 30; i++) { c.fillStyle = R() < .7 ? '#3f9a3a' : '#d8c890'; c.beginPath(); c.ellipse(R() * 256, 20 + R() * 88, 10 + R() * 26, 6 + R() * 14, R() * 3, 0, TAU); c.fill(); } c.fillStyle = 'rgba(255,255,255,.6)'; for (let i = 0; i < 40; i++) { c.beginPath(); c.ellipse(R() * 256, R() * 128, 8 + R() * 20, 3 + R() * 5, 0, 0, TAU); c.fill(); } const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return new THREE.Mesh(new THREE.SphereGeometry(30, 32, 20), new THREE.MeshLambertMaterial({ map: t, fog: false })); })();
 const sunSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xfff2c0, fog: false, depthWrite: false })); sunSprite.scale.setScalar(40);
 const clouds = new THREE.Group(); { const R = rng(11), m = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .85 }); for (let i = 0; i < 26; i++) { const c = box(4 + R() * 8, 1, 3 + R() * 6, m, R() * 160 - 40, SY + 6, R() * 160 - 40, clouds); void c; } }
+const skyDome = (() => { const geo = new THREE.SphereGeometry(190, 24, 16); geo.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(geo.attributes.position.count * 3), 3)); return new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false })); })();
+function paintSky(zenith, horizon) { const p = skyDome.geometry.attributes.position, c = skyDome.geometry.attributes.color, a = new THREE.Color(zenith), b = new THREE.Color(horizon), t = new THREE.Color();
+  for (let i = 0; i < p.count; i++) { const y = p.getY(i) / 190; t.copy(b).lerp(a, clamp(y * 1.6, 0, 1)); if (y < 0) t.copy(b); c.setXYZ(i, t.r, t.g, t.b); } c.needsUpdate = true; skyDome.renderOrder = -10; }
 function setEnvironment(space, bio) {
   skyGroup.clear();
   if (space) { scene.background = new THREE.Color(0x05060f); scene.fog = new THREE.Fog(0x05060f, 70, 200); skyGroup.add(stars); earthBall.position.set(-90, 30, -110); skyGroup.add(earthBall); sunSprite.position.set(120, 70, 60); skyGroup.add(sunSprite); hemi.color.set(0xd8e0ff); hemi.groundColor.set(0x30304a); hemi.intensity = 1.0; }
-  else { scene.background = new THREE.Color(bio.sky); scene.fog = new THREE.Fog(bio.fog, 45, 130); skyGroup.add(clouds); sunSprite.position.set(80, 90, -60); skyGroup.add(sunSprite); hemi.color.set(0xffffff); hemi.groundColor.set(0x556644); hemi.intensity = 1.1; }
+  else { scene.background = new THREE.Color(bio.fog); scene.fog = new THREE.Fog(bio.fog, 50, 150); paintSky(new THREE.Color(bio.sky).multiplyScalar(.75).getHex(), bio.fog); skyGroup.add(skyDome); skyGroup.add(clouds); sunSprite.position.set(80, 90, -60); skyGroup.add(sunSprite); hemi.color.set(0xffffff); hemi.groundColor.set(0x556644); hemi.intensity = 1.1; }
 }
 // the endless ocean around the map
-const ocean = new THREE.Mesh(new THREE.PlaneGeometry(600, 600).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: 0x2f6fd0, transparent: true, opacity: .9 })); ocean.position.y = SEA - .14; scene.add(ocean);
+const oceanMat = new THREE.MeshLambertMaterial({ color: 0x2f6fd0, transparent: true, opacity: .9 }); addWaves(oceanMat, .06);
+const ocean = new THREE.Mesh(new THREE.PlaneGeometry(600, 600, 120, 120).rotateX(-Math.PI / 2), oceanMat); ocean.position.y = SEA - .14; ocean.receiveShadow = true; scene.add(ocean);
 const seabed = new THREE.Mesh(new THREE.PlaneGeometry(600, 600).rotateX(-Math.PI / 2), lam(0xc8b880)); seabed.position.y = SEA - 6; scene.add(seabed);
 
 /* ================================================================
    Game objects
    ================================================================ */
-const player = { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, pitch: -.15, ground: false, water: false, hp: 20, hurtT: 0, regenT: 0, riding: false, w: .3, h: 1.8, swing: 0, walk: 0, safe: null };
-let me = personModel(G.shirt, 0xe0a87c, 0x2a3a8a, 0x4a2a12); scene.add(me.g);
+const player = { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, pitch: -.15, ground: false, water: false, hp: 20, hurtT: 0, regenT: 0, riding: false, w: .3, h: 1.8, swing: 0, walk: 0, safe: null, airJumps: 1, fuel: 1, holdT: 0, jumpPrev: false, jet: false, glide: false, jetSnd: 0 };
+let me = personModel(G.shirt, 0xe0a87c, 0x2a3a8a, 0x4a2a12, true); shadowy(me.g); scene.add(me.g);
 const hand = new THREE.Group(); camera.add(hand); hand.position.set(.55, -.55, -.95); hand.scale.setScalar(.75);
 { const arm = box(.16, .16, .55, lam(0xe0a87c), 0, 0, 0, hand); arm.rotation.x = .2; const handle = box(.05, .05, .5, lam(0x8a5a2a), 0, .12, -.28, hand); handle.rotation.x = -.9; box(.38, .07, .07, lam(0x7fe0e0), 0, .3, -.42, hand); void handle; }
+const fpWings = new THREE.Group(); camera.add(fpWings); for (const s of [-1, 1]) { const w = box(1.6, .05, .7, lam(0xf4f6fb), s * 1.25, -.35, -1.1, fpWings); w.rotation.z = s * .18; w.rotation.y = -s * .25; } fpWings.visible = false;
 const highlight = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.005, 1.005, 1.005)), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: .6 })); scene.add(highlight);
 const crack = new THREE.Mesh(new THREE.BoxGeometry(1.01, 1.01, 1.01), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthWrite: false })); scene.add(crack);
 let boat = null;
@@ -581,29 +606,37 @@ const SFX = {
   hit: () => { tone(220, .1, 'square', .06, 110); noiz(.06, .1, 1500); }, hurt: () => { tone(300, .2, 'sawtooth', .07, 120); }, jump: () => tone(300, .08, 'sine', .04, 420),
   part: () => { [523, 659, 784, 1047].forEach((f, i) => tone(f, .14, 'square', .05, null, i * .08)); }, gem: () => tone(1320, .12, 'sine', .05, 1760),
   boss: () => { tone(80, .9, 'sawtooth', .1, 50); noiz(.8, .12, 300); }, win: () => { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, .25, 'square', .05, null, i * .12)); },
-  splash: () => noiz(.3, .1, 900), boom: () => { noiz(.6, .25, 400); tone(60, .5, 'sine', .15, 30); }, laser: () => tone(1400, .25, 'sawtooth', .04, 200), fire: () => noiz(.4, .12, 1200), launch: () => { noiz(3, .25, 500); tone(70, 3, 'sawtooth', .08, 140); },
+  splash: () => noiz(.3, .1, 900), jump2: () => { tone(420, .1, 'sine', .05, 760); noiz(.12, .06, 2500); }, jet: () => noiz(.16, .09, 700), boom: () => { noiz(.6, .25, 400); tone(60, .5, 'sine', .15, 30); }, laser: () => tone(1400, .25, 'sawtooth', .04, 200), fire: () => noiz(.4, .12, 1200), launch: () => { noiz(3, .25, 500); tone(70, 3, 'sawtooth', .08, 140); },
 };
 
 /* ================================================================
    Level start / finish
    ================================================================ */
 let lvl = null, partObjs = [];
+const CKEY = 'chancecraft_world';
+function saveWorld() { if (!G.cfg || !G.cfg.creative || !lvl) return; const out = []; let prev = world[0], n = 1; for (let i = 1; i < world.length; i++) { if (world[i] === prev && n < 60000) n++; else { out.push(n, prev); prev = world[i]; n = 1; } } out.push(n, prev);
+  try { localStorage.setItem(CKEY, out.join(',')); localStorage.setItem(CKEY + '_p', JSON.stringify([player.x, player.y, player.z, player.yaw])); } catch (e) {} }
+function loadWorld() { try { const s = localStorage.getItem(CKEY); if (!s) return false; const a = s.split(',').map(Number); let k = 0; for (let i = 0; i < a.length; i += 2) { world.fill(a[i + 1], k, k + a[i]); k += a[i]; } return k === world.length; } catch (e) { return false; } }
 function startLevel(L) {
+  saveWorld();
   G.level = L; G.won = false; G.mode = 'loading';
   lvl = generate(L); G.cfg = lvl.cfg; G.bio = lvl.bio; G.space = lvl.space;
+  let savedPos = null; if (L === 0 && !G.freshWorld && loadWorld()) { try { savedPos = JSON.parse(localStorage.getItem(CKEY + '_p')); } catch (e) {} } G.freshWorld = false;
   for (let i = 0; i < chunks.length; i++) chunks[i].dirty = true; rebuildDirty(999);
   setEnvironment(lvl.space, lvl.bio); ocean.visible = seabed.visible = !lvl.space;
   // player
   Object.assign(player, { x: lvl.start.x, y: lvl.start.y, z: lvl.start.z, vx: 0, vy: 0, vz: 0, yaw: 0, pitch: -.2, hp: 20, riding: false, safe: { x: lvl.start.x, y: lvl.start.y, z: lvl.start.z } });
   player.yaw = Math.atan2(-(SX / 2 - player.x), -(SZ / 2 - player.z));
-  scene.remove(me.g); me = personModel(G.shirt, 0xe0a87c, 0x2a3a8a, 0x4a2a12); scene.add(me.g);
+  if (savedPos) { player.x = savedPos[0]; player.y = savedPos[1]; player.z = savedPos[2]; player.yaw = savedPos[3]; }
+  while (collides(player.x, player.y, player.z, player.w, player.h) && player.y < SY) player.y += 1;
+  scene.remove(me.g); me = personModel(G.shirt, 0xe0a87c, 0x2a3a8a, 0x4a2a12, true); shadowy(me.g); scene.add(me.g);
   // inventory: a few blocks to start building straight away
-  G.inv = new Map(); const give = (id, n) => G.inv.set(id, (G.inv.get(id) || 0) + n);
-  if (lvl.space) { give(B.METAL, 16); give(B.MOONROCK, 16); } else { give(B.DIRT, 16); give(B.PLANKS, 16); }
-  G.sel = 0; G.gems = 0;
+  G.inv = new Map();
+  G.hot = lvl.space ? [B.METAL, B.GLASS, B.MOONROCK, B.CRYSTAL, B.ALIEN, B.BRICK, B.PLANKS, B.OBSIDIAN] : [B.DIRT, B.PLANKS, B.COBBLE, B.GLASS, B.BRICK, B.LOG, B.LEAVES, B.SAND];
+  G.sel = 0; G.gems = 0; player.fuel = 1; player.airJumps = 1;
   // boat
   if (boat) scene.remove(boat.m.g);
-  const bm = boatModel(L); scene.add(bm.g); boat = { m: bm, x: lvl.boat.x, z: lvl.boat.z, yaw: Math.PI / 2, v: 0, y: lvl.space ? lvl.start.y - 1.2 : SEA - .25, speed: 3.6 + L * .45 };
+  const bm = boatModel(L === 0 ? 10 : L); shadowy(bm.g); scene.add(bm.g); boat = { m: bm, x: lvl.boat.x, z: lvl.boat.z, yaw: Math.PI / 2, v: 0, y: lvl.space ? lvl.start.y - 1.2 : SEA - .25, speed: 3.6 + L * .45 };
   G.boatHome = { x: boat.x, z: boat.z };
   // parts
   for (const p of partObjs) scene.remove(p.m.g); partObjs = [];
@@ -616,7 +649,7 @@ function startLevel(L) {
   if (lvl.cfg.boss) makeBoss(lvl.cfg.boss);
   $('bossbar').classList.toggle('hide', !G.boss); if (G.boss) $('bossname').textContent = G.boss.name;
   refreshHotbar(); updateHearts();
-  $('lvl').textContent = 'LEVEL ' + L + ' · ' + lvl.cfg.name.replace('BOSS: ', '');
+  $('lvl').textContent = L === 0 ? 'BUILD WORLD' : 'LEVEL ' + L + ' · ' + lvl.cfg.name.replace('BOSS: ', '');
 }
 function spawnMob(type, near) {
   const M = MOBS[type]; let pos = null;
@@ -628,7 +661,7 @@ function spawnMob(type, near) {
     pos = { x: x + .5, y: y + 1, z: z + .5 };
   }
   if (!pos) return;
-  const p = mobModel(type); scene.add(p.g);
+  const p = mobModel(type); shadowy(p.g); scene.add(p.g);
   G.mobs.push({ type, M, p, x: pos.x, y: pos.y, z: pos.z, vx: 0, vy: 0, vz: 0, hp: M.hp, yaw: 0, cd: 0, hopT: Math.random(), hurt: 0, ground: false, anim: 0 });
 }
 function finishLevel() {
@@ -648,7 +681,7 @@ function makeBoss(kind) {
   if (kind === 'golem') { b.name = 'STONE GOLEM KING'; b.hp = b.max = 20; b.m = golemModel(); b.w = 1.5; b.h = 5.2; }
   if (kind === 'dragon') { b.name = 'SPACE DRAGON'; b.hp = b.max = 24; b.m = dragonModel(); b.w = 1.5; b.h = 1.6; b.y = a.y + 9; b.ang = 0; }
   if (kind === 'overlord') { b.name = 'ALIEN OVERLORD'; b.hp = b.max = 24; b.m = ufoModel(); b.w = 2.5; b.h = 2.5; b.y = a.y + 9; b.shield = true; b.z = a.z; }
-  b.root = b.m.g; scene.add(b.root); G.boss = b;
+  b.root = b.m.g; shadowy(b.root); if (b.m.shield) b.m.shield.castShadow = false; scene.add(b.root); G.boss = b;
 }
 function shoot(kind, x, y, z, vx, vy, vz) {
   const m = new THREE.Group();
@@ -788,14 +821,14 @@ function actBuild() {
   const x = target.x + target.nx, y = target.y + target.ny, z = target.z + target.nz;
   if (x < 0 || z < 0 || x >= SX || z >= SZ || y < 0 || y >= SY - 1) return;
   const cur = get(x, y, z); if (cur && !D[cur].liquid) return;
-  const list = hotList(), id = list[G.sel]; if (!id) { toast('No blocks!', 'MINE some blocks first'); return; }
+  const list = hotList(), id = list[G.sel]; if (!id) return;
   // don't build inside yourself or a monster
   if (x + 1 > player.x - player.w && x < player.x + player.w && z + 1 > player.z - player.w && z < player.z + player.w && y + 1 > player.y && y < player.y + player.h) return;
   for (const m of G.mobs) if (Math.abs(x + .5 - m.x) < .5 + m.M.w / 2 && Math.abs(z + .5 - m.z) < .5 + m.M.w / 2 && y + 1 > m.y && y < m.y + m.M.h) return;
-  setBlock(x, y, z, id); SFX.place(); player.swing = 1;
-  const n = G.inv.get(id) - 1; if (n <= 0) G.inv.delete(id); else G.inv.set(id, n); refreshHotbar();
+  setBlock(x, y, z, id); SFX.place(); player.swing = 1;   // building blocks never run out
 }
-const hotList = () => [...G.inv.keys()].slice(0, 8);
+const hotList = () => G.hot;
+const PLACEABLE = [B.GRASS, B.DIRT, B.STONE, B.COBBLE, B.PLANKS, B.LOG, B.LEAVES, B.JLEAVES, B.SAND, B.GLASS, B.BRICK, B.SNOW, B.ICE, B.CACTUS, B.COAL, B.IRON, B.GOLD, B.DIAMOND, B.OBSIDIAN, B.METAL, B.CRYSTAL, B.ALIEN, B.MOONROCK, B.MOONDUST, B.MARSROCK, B.MARSSAND, B.BEDROCK];
 
 function updatePlayer(dt) {
   player.hurtT = Math.max(0, player.hurtT - dt); player.regenT += dt; if (player.regenT > 4 && player.hp < 20) { player.hp++; player.regenT = 3; updateHearts(); }
@@ -810,9 +843,31 @@ function updatePlayer(dt) {
   const speed = (inW ? 2.6 : 4.6) * (G.space ? .95 : 1);
   let wx = 0, wz = 0; if (mag > .05) { wx = (-sy * fx + cy * sx) / Math.max(1, Math.hypot(fx, sx)) * speed; wz = (-cy * fx - sy * sx) / Math.max(1, Math.hypot(fx, sx)) * speed; }
   const acc = player.ground ? 22 : 9; player.vx += clamp(wx - player.vx, -acc * dt, acc * dt); player.vz += clamp(wz - player.vz, -acc * dt, acc * dt);
-  if (inW) { player.vy -= grav * .25 * dt; player.vy = Math.max(player.vy, -3); if (input.jump || k.Space) player.vy = Math.min(player.vy + 30 * dt, 4); }
-  else { player.vy -= grav * dt; if ((input.jump || k.Space) && player.ground) { player.vy = 8.6; SFX.jump(); } }
+  const jumpDown = !!(input.jump || k.Space), edge = jumpDown && !player.jumpPrev; player.jumpPrev = jumpDown;
+  if (player.ground) { player.airJumps = 1; player.fuel = Math.min(1, player.fuel + dt * .45); }
+  player.jet = false; player.glide = false;
+  if (inW) { player.vy -= grav * .25 * dt; player.vy = Math.max(player.vy, -3); if (jumpDown) player.vy = Math.min(player.vy + 30 * dt, 4); player.holdT = 0; }
+  else {
+    player.vy -= grav * dt;
+    if (edge) {
+      player.holdT = 0;
+      if (player.ground) { player.vy = 8.6; SFX.jump(); }
+      else if (player.airJumps > 0) { player.airJumps = 0; player.vy = Math.max(player.vy, 0) * .3 + 8.4; SFX.jump2(); burst(player.x, player.y, player.z, 0xffffff, 10, 3); }   // double jump
+    } else if (jumpDown && !player.ground) {
+      player.holdT += dt;
+      // keep holding: jet boosters while there is fuel, then the wings open and you glide
+      if (player.holdT > .2 && player.fuel > 0) { player.jet = true; player.vy = Math.min(player.vy + (grav + 20) * dt, 7.5); player.fuel = Math.max(0, player.fuel - dt / 4); }
+      else if (player.vy < -1) player.glide = true;
+    }
+    if (player.glide) {
+      player.vy = Math.max(player.vy, -2.1);
+      const gx = mag > .05 ? wx / speed : -sy, gz = mag > .05 ? wz / speed : -cy, gs = 8.5;
+      player.vx += clamp(gx * gs - player.vx, -7 * dt, 7 * dt); player.vz += clamp(gz * gs - player.vz, -7 * dt, 7 * dt);
+    }
+    if (player.jet) { player.jetSnd -= dt; if (player.jetSnd <= 0) { player.jetSnd = .14; SFX.jet(); } const bx = player.x + Math.sin(player.yaw) * .3, bz = player.z + Math.cos(player.yaw) * .3; burst(bx, player.y + .5, bz, Math.random() < .5 ? 0xffa020 : 0xffe066, 2, 1.5); }
+  }
   player.vy = Math.max(player.vy, -40);
+  if (player.y > SY + 6) { player.y = SY + 6; player.vy = Math.min(player.vy, 0); }   // the sky has a ceiling
   const before = { x: player.x, z: player.z };
   const hit = moveBody(player, dt, player.w, player.h);
   // auto-jump up single steps, like on a tablet
@@ -843,7 +898,7 @@ function boardOrLeave() {
   if (!best) { toast('No land here', 'Sail closer to an island'); return; }
   player.riding = false; Object.assign(player, { x: best.x, y: best.y, z: best.z, vx: 0, vy: 0, vz: 0 });
 }
-const levelDone = () => (G.cfg.boss ? G.boss && G.boss.dead : partObjs.every(p => p.got));
+const levelDone = () => (G.cfg.creative ? false : G.cfg.boss ? G.boss && G.boss.dead : partObjs.every(p => p.got));
 function updateBoat(dt) {
   let fx = -input.my, sx = input.mx; const k = input.keys;
   if (k.KeyW || k.ArrowUp) fx = 1; if (k.KeyS || k.ArrowDown) fx = -1; if (k.KeyA || k.ArrowLeft) sx = -1; if (k.KeyD || k.ArrowRight) sx = 1;
@@ -949,6 +1004,12 @@ function endCine() {
 }
 function showCard(L) {
   G.mode = 'card';
+  if (L === 0) {
+    $('cardLevel').textContent = 'BUILD WORLD · SAVED ON THIS DEVICE'; $('cardHead').textContent = 'YOUR GEAR'; $('cardBoat').textContent = 'Jet Boosters + Wings';
+    $('cardWas').textContent = 'Every block, as many as you want. No monsters.'; $('cardStats').innerHTML = '';
+    $('cardGoal').innerHTML = '<b>How to fly</b><br>Tap JUMP twice to double jump. Keep holding JUMP to blast up with your jet boosters. When the fuel runs out, keep holding to glide with your wings.<br><span style="color:var(--mute)">Tap ALL BLOCKS on the bottom bar to pick any block.</span>';
+    showScreen('card'); return;
+  }
   $('cardLevel').textContent = 'LEVEL ' + L + ' OF 20 · ' + (LV[L].world === 'space' ? 'OUTER SPACE' : 'EARTH');
   $('cardHead').textContent = L === 1 ? 'YOUR BOAT' : 'BOAT UPGRADE!';
   $('cardBoat').textContent = BOATS[L - 1][0];
@@ -968,12 +1029,23 @@ function toast(a, b) { const el = $('toast'); el.innerHTML = a + (b ? '<small>' 
 function refreshHotbar() {
   const list = hotList(); if (G.sel >= list.length) G.sel = Math.max(0, list.length - 1);
   const hb = $('hotbar'); hb.innerHTML = '';
-  list.forEach((id, i) => { const d = document.createElement('div'); d.className = 'slot' + (i === G.sel ? ' sel' : ''); d.innerHTML = '<img alt="" src="' + blockIcon(id) + '"><b>' + G.inv.get(id) + '</b>'; d.onpointerdown = e => { e.preventDefault(); e.stopPropagation(); G.sel = i; refreshHotbar(); }; hb.appendChild(d); });
-  if (!list.length) hb.innerHTML = '<div style="padding:10px;font-weight:900;font-size:13px">Mine blocks to fill your hotbar</div>';
+  list.forEach((id, i) => { const d = document.createElement('div'); d.className = 'slot' + (i === G.sel ? ' sel' : ''); d.innerHTML = '<img alt="" src="' + blockIcon(id) + '">'; d.onpointerdown = e => { e.preventDefault(); e.stopPropagation(); G.sel = i; refreshHotbar(); }; hb.appendChild(d); });
+  const more = document.createElement('div'); more.className = 'slot more'; more.innerHTML = '<span>ALL<br>BLOCKS</span>'; more.onpointerdown = e => { e.preventDefault(); e.stopPropagation(); openBlocks(); }; hb.appendChild(more);
 }
+function openBlocks() {
+  if (G.mode !== 'play') return; G.mode = 'blocks'; document.exitPointerLock && document.exitPointerLock();
+  const g = $('blockGrid'); g.innerHTML = '';
+  for (const id of PLACEABLE) { const b = document.createElement('button'); b.className = 'bk'; b.innerHTML = '<img alt="" src="' + blockIcon(id) + '"><span>' + D[id].n + '</span>';
+    b.onclick = () => { const at = G.hot.indexOf(id); if (at >= 0) G.sel = at; else G.hot[G.sel] = id; refreshHotbar(); closeBlocks(); }; g.appendChild(b); }
+  showScreen('blocks');
+}
+function closeBlocks() { if (G.mode !== 'blocks') return; showScreen(null); G.mode = 'play'; }
 function updateHud() {
   const left = partObjs.filter(p => !p.got);
-  if (G.cfg.boss) { $('parts').textContent = G.boss && !G.boss.dead ? 'BOSS' : 'BOAT!'; }
+  $('fuelFill').style.width = (player.fuel * 100) + '%'; $('fuel').classList.toggle('low', player.fuel < .2);
+  $('arrow').style.visibility = G.cfg.creative ? 'hidden' : '';
+  if (G.cfg.creative) { $('parts').textContent = 'BUILD'; $('dist').textContent = ''; }
+  else if (G.cfg.boss) { $('parts').textContent = G.boss && !G.boss.dead ? 'BOSS' : 'BOAT!'; }
   else $('parts').textContent = G.partsGot + '/' + partObjs.length;
   // arrow to the nearest part (or back to the boat when it is time to go)
   let tx = null, tz = null, label = '';
@@ -1016,11 +1088,13 @@ $('bPause').onclick = () => pause(true);
 addEventListener('keydown', e => {
   audio(); input.keys[e.code] = true;
   if (G.mode === 'cine' && (e.code === 'Space' || e.code === 'Enter')) { endCine(); return; }
+  if (G.mode === 'blocks' && (e.code === 'Escape' || e.code === 'KeyQ' || e.code === 'KeyI')) { closeBlocks(); return; }
   if (G.mode !== 'play') return;
   if (e.code === 'Escape' || e.code === 'KeyP') pause(true);
   if (e.code === 'KeyE' || e.code === 'KeyB') boardOrLeave();
   if (e.code === 'KeyV' || e.code === 'F5') { G.cam3 = !G.cam3; e.preventDefault(); }
   if (e.code === 'KeyF') actBuild();
+  if (e.code === 'KeyQ' || e.code === 'KeyI') { openBlocks(); return; }
   if (/^Digit[1-8]$/.test(e.code)) { const i = +e.code.slice(5) - 1; if (i < hotList().length) { G.sel = i; refreshHotbar(); } }
   if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
 });
@@ -1029,12 +1103,13 @@ addEventListener('keyup', e => { input.keys[e.code] = false; });
 /* ================================================================
    Screens
    ================================================================ */
-const SCREENS = ['title', 'help', 'map', 'card', 'pause', 'ending'];
+const SCREENS = ['title', 'help', 'map', 'card', 'pause', 'ending', 'blocks'];
 function showScreen(id) { for (const s of SCREENS) $(s).classList.toggle('hide', s !== id); }
 function enterPlay() { G.mode = 'play'; showScreen(null); $('hud').classList.remove('hide'); $('touch').classList.toggle('hide', false); for (const id of ['joyZone', 'bJump', 'bMine', 'bBuild']) $(id).style.display = touch ? '' : 'none'; $('joyHint').style.display = touch ? '' : 'none'; if (!touch) toast('Click to look around', 'WASD to move · left click mine · right click build'); }
-function pause(on) { if (on) { G.mode = 'pause'; showScreen('pause'); document.exitPointerLock && document.exitPointerLock(); } else enterPlay(); }
+function pause(on) { if (on) { saveWorld(); G.mode = 'pause'; $('newWorld').classList.toggle('hide', !G.cfg.creative); $('restartLvl').classList.toggle('hide', !!G.cfg.creative); showScreen('pause'); document.exitPointerLock && document.exitPointerLock(); } else enterPlay(); }
 function buildMap() {
   const box2 = $('levels'); box2.innerHTML = '';
+  { const b = document.createElement('button'); b.className = 'lv build'; b.innerHTML = '<span class="n">🧱 BUILD WORLD</span><span>Build anything with every block, fly with jet boosters and wings. Saved automatically.</span>'; b.onclick = () => { audio(); startLevel(0); showCard(0); }; box2.appendChild(b); }
   for (let L = 1; L <= 20; L++) { const c = LV[L], b = document.createElement('button'); b.className = 'lv ' + (c.boss ? 'boss' : c.world) + (G.done[L] ? ' done' : '');
     b.innerHTML = '<span class="n">' + L + '</span><span class="ic">' + (c.boss ? '💀' : c.world === 'space' ? '🪐' : '🌍') + (G.done[L] ? '⭐' : '') + '</span><span>' + c.name.replace('BOSS: ', '') + '</span>';
     b.onclick = () => { audio(); playCine(L === 11 ? 'launch' : L > 11 ? 'fly' : 'sail', L); }; box2.appendChild(b); }
@@ -1042,10 +1117,13 @@ function buildMap() {
 function showEnding() { G.mode = 'ending'; $('hud').classList.add('hide'); $('touch').classList.add('hide'); $('endTitle').textContent = G.name + ' SAVED THE GALAXY!'; $('endText').textContent = 'You beat the Stone Golem King, the Space Dragon and the Alien Overlord, and built the Ultimate Star Rocket. Every level is still open on the map. Play any of them again!'; confetti(); showScreen('ending'); document.exitPointerLock && document.exitPointerLock(); }
 $('goMap').onclick = () => { audio(); G.name = ($('pname').value.trim().toUpperCase() || 'CHANCE').slice(0, 12); saveGame(); buildMap(); showScreen('map'); };
 $('goHelp').onclick = () => showScreen('help'); $('helpBack').onclick = () => showScreen('title'); $('mapBack').onclick = () => showScreen('title');
-$('cardGo').onclick = () => { audio(); enterPlay(); toast(LV[G.level].name, LV[G.level].tip); };
+$('cardGo').onclick = () => { audio(); enterPlay(); toast(LV[G.level].name, G.level === 0 ? 'Build anything you like!' : LV[G.level].tip); if (!G.flyTip) { G.flyTip = true; setTimeout(() => G.mode === 'play' && toast('NEW: Double jump + jet boosters!', 'Tap JUMP twice, then hold JUMP to fly'), 2600); } };
 $('resume').onclick = () => pause(false);
 $('toMap').onclick = () => { buildMap(); G.mode = 'map'; $('hud').classList.add('hide'); $('touch').classList.add('hide'); showScreen('map'); };
 $('restartLvl').onclick = () => { startLevel(G.level); showCard(G.level); };
+$('newWorld').onclick = () => { if (!confirm('Start a brand new Build World? Your old build will be gone.')) return; try { localStorage.removeItem(CKEY); } catch (e) {} G.freshWorld = true; G.cfg = null; startLevel(0); showCard(0); };
+document.addEventListener('visibilitychange', () => { if (document.hidden) saveWorld(); });
+$('blocksClose').onclick = () => closeBlocks();
 $('endMap').onclick = () => { buildMap(); showScreen('map'); };
 $('skip').onclick = () => endCine();
 $('pname').value = G.name;
@@ -1060,7 +1138,7 @@ addEventListener('resize', resize); resize();
 function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(.05, (now - last) / 1000); last = now; G.t += dt;
-  if (quality > 0) { slowT = dt > .045 ? slowT + dt : Math.max(0, slowT - dt * .5); if (slowT > 3) { quality--; slowT = 0; renderer.setPixelRatio(quality === 1 ? Math.min(1.25, devicePixelRatio || 1) : .85); resize(); } }
+  if (quality > 0) { slowT = dt > .045 ? slowT + dt : Math.max(0, slowT - dt * .5); if (slowT > 3) { quality--; slowT = 0; renderer.setPixelRatio(quality === 1 ? Math.min(1.25, devicePixelRatio || 1) : .85); if (quality === 0) sunL.castShadow = false; else { sunL.shadow.mapSize.set(1024, 1024); if (sunL.shadow.map) { sunL.shadow.map.dispose(); sunL.shadow.map = null; } } resize(); } }
   if (G.mode === 'cine') { updateCine(dt); renderer.render(cine.scene, cine.cam); return; }
   if (!lvl) {   // title: a gentle fly-over of level 1
     titleT += dt; if (!CC.titleWorld) { CC.titleWorld = true; startLevel(1); G.mode = 'title'; }
@@ -1071,6 +1149,7 @@ function frame(now) {
   if (G.mode === 'play') {
     updatePlayer(dt); if (!player.riding) actMine(dt); else { crack.material.opacity = 0; target = null; }
     updateMobs(dt); updateBoss(dt); updateShots(dt);
+    if (G.cfg.creative) { G.saveT = (G.saveT || 0) + dt; if (G.saveT > 20) { G.saveT = 0; saveWorld(); } }
     G.hurtFlash = Math.max(0, G.hurtFlash - dt);
     updateHud();
   }
@@ -1092,6 +1171,15 @@ function frame(now) {
     me.g.position.set(player.x, player.y, player.z); me.g.rotation.y = player.yaw; const s = Math.sin(player.walk * 3) * Math.min(1, Math.hypot(player.vx, player.vz) / 3);
     me.legL.rotation.x = s * .7; me.legR.rotation.x = -s * .7; me.armL.rotation.x = -s * .6; me.armR.rotation.x = input.mine ? -1.2 + Math.sin(player.swing) * .6 : s * .6;
   }
+  // jet flames, wings and a little extra speed feel when flying
+  const flying = !player.riding && (player.jet || player.glide);
+  for (const f of me.flames || []) { f.visible = player.jet; f.scale.set(1, .7 + Math.random() * .7, 1); }
+  if (me.wingL) { const open = player.glide ? 1 : player.jet ? .55 : 0; me.wingOpen = lerp(me.wingOpen || 0, open, Math.min(1, dt * 8)); const w = me.wingOpen, flap = player.glide ? Math.sin(G.t * 3) * .05 : 0; me.wingL.rotation.set(0, -1.35 * (1 - w), .25 * w + flap); me.wingR.rotation.set(0, 1.35 * (1 - w), -.25 * w - flap); }
+  fpWings.visible = !G.cam3 && !player.riding && player.glide;
+  const fovT = flying ? 82 : 72; if (Math.abs(camera.fov - fovT) > .1) { camera.fov = lerp(camera.fov, fovT, Math.min(1, dt * 4)); camera.updateProjectionMatrix(); }
+  if (flying && !player.ground) { me.legL.rotation.x = me.legR.rotation.x = .25; me.armL.rotation.z = .5; me.armR.rotation.z = -.5; } else { me.armL.rotation.z = me.armR.rotation.z = 0; }
+  waveU.value = G.t;
+  { const fx = Math.round(player.x / 2) * 2, fz = Math.round(player.z / 2) * 2; sunL.target.position.set(fx, player.y, fz); sunL.position.set(fx + SUN_DIR.x * 70, player.y + SUN_DIR.y * 70, fz + SUN_DIR.z * 70); sunL.target.updateMatrixWorld(); }
   hand.rotation.x = input.mine || player.swing > 0 ? Math.sin(player.swing) * .5 - .2 : Math.sin(player.walk * 3) * .03; if (!input.mine) player.swing = Math.max(0, player.swing - dt * 4);
   highlight.visible = !!target && !player.riding && G.mode === 'play'; if (target) highlight.position.set(target.x + .5, target.y + .5, target.z + .5);
   skyGroup.position.set(camera.position.x, 0, camera.position.z); clouds.position.x = (G.t * .8) % 80 - 40;

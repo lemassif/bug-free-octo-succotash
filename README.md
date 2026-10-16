@@ -377,6 +377,15 @@ block world, fight monsters, and find the glowing boat parts on every level.
   points to the nearest one. Some are buried, some sit on pillars or treetops
   you have to build up to, some are in caves, and some are on other islands
   or asteroids you reach by boat.
+- **Double jump, jet boosters and wings.** Tap JUMP twice for a double jump.
+  Hold JUMP in the air to blast up with the jet boosters on your back (the
+  JET bar shows the fuel, which refills on the ground). When the fuel runs
+  out, keep holding to spread your wings and glide.
+- **Build anything.** Blocks never run out, and ALL BLOCKS opens a menu of
+  every block in the game. The **Build World** on the level map is a big
+  island with no monsters where everything you build is saved on the device.
+- **Sun shadows, moving water and a gradient sky** make the world look more
+  real; slower devices turn shadows off by themselves.
 - **Controls:** left thumb moves, drag anywhere else to look, MINE (hold),
   BUILD, JUMP and BOAT. The 👁 button switches to third person. Keyboard and
   mouse: WASD, mouse look, left click mine, right click build, 1-8 pick a
