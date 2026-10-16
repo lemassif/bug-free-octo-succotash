@@ -1,4 +1,4 @@
-> This repo is a small **retro arcade** with ten self-contained browser games,
+> This repo is a small **retro arcade** with eleven self-contained browser games,
 > plus a learning app. Open [`index.html`](index.html) for the **menu**, then
 > pick one:
 >
@@ -13,6 +13,7 @@
 > | **Lucky Seven Casino** | [`casino.html`](casino.html) | craps, blackjack, roulette, pai gow and hold'em with several players — see below |
 > | **Decathlon** | [`decathlon.html`](decathlon.html) | all ten track and field events for one to five athletes — see below |
 > | **Powder Cup** | [`winter.html`](winter.html) | ski and snowboard: races, moguls, halfpipe and big air — see below |
+> | **ChanceCraft** | [`chancecraft.html`](chancecraft.html) | block-building adventure: 20 levels on Earth and in space, boats, rockets and bosses — see below |
 > | **Super Strikers** | [`soccer.html`](soccer.html) | 3D five-a-side soccer with goal celebrations — see below |
 > | **Brain Box** | [`logic.html`](logic.html) | logic puzzles: clue grids, sudoku, picture cross and queens — see below |
 >
@@ -351,4 +352,35 @@ Five-a-side 3D soccer built for young players (the Easy level is tuned for a
 - Upright phones get a behind-the-play camera; sideways phones and computers
   get the TV view from the touchline. `soccer3d.js` draws everything with
   three.js; without WebGL the match still plays on a top-down pitch.
+
+---
+
+# ChanceCraft
+
+A block-building adventure made for Chance: mine and place blocks in a 3D
+block world, fight monsters, and find the glowing boat parts on every level.
+
+- **20 levels.** Levels 1-10 are on Earth: Grassy Island, Forest Isles, Sandy
+  Desert, Snowy Peaks, Jungle Lagoon, Deep Caves, Pirate Islands, Volcano
+  Island and the Launch Pad. Levels 11-20 are in outer space: the Moon (low
+  gravity), Mars, the Asteroid Belt, an Ice Moon, Saturn's Rings, a Crystal
+  Planet, a Lava Moon and the Alien Base. Every level is open on the level map.
+- **Three bosses:** the **Stone Golem King** (level 7, jump his stomp and hit
+  him while he's dizzy), the **Space Dragon** (level 14, dodge the fireballs
+  and hit it when it lands) and the **Alien Overlord** (level 20, smash the
+  four red power crystals to bring the UFO down).
+- **Your boat upgrades at the start of every level**, from the **Noob Raft**
+  through the canoe, rowboat, sailboat, speedboat, pirate ship, hovercraft and
+  jet boat to the **Rocket Boat with Wings** on level 10, which blasts off to
+  outer space. In space it keeps upgrading, up to the **Ultimate Star Rocket**.
+- **Boat parts** glow gold with a beam of light, and an arrow at the top
+  points to the nearest one. Some are buried, some sit on pillars or treetops
+  you have to build up to, some are in caves, and some are on other islands
+  or asteroids you reach by boat.
+- **Controls:** left thumb moves, drag anywhere else to look, MINE (hold),
+  BUILD, JUMP and BOAT. The 👁 button switches to third person. Keyboard and
+  mouse: WASD, mouse look, left click mine, right click build, 1-8 pick a
+  block, E boat, V camera.
+- Everything, including the pixel textures, is generated in `chancecraft.js`
+  with three.js. Finished levels are saved on the device.
 

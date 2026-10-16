@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1b2a10">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>ChanceCraft</title>
+<style>
+  :root { --gold: #ffd34d; --ink: #f4f7ee; --mute: #b9c7a8; --panel: rgba(18,24,14,.9); }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0d1408; color: var(--ink); font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; -webkit-user-select: none; user-select: none; touch-action: none; }
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  .px { font-family: "Courier New", ui-monospace, monospace; font-weight: 900; letter-spacing: .04em; }
+  .hide { display: none !important; }
+
+  /* HUD */
+  #hud { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
+  #topbar { position: absolute; left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); top: max(8px, env(safe-area-inset-top)); display: flex; align-items: flex-start; gap: 10px; }
+  #hearts { font-size: 20px; line-height: 1; letter-spacing: -1px; text-shadow: 0 2px 0 #000; white-space: nowrap; }
+  #lvl { font-size: 13px; font-weight: 900; background: rgba(0,0,0,.45); padding: 5px 9px; border-radius: 8px; margin-top: 4px; }
+  #partsBox { margin: 0 auto; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,.5); padding: 6px 12px; border-radius: 12px; font-weight: 900; font-size: 16px; }
+  #arrow { width: 26px; height: 26px; display: grid; place-items: center; font-size: 22px; color: var(--gold); transition: transform .08s linear; }
+  #dist { font-size: 12px; color: var(--mute); font-weight: 800; }
+  #bossbar { position: absolute; left: 50%; top: calc(max(8px, env(safe-area-inset-top)) + 46px); transform: translateX(-50%); width: min(70vw, 460px); text-align: center; }
+  #bossname { font-weight: 900; font-size: 15px; color: #ff9a9a; text-shadow: 0 2px 0 #000; margin-bottom: 4px; }
+  #bossTrack { height: 14px; border-radius: 7px; background: rgba(0,0,0,.6); border: 2px solid #000; overflow: hidden; }
+  #bossFill { height: 100%; background: linear-gradient(90deg, #ff3d3d, #ff9a3d); width: 100%; transition: width .15s; }
+  #toast { position: absolute; left: 0; right: 0; top: 24%; text-align: center; font-size: clamp(22px, 5vw, 38px); font-weight: 900; color: #fff; text-shadow: 0 3px 0 #000, 0 0 12px rgba(0,0,0,.6); opacity: 0; transition: opacity .25s; }
+  #toast small { display: block; font-size: 15px; color: var(--gold); margin-top: 4px; }
+  #cross { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; }
+  #cross::before, #cross::after { content: ''; position: absolute; background: rgba(255,255,255,.85); box-shadow: 0 0 0 1px rgba(0,0,0,.35); }
+  #cross::before { left: 10px; top: 0; width: 2px; height: 22px; } #cross::after { top: 10px; left: 0; height: 2px; width: 22px; }
+  #hotbar { position: absolute; left: 50%; bottom: calc(max(8px, env(safe-area-inset-bottom)) + 4px); transform: translateX(-50%); display: flex; gap: 4px; pointer-events: auto; background: rgba(0,0,0,.45); padding: 4px; border-radius: 10px; }
+  .slot { width: 50px; height: 50px; border-radius: 8px; border: 3px solid rgba(255,255,255,.18); background: rgba(0,0,0,.35); position: relative; display: grid; place-items: center; }
+  .slot.sel { border-color: #fff; background: rgba(255,255,255,.18); }
+  .slot img { width: 36px; height: 36px; image-rendering: pixelated; }
+  .slot b { position: absolute; right: 3px; bottom: 1px; font-size: 13px; text-shadow: 0 1px 0 #000, 0 0 3px #000; }
+  @media (max-width: 700px) { .slot { width: 42px; height: 42px; } .slot img { width: 30px; height: 30px; } }
+  #damage { position: absolute; inset: 0; background: radial-gradient(circle, transparent 50%, rgba(255,0,0,.55)); opacity: 0; transition: opacity .2s; }
+
+  /* touch controls */
+  #touch { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
+  #look { position: absolute; inset: 0; pointer-events: auto; touch-action: none; }
+  #joyZone { position: absolute; left: 0; bottom: 0; width: 42%; height: 62%; pointer-events: auto; touch-action: none; }
+  #joyBase { position: absolute; width: 130px; height: 130px; margin: -65px 0 0 -65px; border-radius: 50%; border: 3px solid rgba(255,255,255,.4); background: rgba(255,255,255,.08); display: none; }
+  #joyKnob { position: absolute; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; background: rgba(255,255,255,.75); box-shadow: 0 3px 8px rgba(0,0,0,.4); display: none; }
+  #joyHint { position: absolute; left: max(24px, env(safe-area-inset-left)); bottom: calc(max(24px, env(safe-area-inset-bottom)) + 70px); width: 110px; height: 110px; border-radius: 50%; border: 3px dashed rgba(255,255,255,.3); display: grid; place-items: center; font-size: 12px; font-weight: 900; color: rgba(255,255,255,.55); text-align: center; }
+  .tb { position: absolute; pointer-events: auto; touch-action: none; border: 0; border-radius: 50%; font: inherit; font-weight: 900; color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.4); box-shadow: 0 5px 0 rgba(0,0,0,.4), 0 8px 18px rgba(0,0,0,.35); }
+  .tb.on { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,.4); }
+  #bJump { right: max(18px, env(safe-area-inset-right)); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 70px); width: 92px; height: 92px; background: radial-gradient(circle at 40% 30%, #9fe0ff, #2f7fd0); font-size: 16px; }
+  #bMine { right: calc(max(18px, env(safe-area-inset-right)) + 104px); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 130px); width: 80px; height: 80px; background: radial-gradient(circle at 40% 30%, #ff9a8a, #c8322a); font-size: 14px; }
+  #bBuild { right: calc(max(18px, env(safe-area-inset-right)) + 104px); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 34px); width: 80px; height: 80px; background: radial-gradient(circle at 40% 30%, #a6f08a, #3d9a2a); font-size: 14px; }
+  #bBoat { right: max(18px, env(safe-area-inset-right)); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 182px); width: 92px; height: 60px; border-radius: 16px; background: linear-gradient(180deg, #ffe27a, #f0a500); color: #2a1a00; text-shadow: none; font-size: 15px; }
+  #bCam, #bPause { position: absolute; pointer-events: auto; top: max(8px, env(safe-area-inset-top)); width: 44px; height: 44px; border: 0; border-radius: 12px; background: rgba(0,0,0,.45); color: #fff; font-weight: 900; font-size: 18px; }
+  #bPause { right: max(10px, env(safe-area-inset-right)); } #bCam { right: calc(max(10px, env(safe-area-inset-right)) + 52px); font-size: 20px; }
+  @media (max-height: 500px) { #bJump { width: 76px; height: 76px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 56px); } #bMine, #bBuild { width: 66px; height: 66px; right: calc(max(18px, env(safe-area-inset-right)) + 88px); } #bMine { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 104px); } #bBuild { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 28px); } #bBoat { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 142px); height: 50px; width: 80px; } }
+
+  /* screens */
+  .screen { z-index: 5; position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); text-align: center; overflow-y: auto; touch-action: pan-y; }
+  .dim { background: rgba(8,12,6,.72); }
+  .logo { margin: 0; font-size: clamp(48px, 13vw, 104px); line-height: .9; color: #8fe36a; text-shadow: 4px 4px 0 #2f5d1c, 8px 8px 0 #12240a; }
+  .logo small { display: block; font-size: .2em; color: var(--gold); text-shadow: 2px 2px 0 #3a2a00; margin-top: .6em; letter-spacing: .3em; }
+  .tag { margin: 0; max-width: 40ch; font-size: clamp(14px, 3.6vw, 18px); font-weight: 700; line-height: 1.4; text-shadow: 0 2px 4px #000; }
+  .btn { border: 0; border-radius: 6px; padding: 14px 34px; font: inherit; font-weight: 900; font-size: 18px; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; color: #1a1300;
+    background: linear-gradient(180deg, #b6f08f, #5bbf3a); box-shadow: inset 0 -5px 0 rgba(0,0,0,.25), 0 5px 0 #23460f; }
+  .btn:active { transform: translateY(3px); box-shadow: inset 0 -5px 0 rgba(0,0,0,.25), 0 2px 0 #23460f; }
+  .btn.gold { background: linear-gradient(180deg, #ffe27a, #f0a500); box-shadow: inset 0 -5px 0 rgba(0,0,0,.2), 0 5px 0 #7a5200; }
+  .btn.ghost { background: rgba(255,255,255,.12); color: var(--ink); box-shadow: none; border: 2px solid rgba(255,255,255,.35); }
+  .panel { background: var(--panel); border: 3px solid #3c5a28; border-radius: 10px; padding: 16px; width: min(100%, 560px); }
+  input[type=text] { width: 100%; border-radius: 6px; border: 3px solid #3c5a28; background: rgba(0,0,0,.4); color: #fff; font: inherit; font-weight: 900; font-size: 22px; padding: 10px; text-transform: uppercase; letter-spacing: .1em; text-align: center; }
+  .shirts { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+  .shirt { width: 40px; height: 40px; border-radius: 8px; border: 3px solid transparent; cursor: pointer; }
+  .shirt[aria-pressed="true"] { border-color: #fff; }
+  #levels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: min(100%, 620px); }
+  .lv { border: 0; border-radius: 8px; padding: 8px 4px; font: inherit; font-weight: 900; color: #fff; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; box-shadow: inset 0 -4px 0 rgba(0,0,0,.3); min-height: 76px; justify-content: center; }
+  .lv .n { font-size: 22px; } .lv .ic { font-size: 18px; } .lv.done { outline: 3px solid var(--gold); }
+  .lv.earth { background: linear-gradient(180deg, #4f9a3a, #2f6a22); } .lv.space { background: linear-gradient(180deg, #4b3a9a, #241a5c); } .lv.boss { background: linear-gradient(180deg, #b0362a, #6a1a12); }
+  #card .boatName { font-size: clamp(26px, 7vw, 44px); color: var(--gold); text-shadow: 3px 3px 0 #3a2a00; margin: 4px 0; }
+  #card .was { color: var(--mute); font-size: 15px; font-weight: 800; }
+  .stat { display: grid; grid-template-columns: 90px 1fr; align-items: center; gap: 8px; margin: 6px 0; font-weight: 800; font-size: 14px; text-align: left; }
+  .bar { height: 14px; border-radius: 4px; background: rgba(255,255,255,.12); overflow: hidden; } .bar i { display: block; height: 100%; background: linear-gradient(90deg, #8fe36a, #ffd34d); }
+  .goal { text-align: left; font-size: 15px; line-height: 1.5; margin-top: 8px; }
+  .help p { text-align: left; font-size: 15px; line-height: 1.45; margin: 6px 0; }
+  .help b { color: var(--gold); }
+  #cineText { z-index: 6; position: fixed; left: 0; right: 0; top: 12%; text-align: center; font-size: clamp(22px, 5.4vw, 40px); font-weight: 900; text-shadow: 0 3px 0 #000, 0 0 16px rgba(0,0,0,.7); pointer-events: none; }
+  #cineText small { display: block; font-size: 16px; color: var(--gold); margin-top: 6px; }
+  #skip { z-index: 6; position: fixed; right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); }
+  .confetti { position: fixed; top: -12px; width: 10px; height: 10px; z-index: 50; pointer-events: none; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(540deg); } }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hide">
+  <div id="damage"></div>
+  <div id="topbar">
+    <div><div id="hearts"></div><div id="lvl"></div></div>
+    <div id="partsBox"><span id="arrow">▲</span><span id="parts">0/3</span><span id="dist"></span></div>
+  </div>
+  <div id="bossbar" class="hide"><div id="bossname"></div><div id="bossTrack"><div id="bossFill"></div></div></div>
+  <div id="cross"></div>
+  <div id="toast"></div>
+  <div id="hotbar"></div>
+</div>
+
+<div id="touch" class="hide">
+  <div id="look"></div>
+  <div id="joyZone"><div id="joyHint">MOVE<br>HERE</div></div>
+  <div id="joyBase"></div><div id="joyKnob"></div>
+  <button class="tb" id="bJump" type="button">JUMP</button>
+  <button class="tb" id="bMine" type="button">MINE</button>
+  <button class="tb" id="bBuild" type="button">BUILD</button>
+  <button class="tb hide" id="bBoat" type="button">BOAT</button>
+  <button id="bCam" type="button" aria-label="Camera">👁</button>
+  <button id="bPause" type="button" aria-label="Pause">II</button>
+</div>
+
+<section class="screen dim" id="title">
+  <h1 class="logo px">CHANCE<br>CRAFT<small>EARTH · SPACE · 20 LEVELS</small></h1>
+  <p class="tag">Mine blocks, build towers, fight monsters and three giant bosses. Find the boat parts on every level to upgrade your boat, from a Noob Raft all the way to a rocket with wings that flies to outer space!</p>
+  <div class="panel">
+    <div style="font-weight:900;color:var(--mute);font-size:12px;letter-spacing:.15em;margin-bottom:6px">YOUR NAME</div>
+    <input type="text" id="pname" maxlength="12" value="CHANCE" autocomplete="off">
+    <div class="shirts" id="shirts"></div>
+  </div>
+  <button class="btn" id="goMap">Play</button>
+  <button class="btn ghost" id="goHelp">How to play</button>
+  <a href="index.html" style="color:#b6f08f;font-size:14px">☰ Arcade menu</a>
+</section>
+
+<section class="screen dim hide" id="help">
+  <div class="panel help">
+    <h2 class="px" style="margin:0 0 6px;color:var(--gold)">How to play</h2>
+    <p><b>Move:</b> left thumb on the left side. <b>Look:</b> drag anywhere else.</p>
+    <p><b>MINE:</b> hold it while aiming the + at a block to dig it out. It also hits monsters.</p>
+    <p><b>BUILD:</b> puts the block you picked at the bottom where the + is pointing. Build stairs and towers to reach high places!</p>
+    <p><b>Boat parts</b> glow gold with a beam of light. The arrow at the top points to the nearest one. Some are buried, some are on tall pillars, some are on other islands.</p>
+    <p><b>BOAT:</b> walk up to your boat and press BOAT to ride it. Find every part, then get back in your boat to finish the level.</p>
+    <p><b>Bosses</b> on levels 7, 14 and 20. Watch their attacks and jump out of the way!</p>
+    <p><b>Keyboard:</b> WASD move, mouse look (click first), Space jump, left click mine, right click build, 1-8 pick a block, E boat, V camera, Esc pause.</p>
+  </div>
+  <button class="btn" id="helpBack">Got it</button>
+</section>
+
+<section class="screen dim hide" id="map">
+  <h2 class="px" style="margin:0;font-size:28px;color:#8fe36a;text-shadow:2px 2px 0 #12240a">PICK A LEVEL</h2>
+  <div id="levels"></div>
+  <button class="btn ghost" id="mapBack">Back</button>
+</section>
+
+<section class="screen dim hide" id="card">
+  <div class="panel">
+    <div class="px" id="cardLevel" style="color:var(--mute);font-size:14px;letter-spacing:.15em"></div>
+    <div class="px" id="cardHead" style="font-size:20px;margin-top:4px"></div>
+    <div class="boatName px" id="cardBoat"></div>
+    <div class="was" id="cardWas"></div>
+    <div id="cardStats" style="margin-top:8px"></div>
+    <div class="goal" id="cardGoal"></div>
+  </div>
+  <button class="btn gold" id="cardGo">Let's go!</button>
+</section>
+
+<section class="screen dim hide" id="pause">
+  <h2 class="px logo" style="font-size:52px">PAUSED</h2>
+  <button class="btn" id="resume">Resume</button>
+  <button class="btn ghost" id="toMap">Level map</button>
+  <button class="btn ghost" id="restartLvl">Restart level</button>
+</section>
+
+<section class="screen dim hide" id="ending">
+  <h1 class="logo px" style="font-size:clamp(34px,9vw,70px)" id="endTitle">YOU SAVED THE GALAXY!</h1>
+  <p class="tag" id="endText"></p>
+  <button class="btn gold" id="endMap">Level map</button>
+</section>
+
+<div id="cineText" class="hide"></div>
+<button class="btn ghost hide" id="skip">Skip ▶</button>
+
+<script>
+// grown-up-proof fallback: if 3D fails to start, say so instead of a blank screen
+setTimeout(function () { if (!window.CC || !window.CC.ok) { var t = document.querySelector('#title .tag'); if (t) t.textContent = 'ChanceCraft needs a browser with 3D graphics (WebGL). Try Safari or Chrome.'; } }, 6000);
+</script>
+<script type="module" src="chancecraft.js"></script>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }</script>
+</body>
+</html>
