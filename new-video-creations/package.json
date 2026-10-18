@@ -1,0 +1,23 @@
+{
+ "name": "new-video-creations",
+ "version": "1.0.0",
+ "private": true,
+ "scripts": {
+  "studio": "remotion studio",
+  "audio": "node scripts/make-audio.mjs",
+  "logo": "node scripts/make-logo.mjs",
+  "render": "remotion render src/index.ts Reel out/reel-raw.mp4"
+ },
+ "dependencies": {
+  "@remotion/cli": "^4.0.536",
+  "@remotion/google-fonts": "^4.0.536",
+  "@remotion/media-utils": "^4.0.536",
+  "@remotion/motion-blur": "^4.0.536",
+  "@types/react": "^18.3.31",
+  "react": "^18.3.1",
+  "react-dom": "^18.3.1",
+  "remotion": "^4.0.536",
+  "typescript": "^7.0.2"
+ },
+ "type": "module"
+}
