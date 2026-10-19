@@ -406,12 +406,78 @@
     return '';
   }
 
+  /* =================================================================
+     WORD SEARCH: themed word lists hidden in a letter grid.
+     Each word appears exactly once; harder levels use more directions.
+     ================================================================= */
+  const WORDS = {
+    kids:   { n: 8,  count: 6,  maxLen: 5,  dirs: [[0, 1], [1, 0]], label: 'Kids 8×8' },
+    easy:   { n: 10, count: 8,  maxLen: 6,  dirs: [[0, 1], [1, 0], [1, 1]], label: 'Easy 10×10' },
+    medium: { n: 12, count: 10, maxLen: 8,  dirs: [[0, 1], [1, 0], [1, 1], [-1, 1]], label: 'Medium 12×12' },
+    hard:   { n: 14, count: 12, maxLen: 10, dirs: [[0, 1], [1, 0], [1, 1], [-1, 1], [0, -1], [-1, 0]], label: 'Hard 14×14' },
+    expert: { n: 15, count: 15, maxLen: 11, dirs: [[0, 1], [1, 0], [1, 1], [-1, 1], [0, -1], [-1, 0], [-1, -1], [1, -1]], label: 'Expert 15×15' },
+  };
+  const THEMES = {
+    'Animals': 'CAT DOG COW PIG HEN FOX OWL BEAR LION FROG DUCK GOAT DEER WOLF ZEBRA TIGER HORSE SHEEP MOUSE RABBIT MONKEY TURTLE GIRAFFE ELEPHANT KANGAROO',
+    'Space': 'SUN MOON STAR MARS COMET ORBIT EARTH VENUS PLUTO SATURN ROCKET PLANET GALAXY METEOR JUPITER NEPTUNE ASTEROID ASTRONAUT TELESCOPE',
+    'Ocean': 'FISH CRAB SEAL WAVE SHARK WHALE CORAL SQUID SHELL OTTER OCTOPUS DOLPHIN LOBSTER STARFISH SEAWEED JELLYFISH TURTLE',
+    'Sports': 'RUN BAT KICK GOAL BALL GOLF SWIM SKATE SCORE TENNIS HOCKEY SOCCER KARATE SKIING BASEBALL FOOTBALL BASKETBALL',
+    'Food': 'EGG PIE JAM BREAD APPLE PIZZA PASTA CAKE CORN RICE TACO SALAD CHEESE COOKIE BANANA CARROT NOODLES PANCAKE SANDWICH',
+    'Bugs': 'ANT BEE FLY MOTH WASP FLEA SNAIL SLUG BEETLE SPIDER CRICKET LADYBUG HORNET FIREFLY BUTTERFLY DRAGONFLY GRASSHOPPER',
+    'Weather': 'SUN FOG RAIN SNOW WIND HAIL STORM CLOUD SLEET FROST THUNDER RAINBOW TORNADO LIGHTNING BLIZZARD SUNSHINE HURRICANE',
+    'Things That Go': 'CAR BUS VAN JET BOAT SHIP TRAIN TRUCK PLANE BIKE TRACTOR SCOOTER ROCKET SUBMARINE MOTORCYCLE HELICOPTER SKATEBOARD',
+    'Colors': 'RED TAN BLUE PINK GOLD GRAY GREEN BLACK WHITE BROWN PURPLE ORANGE YELLOW SILVER MAROON TURQUOISE',
+    'Dinosaurs': 'EGG BONE FOSSIL CLAW TAIL HORN RAPTOR TREX ROAR SPIKES DINO JURASSIC STEGOSAURUS TRICERATOPS VELOCIRAPTOR',
+    'Outdoors': 'TREE LOG FERN POND CREEK ROCK LEAF MOSS TRAIL CAMP TENT FISH WORM SALAMANDER ACORN PINECONE MUSHROOM WATERFALL',
+    'Soccer': 'BALL GOAL KICK PASS SHOT NET TEAM SAVE CORNER HEADER KEEPER STRIKER DRIBBLE PENALTY REFEREE STADIUM',
+  };
+  function makeWordSearch(level, seed) {
+    const cfg = WORDS[level] || WORDS.easy, R = rng(seed), n = cfg.n;
+    const names = Object.keys(THEMES), theme = names[R.int(names.length)];
+    const pool = R.shuffle(THEMES[theme].split(' ').filter(w => w.length >= 3 && w.length <= Math.min(cfg.maxLen, n)));
+    if (pool.length < cfg.count) return null;
+    for (let tries = 0; tries < 60; tries++) {
+      const g = new Array(n * n).fill(''), placed = [], words = [];
+      for (const w of pool.slice().sort((a, b) => b.length - a.length)) {
+        if (words.length >= cfg.count) break;
+        if (words.some(x => x.includes(w) || w.includes(x))) continue;
+        let done = false;
+        for (let k = 0; k < 200 && !done; k++) {
+          const [dr, dc] = R.pick(cfg.dirs), r = R.int(n), c = R.int(n), er = r + dr * (w.length - 1), ec = c + dc * (w.length - 1);
+          if (er < 0 || er >= n || ec < 0 || ec >= n) continue;
+          let ok = true, overlap = 0;
+          for (let i = 0; i < w.length; i++) { const ch = g[(r + dr * i) * n + c + dc * i]; if (ch && ch !== w[i]) { ok = false; break; } if (ch) overlap++; }
+          if (!ok || overlap === w.length) continue;
+          for (let i = 0; i < w.length; i++) g[(r + dr * i) * n + c + dc * i] = w[i];
+          placed.push({ word: w, r, c, dr, dc }); words.push(w); done = true;
+        }
+      }
+      if (words.length < cfg.count) continue;
+      // fill the gaps with letters from the hidden words, so the grid does not give anything away
+      const letters = words.join('') + 'EEAAOIRSTNL';
+      for (let i = 0; i < g.length; i++) if (!g[i]) g[i] = letters[R.int(letters.length)];
+      // every word must be findable in exactly one place
+      if (words.every(w => wsCount(g, n, w) === 1)) return { type: 'words', level, seed, n, theme, grid: g, words: placed.map(p => p.word), place: placed };
+    }
+    return null;
+  }
+  function wsCount(g, n, w) {
+    let k = 0;
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+      if (!dr && !dc) continue; let i = 0;
+      for (; i < w.length; i++) { const rr = r + dr * i, cc = c + dc * i; if (rr < 0 || rr >= n || cc < 0 || cc >= n || g[rr * n + cc] !== w[i]) break; }
+      if (i === w.length) k++;
+    }
+    return w.length > 1 && w === w.split('').reverse().join('') ? k / 2 : k;
+  }
+
   /* ---------------- dispatch ---------------- */
   const TYPES = {
     grid:     { name: 'Logic Grid',    levels: GRID,   make: makeGrid },
     sudoku:   { name: 'Sudoku',        levels: SUDOKU, make: makeSudoku },
     nonogram: { name: 'Picture Cross', levels: NONO,   make: makeNonogram },
     queens:   { name: 'Queens',        levels: QUEENS, make: makeQueens },
+    words:    { name: 'Word Search',   levels: WORDS,  make: makeWordSearch },
   };
   const LEVELS = ['kids', 'easy', 'medium', 'hard', 'expert'];
   function make(type, level, seed) {
@@ -419,6 +485,6 @@
     for (let i = 0; i < 20; i++) { const p = T.make(level, s); if (p) return p; s = (s * 1103515245 + 12345) >>> 0; }
     return null;
   }
-  const api = { rng, TYPES, LEVELS, make, makeSudoku, makeNonogram, makeQueens, makeGrid, sudokuCount, sudokuUnits, sudokuLogic, nonoSolve, runs, queensCount, gridSolve, gridDone };
+  const api = { rng, TYPES, LEVELS, make, makeSudoku, makeNonogram, makeQueens, makeGrid, makeWordSearch, wsCount, sudokuCount, sudokuUnits, sudokuLogic, nonoSolve, runs, queensCount, gridSolve, gridDone };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Logic = api;
 })(typeof window !== 'undefined' ? window : globalThis);

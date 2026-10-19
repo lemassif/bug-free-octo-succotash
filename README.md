@@ -15,7 +15,7 @@
 > | **Powder Cup** | [`winter.html`](winter.html) | ski and snowboard: races, moguls, halfpipe and big air — see below |
 > | **ChanceCraft** | [`chancecraft.html`](chancecraft.html) | block-building adventure: 20 levels on Earth and in space, boats, rockets and bosses — see below |
 > | **Super Strikers** | [`soccer.html`](soccer.html) | 3D five-a-side soccer with goal celebrations — see below |
-> | **Brain Box** | [`logic.html`](logic.html) | logic puzzles: clue grids, sudoku, picture cross and queens — see below |
+> | **Brain Box** | [`logic.html`](logic.html) | logic puzzles and word search: clue grids, sudoku, picture cross, queens and hidden words — see below |
 >
 > Every page cross-links, so you can hop between the menu and any game.
 >
@@ -307,7 +307,7 @@ easy to edit or extend (see the tile legend in the comments).
 
 # Brain Box
 
-Four kinds of logic puzzles, each at five levels: **Kids, Easy, Medium, Hard
+Five kinds of puzzles, each at five levels: **Kids, Easy, Medium, Hard
 and Expert**. Every puzzle is generated fresh, has exactly one answer, and can
 be solved by reasoning alone. The generator checks this before you ever see it.
 
@@ -317,6 +317,7 @@ be solved by reasoning alone. The generator checks this before you ever see it.
 | **Sudoku** | Each row, column and box holds every number once. Notes mode for pencil marks. Hard needs pairs and pointing; Expert needs more. | 4×4, 6×6, 9×9 |
 | **Picture Cross** | Number clues give the runs of filled squares in each row and column, in order. Drag to paint, switch to × to mark empty squares. Clues dim when a line is satisfied. | 5×5 to 15×15 |
 | **Queens** | One ♛ in every row, column and colored region, and no two queens touching, even at a corner. | 5×5 to 9×9 |
+| **Word Search** | Find every word from a themed list (animals, space, bugs, dinosaurs, soccer and more) hidden in a grid of letters. Drag across a word or tap its first and last letters. Kids hides words across and down; Expert hides them in all eight directions, backwards too. | 8×8 to 15×15 |
 
 - **Undo, Check, Hint and New** on every puzzle. Check shows how many marks
   are wrong; Hint fixes a mistake or fills in one correct square.
