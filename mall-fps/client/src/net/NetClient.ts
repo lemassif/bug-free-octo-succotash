@@ -59,6 +59,7 @@ export class NetClient {
   readonly poses = new Map<number, AvatarPose>();
   private scratch = newPlayerState();
   corrections = 0;
+  private deadT = 0;
 
   constructor(private game: Game, private weapons: WeaponController, readonly transport: Transport, hooks: NetHooks) {
     this.avatars = new Avatars(game.scene);
@@ -195,7 +196,11 @@ export class NetClient {
     return out;
   }
 
+  /** When each player last fired, for showing enemies on the minimap. */
+  readonly lastShot = new Map<number, number>();
+
   private remoteShot(id: number, weapon: number, end: [number, number, number]) {
+    this.lastShot.set(id, performance.now());
     const p = this.poses.get(id) ?? this.sampleAt(id, this.renderTime());
     if (!p) return;
     const yaw = p.yaw;
@@ -227,9 +232,15 @@ export class NetClient {
       this.avatars.pose(id, dt, pose);
       void b;
     }
-    // Dead: a slow look up at the skylight while waiting to respawn.
-    if (!this.game.me.alive) {
-      this.game.camera.position.y -= PLAYER.eye * 0.6;
-    }
+    // Knocked out: the camera floats up over the body and looks down,
+    // stopping short of any ceiling.
+    const me = this.game.me;
+    if (!me.alive) {
+      this.deadT = Math.min(1, this.deadT + dt * 1.5);
+      const up = this.game.world.raycast([me.x, me.y + PLAYER.eye, me.z], [0, 1, 0], 3);
+      const rise = Math.min(2.2, (up ? up.t : 3) - 0.3) * this.deadT;
+      this.game.camera.position.y += rise;
+      this.game.camera.rotation.x = -0.35 - 0.9 * this.deadT;
+    } else this.deadT = 0;
   }
 }

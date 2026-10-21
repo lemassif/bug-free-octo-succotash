@@ -5,7 +5,8 @@ import { Emitter, type Handler, type Transport } from "./transport.ts";
  *  fake latency (ms, round trip) exercises prediction exactly like online. */
 export class LocalTransport implements Transport {
   readonly kind = "local";
-  readonly match = new Match(buildMall());
+  // ?target=N shortens practice matches (handy for testing the end screen).
+  readonly match = new Match(buildMall(), { killTarget: Number(new URLSearchParams(location.search).get("target")) || undefined });
   private ev = new Emitter();
   private id = 0;
   private timer = 0;

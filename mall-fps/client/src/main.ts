@@ -12,6 +12,8 @@ import { NetClient } from "./net/NetClient.ts";
 import { ColyseusTransport } from "./net/ColyseusTransport.ts";
 import { LocalTransport } from "./net/LocalTransport.ts";
 import type { Transport } from "./net/transport.ts";
+import { MatchHud } from "./hud/MatchHud.ts";
+import { Minimap, type Blip } from "./hud/Minimap.ts";
 
 const params = new URLSearchParams(location.search);
 const ui = document.getElementById("ui")!;
@@ -80,20 +82,27 @@ async function startMatch() {
       ? { name: params.get("name") ?? "Tester", char: Number(params.get("char") ?? 0), mode: auto as "online" | "local" }
       : await showLobby(ui, status);
     initAudio();
+    const mhud = new MatchHud(ui);
+    const minimap = new Minimap(ui, game.map);
+    exposed.mhud = mhud;
     const transport: Transport = choice.mode === "local" ? new LocalTransport(Number(params.get("lag") ?? 0)) : new ColyseusTransport();
     const net = new NetClient(game, weapons, transport, {
       kill: (e: KillEvent) => {
         weapons.fx.tagBurst(e.at[0], e.at[1], e.at[2]);
+        mhud.kill(e);
         if (e.k === net.welcome?.id) sfx.kill();
       },
       hit: (e) => {
         hud.crosshair.hit(e.kill ? "kill" : e.hs ? "head" : "body");
         if (!e.kill) sfx.hit(e.hs);
       },
-      hurt: () => sfx.hurt(),
-      roster: () => {},
-      end: () => {},
-      start: () => {},
+      hurt: (e) => {
+        sfx.hurt();
+        mhud.hurt(e.from, game.me.x, game.me.z, game.controls.yaw);
+      },
+      roster: (r) => mhud.setRoster(r),
+      end: (e) => mhud.end(e),
+      start: () => mhud.start(),
       closed: (reason) => {
         status = `Disconnected: ${reason}`;
       },
@@ -106,9 +115,27 @@ async function startMatch() {
       if (auto) throw e;
       continue;
     }
+    mhud.myId = net.welcome.id;
+    mhud.killTarget = net.welcome.killTarget;
+    mhud.setRoster(net.roster);
+    const blips: Blip[] = [];
     game.onFrame.push((dt) => {
-      hud.update(game.me, net.hp);
-      hud.crosshair.update(dt, game.me, weapons.spread(game.me), weapons.fov, weapons.fov < 40, weapons.steady, weapons.steadying);
+      const me = game.me;
+      hud.update(me, net.hp);
+      hud.crosshair.update(dt, me, weapons.spread(me), weapons.fov, weapons.fov < 40, weapons.steady, weapons.steadying);
+      mhud.update(dt, net.scores, net.timeLeft, me.alive, net.respawnIn, net.hp);
+      blips.length = 0;
+      const now = performance.now();
+      const team = net.myTeam;
+      for (const [id, p] of net.poses) {
+        const r = net.roster.find((e) => e.id === id);
+        if (!r) continue;
+        const enemy = r.team !== team;
+        // Enemies show up for 2 s after they fire.
+        if (enemy && now - (net.lastShot.get(id) ?? -1e9) > 2000) continue;
+        blips.push({ x: p.x, z: p.z, kind: enemy ? 1 : 0, floor: p.y > 3 ? 1 : 0, flags: p.flags });
+      }
+      minimap.update(me.x, me.y, me.z, game.controls.yaw, blips);
     });
     if (!auto) {
       prompt.hidden = false;

@@ -8,6 +8,7 @@
   font-family: "Arial Black", "Helvetica Neue", Arial, sans-serif;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: #000; color: var(--text); }
 #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
 #ui { position: fixed; inset: 0; pointer-events: none; user-select: none; }
@@ -91,3 +92,72 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; color:
 .lobby-status { min-height: 18px; margin-top: 12px; font: 700 13px Arial, sans-serif; color: #ff8a7e; }
 .lobby-help { margin-top: 10px; font: 600 12px/1.5 Arial, sans-serif; opacity: .55; }
 @media (max-width: 640px) { .chars { grid-template-columns: 1fr; } .lobby-card { padding: 20px 16px; } }
+
+/* ---------- Match HUD ---------- */
+.t0 { color: var(--red); }
+.t1 { color: var(--blue); }
+.topbar { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; align-items: stretch; gap: 6px; text-shadow: 0 2px 3px rgba(0,0,0,.6); }
+.tb-team { display: flex; align-items: center; gap: 10px; padding: 6px 14px; background: var(--panel); border-radius: 8px; min-width: 150px; }
+.tb-team.t0 { border-bottom: 3px solid var(--red); }
+.tb-team.t1 { border-bottom: 3px solid var(--blue); }
+.tb-team:last-child { flex-direction: row-reverse; }
+.tb-team b { font-size: 30px; line-height: 1; }
+.tb-team.t0 b { color: var(--red); }
+.tb-team.t1 b { color: var(--blue); }
+.tb-name { font-size: 11px; letter-spacing: 1.5px; opacity: .85; }
+.tb-team.mine .tb-name::after { content: " (YOU)"; color: var(--gold); }
+.tb-clock { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 14px; background: rgba(0,0,0,.75); border-radius: 8px; }
+.tb-clock b { font-size: 26px; line-height: 1; }
+.tb-clock b.hurry { color: #ff6b5e; }
+.tb-clock span { font-size: 9px; letter-spacing: 2px; opacity: .7; margin-top: 2px; }
+
+.killfeed { position: absolute; top: 12px; right: 12px; width: min(380px, 40vw); display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+.kf-row { background: var(--panel); border-radius: 6px; padding: 5px 9px; font: 700 13px Arial, sans-serif; transition: opacity .8s; max-width: 100%; }
+.kf-row.me { background: rgba(70,55,10,.85); box-shadow: inset 0 0 0 1px var(--gold); }
+.kf-row.dead { box-shadow: inset 0 0 0 1px #ff5a4e; }
+.kf-row.fade { opacity: 0; }
+.kf-top { display: flex; gap: 7px; align-items: center; justify-content: flex-end; }
+.kf-name.t0 { color: var(--red); }
+.kf-name.t1 { color: var(--blue); }
+.kf-w { font-size: 10px; padding: 1px 5px; border-radius: 3px; background: rgba(255,255,255,.12); letter-spacing: 1px; }
+.kf-labels { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 8px; margin-top: 3px; }
+.kf-label { font-size: 11px; color: #e9e3d4; }
+.kf-label b { color: var(--gold); }
+
+.popups { position: absolute; left: 50%; top: 58%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.popup { font: 900 16px "Arial Black", Arial, sans-serif; text-shadow: 0 2px 4px #000; opacity: 0; animation: pop 2.5s ease-out forwards; }
+.popup b { color: var(--gold); }
+@keyframes pop { 0% { opacity: 0; transform: translateY(10px) scale(.9); } 10% { opacity: 1; transform: none; } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-12px); } }
+
+.dmg-dir { position: absolute; left: 50%; top: 50%; width: 240px; height: 240px; transform: translate(-50%, -50%); opacity: 0; pointer-events: none; }
+.dmg-dir::before { content: ""; position: absolute; left: 50%; top: 0; width: 70px; height: 18px; transform: translateX(-50%); border-radius: 50% 50% 0 0; background: radial-gradient(ellipse at 50% 100%, rgba(255,40,30,.95), rgba(255,40,30,0) 70%); }
+.vignette { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at center, transparent 55%, rgba(200,0,0,.55) 100%); pointer-events: none; }
+.deadmsg { position: absolute; left: 50%; top: 34%; transform: translateX(-50%); text-align: center; text-shadow: 0 2px 6px #000; }
+.deadmsg b { display: block; font-size: 40px; color: #ff6b5e; letter-spacing: 2px; }
+.deadmsg span { font: 700 16px Arial, sans-serif; }
+
+.minimap { position: absolute; left: 12px; top: 12px; width: 200px; }
+.minimap canvas { width: 200px; height: 200px; display: block; }
+.minimap-floor { text-align: center; font-size: 11px; letter-spacing: 2px; margin-top: 4px; color: var(--gold); text-shadow: 0 1px 2px #000; }
+
+.scoreboard { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: min(900px, calc(100vw - 32px)); background: rgba(8,8,12,.88); padding: 18px; border-radius: 12px; }
+.sb-team h3 { margin: 0 0 8px; letter-spacing: 1px; }
+.scoreboard table { width: 100%; border-collapse: collapse; font: 700 13px Arial, sans-serif; }
+.scoreboard th { text-align: left; font-size: 10px; letter-spacing: 1px; opacity: .6; padding: 3px 6px; }
+.scoreboard td { padding: 4px 6px; border-top: 1px solid rgba(255,255,255,.07); }
+.scoreboard td:nth-child(n+3), .scoreboard th:nth-child(n+3) { text-align: right; }
+.scoreboard tr.me td { color: var(--gold); }
+.scoreboard i { font-size: 10px; opacity: .5; font-style: normal; }
+.endscreen { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.55); }
+.end-card { text-align: center; background: rgba(10,10,14,.92); padding: 26px 34px; border-radius: 14px; border: 2px solid var(--gold); max-width: calc(100vw - 32px); }
+.end-card h2 { margin: 0; font-size: clamp(30px, 6vw, 54px); color: var(--gold); }
+.end-card p { font: 700 16px Arial, sans-serif; opacity: .85; }
+.end-score { font-size: 24px; margin: 10px 0; }
+.end-mvp, .end-next { font: 700 14px Arial, sans-serif; margin-top: 8px; opacity: .85; }
+@media (max-width: 760px) {
+  .minimap { transform: scale(.6); transform-origin: top left; }
+  .killfeed { top: auto; bottom: 120px; }
+  .tb-team { min-width: 0; padding: 4px 8px; }
+  .tb-name { display: none; }
+  .scoreboard { grid-template-columns: 1fr; }
+}
