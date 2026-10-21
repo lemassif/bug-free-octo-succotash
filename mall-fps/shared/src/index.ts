@@ -6,3 +6,4 @@ export * from "./weapons.ts";
 export * from "./map/types.ts";
 export * from "./map/builder.ts";
 export * from "./map/gym.ts";
+export * from "./hitscan.ts";

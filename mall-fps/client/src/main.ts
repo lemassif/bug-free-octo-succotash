@@ -1,13 +1,35 @@
 import "./style.css";
 import { buildGym } from "@bfb/shared";
 import { Game } from "./game/Game.ts";
+import { WeaponController } from "./game/WeaponController.ts";
+import { Dummies } from "./game/Dummies.ts";
+import { Hud } from "./hud/Hud.ts";
+import { initAudio, sfx } from "./game/audio.ts";
 
 const params = new URLSearchParams(location.search);
 const ui = document.getElementById("ui")!;
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 
 const game = new Game(canvas, { map: buildGym() });
-(window as unknown as { __bfb: unknown }).__bfb = { game };
+const weapons = new WeaponController(game);
+const hud = new Hud(ui);
+const dummies = new Dummies(game.scene, [[0, 0, -14], [-8, 0, -16], [8, 3, -3], [14, 0, 8]], weapons.fx);
+weapons.targets = () => dummies.targets();
+weapons.onShot = (hit, inp) => {
+  if (!hit.target) return;
+  const r = dummies.damage(hit, game.me.weapon);
+  void inp;
+  if (r) {
+    hud.crosshair.hit(r);
+    if (r === "kill") sfx.kill(); else sfx.hit(r === "head");
+  }
+};
+game.onFrame.push((dt) => {
+  dummies.update(dt);
+  hud.update(game.me, 100);
+  hud.crosshair.update(dt, game.me, weapons.spread(game.me), weapons.fov, weapons.fov < 40, weapons.steady, weapons.steadying);
+});
+(window as unknown as { __bfb: unknown }).__bfb = { game, weapons, dummies };
 
 const debug = document.createElement("div");
 debug.className = "debug";
@@ -20,8 +42,11 @@ addEventListener("keydown", (e) => {
 
 const prompt = document.createElement("div");
 prompt.className = "center-msg";
-prompt.textContent = "Click to play. WASD move, Shift sprint, Space jump.";
-prompt.addEventListener("click", () => game.controls.lock());
+prompt.textContent = "Click to play. WASD move, Shift sprint, Space jump, mouse fire/scope, R reload, 1/2 weapons.";
+prompt.addEventListener("click", () => {
+  initAudio();
+  game.controls.lock();
+});
 ui.appendChild(prompt);
 game.controls.onLockChange = (locked) => (prompt.hidden = locked);
 

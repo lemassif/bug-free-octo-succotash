@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import {
   DT, PLAYER, World, copyState, newPlayerState, stepPlayer,
-  type Input, type MapData, type PlayerState,
+  type Input, type MapData, type PlayerState, type StepResult,
 } from "@bfb/shared";
 import { Controls } from "./input.ts";
 import { buildLevelMeshes, proceduralTextures, type BakedColors, type TextureSet } from "../world/LevelView.ts";
@@ -28,8 +28,12 @@ export class Game {
   seq = 0;
   baseFov = 75;
   /** Hooks for later layers (weapons, network, HUD). */
-  onStep: Array<(inp: Input, st: PlayerState) => void> = [];
+  beforeStep: Array<(inp: Input, st: PlayerState) => void> = [];
+  onStep: Array<(inp: Input, st: PlayerState, res: StepResult) => void> = [];
   onFrame: Array<(dt: number, alpha: number) => void> = [];
+  /** Extra passes drawn after the world, such as the first-person weapon. */
+  overlays: Array<() => void> = [];
+  onResize: Array<(aspect: number) => void> = [];
   private fps = { frames: 0, t: 0, value: 0 };
   debugEl: HTMLElement | null = null;
 
@@ -40,6 +44,7 @@ export class Game {
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.autoClear = false;
+    this.renderer.info.autoReset = false;
     this.camera = new THREE.PerspectiveCamera(this.baseFov, 1, 0.05, 400);
     this.camera.rotation.order = "YXZ";
     this.scene.background = new THREE.Color(0x9fc4e8);
@@ -66,6 +71,7 @@ export class Game {
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    for (const f of this.onResize) f(w / h);
   }
 
   start() {
@@ -94,9 +100,10 @@ export class Game {
   /** One fixed step of local prediction. The network layer overrides this. */
   step() {
     const inp = this.makeInput();
+    for (const f of this.beforeStep) f(inp, this.me);
     copyState(this.me, this.prev);
-    stepPlayer(this.me, inp, this.world);
-    for (const f of this.onStep) f(inp, this.me);
+    const res = stepPlayer(this.me, inp, this.world);
+    for (const f of this.onStep) f(inp, this.me, res);
   }
 
   frame() {
@@ -118,8 +125,10 @@ export class Game {
     );
     this.camera.rotation.set(this.controls.pitch, this.controls.yaw, 0);
     for (const f of this.onFrame) f(dt, alpha);
+    this.renderer.info.reset();
     this.renderer.clear();
     this.renderer.render(this.scene, this.camera);
+    for (const f of this.overlays) f();
     this.updateDebug(dt);
   }
 
