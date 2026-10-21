@@ -1,0 +1,24 @@
+{
+  "name": "black-friday-brawl",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c yellow,cyan \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client && npm run build -w server",
+    "test": "vitest run",
+    "typecheck": "tsc -p shared && tsc -p server --noEmit && tsc -p client --noEmit",
+    "playtest": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "concurrently": "10.0.6",
+    "typescript": "5.9.3",
+    "vitest": "5.0.5"
+  }
+}

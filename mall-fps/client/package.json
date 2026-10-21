@@ -1,0 +1,23 @@
+{
+  "name": "@bfb/client",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "bake": "tsx tools/bake-lighting.ts && tsx tools/compress-textures.ts",
+    "dev": "npm run bake && vite",
+    "build": "npm run bake && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@bfb/shared": "1.0.0",
+    "colyseus.js": "0.16.22",
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "@types/three": "0.180.0",
+    "ktx2-encoder": "0.6.0",
+    "tsx": "4.20.6",
+    "vite": "7.3.7"
+  }
+}
