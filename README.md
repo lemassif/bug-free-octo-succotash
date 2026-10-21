@@ -16,6 +16,7 @@
 > | **ChanceCraft** | [`chancecraft.html`](chancecraft.html) | block-building adventure: 20 levels on Earth and in space, boats, rockets and bosses — see below |
 > | **Super Strikers** | [`soccer.html`](soccer.html) | 3D five-a-side soccer with goal celebrations — see below |
 > | **Brain Box** | [`logic.html`](logic.html) | logic puzzles and word search: clue grids, sudoku, picture cross, queens and hidden words — see below |
+> | **Black Friday Brawl** | [`mall-fps/`](mall-fps/README.md) | 7v7 multiplayer FPS in a two-floor mall, with a Node game server; deployed separately to Vercel and Fly.io. See [`mall-fps/README.md`](mall-fps/README.md) |
 >
 > Every page cross-links, so you can hop between the menu and any game.
 >

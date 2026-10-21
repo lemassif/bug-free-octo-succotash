@@ -13,12 +13,15 @@
     "build": "npm run build -w client && npm run build -w server",
     "test": "vitest run",
     "typecheck": "tsc -p shared && tsc -p server --noEmit && tsc -p client --noEmit",
-    "playtest": "playwright test"
+    "playtest": "node tests/playtest/two-tabs.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",
     "concurrently": "10.0.6",
     "typescript": "5.9.3",
     "vitest": "5.0.5"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

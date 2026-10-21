@@ -151,14 +151,38 @@ export class Game {
       f.value = Math.round(f.frames / f.t);
       f.frames = 0;
       f.t = 0;
+      this.adaptResolution(f.value);
       if (this.debugEl) {
         const i = this.renderer.info;
         const m = this.me;
         this.debugEl.textContent =
-          `fps ${f.value}  calls ${i.render.calls}  tris ${(i.render.triangles / 1000).toFixed(0)}k\n` +
+          `fps ${f.value}  calls ${i.render.calls}  tris ${(i.render.triangles / 1000).toFixed(0)}k  res ${this.renderer.getPixelRatio().toFixed(1)}x\n` +
           `pos ${m.x.toFixed(2)} ${m.y.toFixed(2)} ${m.z.toFixed(2)}  ground ${m.onGround ? 1 : 0}  ` +
           `vel ${Math.hypot(m.vx, m.vz).toFixed(1)}`;
       }
+    }
+  }
+
+  private slowFor = 0;
+  private fastFor = 0;
+  autoResolution = true;
+
+  /** Keeps frame rate up on slower laptops by lowering render resolution,
+   *  and raises it again when there is headroom. Checked twice a second. */
+  private adaptResolution(fps: number) {
+    if (!this.autoResolution || document.hidden) return;
+    const max = Math.min(devicePixelRatio, 1.5);
+    const cur = this.renderer.getPixelRatio();
+    this.slowFor = fps < 50 ? this.slowFor + 1 : 0;
+    this.fastFor = fps > 58 ? this.fastFor + 1 : 0;
+    if (this.slowFor >= 4 && cur > 0.6) {
+      this.renderer.setPixelRatio(Math.max(0.6, cur - 0.2));
+      this.slowFor = 0;
+      this.resize();
+    } else if (this.fastFor >= 20 && cur < max) {
+      this.renderer.setPixelRatio(Math.min(max, cur + 0.1));
+      this.fastFor = 0;
+      this.resize();
     }
   }
 

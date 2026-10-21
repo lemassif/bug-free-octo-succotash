@@ -161,3 +161,19 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; color:
   .tb-name { display: none; }
   .scoreboard { grid-template-columns: 1fr; }
 }
+
+/* ---------- Subtitles ---------- */
+.subs { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); width: min(760px, calc(100vw - 32px)); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.subs-row { background: rgba(0,0,0,.72); padding: 7px 14px; border-radius: 6px; font: 700 17px/1.35 Arial, sans-serif; text-align: center; transition: opacity .5s; animation: subin .25s ease-out; }
+.subs-row.mine { background: rgba(40,30,5,.88); box-shadow: inset 0 0 0 1px var(--gold); font-size: 19px; }
+.subs-row.pa { font-style: italic; background: rgba(10,25,45,.8); }
+.subs-row.out { opacity: 0; }
+.subs-who { color: var(--gold); }
+.subs-who i { font-style: normal; opacity: .7; font-size: .85em; }
+.subs-who.pa { color: #9be3ff; font-style: normal; }
+@keyframes subin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.subs-toast { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); background: var(--panel); padding: 8px 14px; border-radius: 6px; font: 700 14px Arial, sans-serif; opacity: 0; }
+.subs-toast.show { animation: toast 1.8s ease-out; }
+@keyframes toast { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+.char img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; margin-bottom: 8px; background: #1b1920; }
+@media (max-width: 640px) { .char { display: grid; grid-template-columns: 72px 1fr; gap: 0 10px; align-items: center; } .char img { grid-row: span 2; margin: 0; } }

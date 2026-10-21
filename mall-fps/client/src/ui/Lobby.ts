@@ -19,7 +19,7 @@ function save(k: string, v: unknown) {
 }
 
 /** Title screen: pick a name and a shopper, then play online or practice. */
-export function showLobby(root: HTMLElement, status = ""): Promise<LobbyChoice> {
+export function showLobby(root: HTMLElement, status = "", portraits: string[] = []): Promise<LobbyChoice> {
   return new Promise((resolve) => {
     const el = document.createElement("div");
     el.className = "lobby interactive";
@@ -32,13 +32,13 @@ export function showLobby(root: HTMLElement, status = ""): Promise<LobbyChoice> 
         <label class="lobby-label" for="bfb-name">Your name</label>
         <input id="bfb-name" maxlength="16" autocomplete="off" spellcheck="false" />
         <div class="lobby-label">Pick your shopper</div>
-        <div class="chars">${CHARACTERS.map((c) => `<button class="char" data-c="${c.id}"><b>${c.name}</b><span>${c.tagline}</span></button>`).join("")}</div>
+        <div class="chars">${CHARACTERS.map((c) => `<button class="char" data-c="${c.id}">${portraits[c.id] ? `<img src="${portraits[c.id]}" alt="" />` : ""}<b>${c.name}</b><span>${c.tagline}</span></button>`).join("")}</div>
         <div class="lobby-actions">
           <button class="go" data-mode="online">Play online</button>
           <button class="go alt" data-mode="local">Practice vs bots</button>
         </div>
         <div class="lobby-status">${status}</div>
-        <div class="lobby-help">WASD move · Shift sprint · Space jump · Mouse fire · Right mouse scope (Shift steadies) · R reload · 1/2 or wheel weapons · Tab scores</div>
+        <div class="lobby-help">WASD move · Shift sprint · Space jump · Mouse fire · Right mouse scope (Shift steadies) · R reload · 1/2 or wheel weapons · Tab scores · V read lines aloud</div>
       </div>`;
     root.appendChild(el);
     const name = el.querySelector<HTMLInputElement>("#bfb-name")!;

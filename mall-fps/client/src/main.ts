@@ -1,5 +1,5 @@
 import "./style.css";
-import { buildGym, buildMall, type KillEvent } from "@bfb/shared";
+import { TEAMS, buildGym, buildMall, type KillEvent } from "@bfb/shared";
 import { Game } from "./game/Game.ts";
 import { WeaponController } from "./game/WeaponController.ts";
 import { Dummies } from "./game/Dummies.ts";
@@ -14,6 +14,8 @@ import { LocalTransport } from "./net/LocalTransport.ts";
 import type { Transport } from "./net/transport.ts";
 import { MatchHud } from "./hud/MatchHud.ts";
 import { Minimap, type Blip } from "./hud/Minimap.ts";
+import { MallPA, Subtitles } from "./hud/Subtitles.ts";
+import { renderPortraits } from "./ui/portraits.ts";
 
 const params = new URLSearchParams(location.search);
 const ui = document.getElementById("ui")!;
@@ -76,21 +78,27 @@ function startRange() {
 async function startMatch() {
   game.start();
   let status = "";
+  let portraits: string[] = [];
+  try { portraits = renderPortraits(game.renderer); } catch { /* text-only lobby */ }
   for (;;) {
     const auto = params.get("autojoin");
     const choice = auto
       ? { name: params.get("name") ?? "Tester", char: Number(params.get("char") ?? 0), mode: auto as "online" | "local" }
-      : await showLobby(ui, status);
+      : await showLobby(ui, status, portraits);
     initAudio();
     const mhud = new MatchHud(ui);
     const minimap = new Minimap(ui, game.map);
+    const subs = new Subtitles(ui);
+    const pa = new MallPA(subs);
     exposed.mhud = mhud;
     const transport: Transport = choice.mode === "local" ? new LocalTransport(Number(params.get("lag") ?? 0)) : new ColyseusTransport();
     const net = new NetClient(game, weapons, transport, {
       kill: (e: KillEvent) => {
         weapons.fx.tagBurst(e.at[0], e.at[1], e.at[2]);
         mhud.kill(e);
-        if (e.k === net.welcome?.id) sfx.kill();
+        const myId = net.welcome?.id;
+        if (e.k === myId) sfx.kill();
+        if (e.line && e.k !== null) subs.line(e.who, mhud.name(e.k), e.line, e.k === myId || e.v === myId);
       },
       hit: (e) => {
         hud.crosshair.hit(e.kill ? "kill" : e.hs ? "head" : "body");
@@ -101,8 +109,14 @@ async function startMatch() {
         mhud.hurt(e.from, game.me.x, game.me.z, game.controls.yaw);
       },
       roster: (r) => mhud.setRoster(r),
-      end: (e) => mhud.end(e),
-      start: () => mhud.start(),
+      end: (e) => {
+        mhud.end(e);
+        subs.pa(e.winner < 0 ? "The sale has ended in a tie. Nobody gets the TV." : `The sale has ended. ${TEAMS[e.winner].name} take home the doorbusters.`);
+      },
+      start: () => {
+        mhud.start();
+        pa.reset();
+      },
       closed: (reason) => {
         status = `Disconnected: ${reason}`;
       },
@@ -136,6 +150,7 @@ async function startMatch() {
         blips.push({ x: p.x, z: p.z, kind: enemy ? 1 : 0, floor: p.y > 3 ? 1 : 0, flags: p.flags });
       }
       minimap.update(me.x, me.y, me.z, game.controls.yaw, blips);
+      if (net.phase === 0 && net.timeLeft > 0) pa.update(net.timeLeft, net.scores, net.welcome.killTarget, [TEAMS[0].name, TEAMS[1].name]);
     });
     if (!auto) {
       prompt.hidden = false;
