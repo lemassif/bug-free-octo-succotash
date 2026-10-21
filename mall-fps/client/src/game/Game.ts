@@ -5,11 +5,15 @@ import {
 } from "@bfb/shared";
 import { Controls } from "./input.ts";
 import { buildLevelMeshes, proceduralTextures, type BakedColors, type TextureSet } from "../world/LevelView.ts";
+import { buildProps } from "../world/PropView.ts";
+import { buildSigns } from "../world/SignView.ts";
 
 export interface GameOptions {
   map: MapData;
   textures?: TextureSet;
   baked?: BakedColors | null;
+  /** Baked light per prop instance, RGB. */
+  propLight?: Float32Array | null;
 }
 
 /** Owns the renderer, the level, and the local player's predicted state. */
@@ -53,8 +57,6 @@ export class Game {
     sun.position.set(0.4, 1, 0.25);
     this.scene.add(sun);
 
-    const tex = opts.textures ?? proceduralTextures(this.renderer.capabilities.getMaxAnisotropy());
-    this.scene.add(buildLevelMeshes(opts.map, tex, opts.baked ?? null));
 
     const sp = opts.map.spawns[0][0];
     this.me = newPlayerState(sp[0], sp[1], sp[2], opts.map.spawnYaw[0]);
@@ -64,6 +66,14 @@ export class Game {
 
     addEventListener("resize", () => this.resize());
     this.resize();
+  }
+
+  /** Builds the level meshes. Textures may come from KTX2 files or be generated. */
+  buildLevel(opts: Omit<GameOptions, "map">) {
+    const tex = opts.textures ?? proceduralTextures(this.renderer.capabilities.getMaxAnisotropy());
+    this.scene.add(buildLevelMeshes(this.map, tex, opts.baked ?? null));
+    this.scene.add(buildProps(this.map.props, opts.propLight ?? null));
+    if (this.map.signs.length) this.scene.add(buildSigns(this.map.signs));
   }
 
   resize() {

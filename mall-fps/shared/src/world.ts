@@ -45,7 +45,9 @@ export class World {
 
   constructor(solids: Solid[]) {
     this.solids = solids;
-    this.stamp = new Uint32Array(solids.length + 1);
+    let maxId = 0;
+    for (const s of solids) maxId = Math.max(maxId, s.id);
+    this.stamp = new Uint32Array(maxId + 1);
     for (const s of solids) {
       const b = this.bounds;
       b.minx = Math.min(b.minx, s.min[0]); b.maxx = Math.max(b.maxx, s.max[0]);

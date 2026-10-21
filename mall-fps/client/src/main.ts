@@ -1,19 +1,24 @@
 import "./style.css";
-import { buildGym } from "@bfb/shared";
+import { buildGym, buildMall } from "@bfb/shared";
 import { Game } from "./game/Game.ts";
 import { WeaponController } from "./game/WeaponController.ts";
 import { Dummies } from "./game/Dummies.ts";
 import { Hud } from "./hud/Hud.ts";
 import { initAudio, sfx } from "./game/audio.ts";
+import { loadBake } from "./world/loadBake.ts";
+import { loadKtx2Textures } from "./world/loadTextures.ts";
 
 const params = new URLSearchParams(location.search);
 const ui = document.getElementById("ui")!;
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 
-const game = new Game(canvas, { map: buildGym() });
+const range = params.get("map") === "gym";
+const game = new Game(canvas, { map: range ? buildGym() : buildMall() });
+const [bake, textures] = await Promise.all([range ? null : loadBake(), params.has("notex") ? null : loadKtx2Textures(game.renderer)]);
+game.buildLevel({ baked: bake?.colors, propLight: bake?.propLight, textures: textures ?? undefined });
 const weapons = new WeaponController(game);
 const hud = new Hud(ui);
-const dummies = new Dummies(game.scene, [[0, 0, -14], [-8, 0, -16], [8, 3, -3], [14, 0, 8]], weapons.fx);
+const dummies = new Dummies(game.scene, range ? [[0, 0, -14], [-8, 0, -16], [8, 3, -3], [14, 0, 8]] : [[-14, 0, 8], [-4, 5, 9], [-20, 0, -9]], weapons.fx);
 weapons.targets = () => dummies.targets();
 weapons.onShot = (hit, inp) => {
   if (!hit.target) return;

@@ -8,6 +8,7 @@ const browser = await chromium.launch({ args: ["--use-gl=angle", "--use-angle=sw
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 page.on("console", (m) => console.log("[page]", m.type(), m.text()));
 page.on("pageerror", (e) => console.log("[pageerror]", e.message));
+await page.exposeFunction("__shot", async (i) => { await page.screenshot({ path: out.replace(/\.png$/, `-${i}.png`) }); });
 await page.goto(url, { waitUntil: "load" });
 await page.waitForTimeout(1500);
 if (scriptPath) {
