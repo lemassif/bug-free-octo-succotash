@@ -144,8 +144,8 @@ function store(s: Side, i: number, y0: number, d: StoreDef, office: boolean) {
     } else {
       s.box(x0 + 0.4, y0, zF - 0.04, x0 + 2.6, head, zF + 0.04, "glass");
       s.box(x0 + 5.4, y0, zF - 0.04, x0 + 7.6, head, zF + 0.04, "glass");
-      s.box(x0 + 0.4, y0, zF - 0.1, x0 + 2.6, y0 + 0.3, zF + 0.1, "trim");
-      s.box(x0 + 5.4, y0, zF - 0.1, x0 + 7.6, y0 + 0.3, zF + 0.1, "trim");
+      s.box(x0 + 0.4, y0, zF - 0.1, x0 + 2.6, y0 + 0.3, zF + 0.1, "trim", { noCollide: true });
+      s.box(x0 + 5.4, y0, zF - 0.1, x0 + 7.6, y0 + 0.3, zF + 0.1, "trim", { noCollide: true });
     }
   }
   s.sign({

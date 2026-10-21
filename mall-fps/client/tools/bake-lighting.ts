@@ -37,7 +37,7 @@ const SUN_DIR = norm([0.35, 1, 0.25]);
 const SUN: Vec3 = [1.0, 0.9, 0.74];
 const SUN_GAIN = 1.25;
 const AMBIENT = 0.2;
-const N_RAYS = 20;
+const N_RAYS = 32;
 
 function norm(v: Vec3): Vec3 {
   const l = Math.hypot(v[0], v[1], v[2]);
