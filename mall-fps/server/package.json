@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "esbuild src/index.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/index.js --packages=external",
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/index.js --external:@colyseus/core --external:@colyseus/ws-transport --external:@colyseus/schema --external:express",
     "start": "node dist/index.js"
   },
   "dependencies": {

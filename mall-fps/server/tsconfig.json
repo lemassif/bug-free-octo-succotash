@@ -1,1 +1,8 @@
-{ "extends": "../tsconfig.base.json", "compilerOptions": { "types": ["node"] }, "include": ["src", "../shared/src"] }
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "paths": { "@bfb/shared": ["../shared/src/index.ts"] }
+  },
+  "include": ["src", "../shared/src"]
+}

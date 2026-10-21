@@ -68,3 +68,26 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; color:
 .hp-fill { height: 100%; background: linear-gradient(90deg, #6fe08a, #c8f27a); }
 .hp-fill.low { background: linear-gradient(90deg, #ff4b3e, #ff9a3e); }
 .health b { font-size: 26px; }
+
+/* ---------- Lobby ---------- */
+.lobby { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 30%, rgba(30,20,10,.55), rgba(0,0,0,.85)); padding: 16px; overflow: auto; }
+.lobby-card { width: min(760px, 100%); background: #111014; border: 2px solid #2a2730; border-radius: 16px; padding: 28px 30px; box-shadow: 0 20px 80px rgba(0,0,0,.6); }
+.lobby-kicker { font-size: 12px; letter-spacing: 3px; color: var(--gold); }
+.lobby h1 { margin: 6px 0 4px; font-size: clamp(34px, 7vw, 64px); line-height: .95; letter-spacing: 1px; }
+.lobby h1 span { color: var(--gold); }
+.lobby-sub { margin: 0 0 18px; font: 600 15px/1.4 Arial, sans-serif; opacity: .8; }
+.lobby-label { display: block; font-size: 12px; letter-spacing: 2px; margin: 14px 0 6px; opacity: .8; }
+.lobby input { width: 100%; font: 700 18px Arial, sans-serif; padding: 10px 12px; border-radius: 8px; border: 2px solid #34303c; background: #1b1920; color: var(--text); outline: none; }
+.lobby input:focus { border-color: var(--gold); }
+.chars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.char { text-align: left; background: #1b1920; color: var(--text); border: 2px solid #34303c; border-radius: 10px; padding: 12px; cursor: pointer; font: inherit; }
+.char b { display: block; font-size: 15px; margin-bottom: 4px; }
+.char span { font: 600 12px/1.35 Arial, sans-serif; opacity: .75; }
+.char.on { border-color: var(--gold); background: #24201a; }
+.lobby-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.go { flex: 1; min-width: 180px; font: 900 18px "Arial Black", Arial, sans-serif; padding: 14px; border-radius: 10px; border: 0; cursor: pointer; background: var(--gold); color: #111; letter-spacing: 1px; }
+.go.alt { background: #2a2730; color: var(--text); }
+.go:hover { filter: brightness(1.08); }
+.lobby-status { min-height: 18px; margin-top: 12px; font: 700 13px Arial, sans-serif; color: #ff8a7e; }
+.lobby-help { margin-top: 10px; font: 600 12px/1.5 Arial, sans-serif; opacity: .55; }
+@media (max-width: 640px) { .chars { grid-template-columns: 1fr; } .lobby-card { padding: 20px 16px; } }

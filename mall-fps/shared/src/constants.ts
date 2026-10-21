@@ -17,7 +17,9 @@ export const REGEN_PER_SEC = 12;
 
 export const INTERP_DELAY_MS = 100;
 export const LAGCOMP_MAX_MS = 300;
-export const INPUT_TIMEOUT_MS = 250;
+// Only a stalled tab gets server-side idle steps; brief hitches must not, or
+// the server would simulate steps the client never predicted.
+export const INPUT_TIMEOUT_MS = 1000;
 
 export const PLAYER = {
   radius: 0.35,

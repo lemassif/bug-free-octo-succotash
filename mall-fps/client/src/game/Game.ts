@@ -26,7 +26,8 @@ export class Game {
   readonly map: MapData;
   /** Predicted local state after the latest fixed step. */
   readonly me: PlayerState;
-  private prev: PlayerState;
+  /** State after the previous fixed step, for render interpolation. */
+  readonly prev: PlayerState;
   private acc = 0;
   private last = performance.now();
   seq = 0;
