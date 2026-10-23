@@ -1,4 +1,4 @@
-> This repo is a small **retro arcade** with eleven self-contained browser games,
+> This repo is a small **retro arcade** with twelve self-contained browser games,
 > plus a learning app. Open [`index.html`](index.html) for the **menu**, then
 > pick one:
 >
@@ -13,6 +13,7 @@
 > | **Lucky Seven Casino** | [`casino.html`](casino.html) | craps, blackjack, roulette, pai gow and hold'em with several players — see below |
 > | **Decathlon** | [`decathlon.html`](decathlon.html) | all ten track and field events for one to five athletes — see below |
 > | **Powder Cup** | [`winter.html`](winter.html) | ski and snowboard: races, moguls, halfpipe and big air — see below |
+> | **Turbo Grand Prix** | [`grandprix.html`](grandprix.html) | 3D open-wheel racing in eight cities with a World Tour — see below |
 > | **ChanceCraft** | [`chancecraft.html`](chancecraft.html) | block-building adventure: 20 levels on Earth and in space, boats, rockets and bosses — see below |
 > | **Super Strikers** | [`soccer.html`](soccer.html) | 3D five-a-side soccer with goal celebrations — see below |
 > | **Brain Box** | [`logic.html`](logic.html) | logic puzzles and word search: clue grids, sudoku, picture cross, queens and hidden words — see below |
@@ -393,4 +394,36 @@ block world, fight monsters, and find the glowing boat parts on every level.
   block, E boat, V camera.
 - Everything, including the pixel textures, is generated in `chancecraft.js`
   with three.js. Finished levels are saved on the device.
+
+---
+
+# Turbo Grand Prix
+
+3D open-wheel racing against nine computer drivers in eight cities, each with
+its own track shape and scenery:
+
+| City | Track |
+|------|-------|
+| Monte Carlo | tight streets beside a harbour full of yachts, with a tunnel |
+| Melbourne | a flowing park circuit around a lake |
+| Montreal | an island in a river, long straights and a hairpin |
+| Monza | the fastest track, huge straights through the forest |
+| Suzuka | a figure of eight that crosses over itself on a bridge |
+| Singapore | a night race through glowing city streets |
+| Las Vegas | night racing down the neon Strip |
+| São Paulo | up and down the hills, anticlockwise |
+
+- **Single race** in any city, or the **World Tour**: all eight in order with
+  points for the top ten (25, 18, 15, 12, 10, 8, 6, 4, 2, 1) and a champion.
+- Five red start lights, a live position board, lap and best-lap times, a
+  minimap, kerbs, grass that slows you down and walls that bounce you off.
+- **Controls:** ◀ ▶ steer, GAS and BRAKE, BOOST (the blue bar refills as you
+  drive). **Auto gas** (on by default) speeds up by itself, so younger drivers
+  only steer and brake; Easy also adds gentle steering help. Three cameras:
+  chase, high chase and cockpit. Keyboard: arrows or WASD, Space boost, C
+  camera, P pause.
+- 2, 3, 5 or 8 laps; Easy, Medium or Hard rivals; nine team colours and your
+  name on the timing board. Best finishes per city are saved on the device.
+- `grandprix.js` builds the tracks, cars and cities with three.js. Teams and
+  drivers are made up for the game.
 
