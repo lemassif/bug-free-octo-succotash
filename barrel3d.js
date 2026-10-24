@@ -390,9 +390,13 @@ function hits(h) {
    Player
    ================================================================ */
 const inp = { l: 0, r: 0, u: 0, d: 0, jump: 0 };
-function findLadder(dir) { let best = null; for (const ld of L.ladders) { if (Math.abs(P.x - ld.x) > .65) continue; if ((dir > 0 && Math.abs(P.y - ld.yb) < .35) || (dir < 0 && Math.abs(P.y - ld.yt) < .35)) { if (!ld.broken) return ld; best = ld; } }
-  if (best && G.t - (G.brokenT || -9) > 2) { G.brokenT = G.t; flash('Broken ladder!', 'Find one with all its rungs', 1.4); }
-  return null; }
+function findLadder(dir) { let best = null; for (const ld of L.ladders) { if (Math.abs(P.x - ld.x) > .65) continue; if ((dir > 0 && Math.abs(P.y - ld.yb) < .35) || (dir < 0 && Math.abs(P.y - ld.yt) < .35)) { if (!ld.broken) return ld; best = ld; } } return best; }
+// a broken ladder only lets you climb its rungs: partway up from the bottom, or partway down from the top
+function startClimb(ld, fromTop) {
+  const h = ld.yt - ld.yb; P.state = 'climb'; P.ladder = ld; P.x = ld.x;
+  P.climbLo = ld.broken && fromTop ? ld.yb + h * .5 : ld.yb - 1; P.climbHi = ld.broken && !fromTop ? ld.yb + h * .3 : ld.yt + 1;
+  if (fromTop) P.y = ld.yt - .05;
+}
 function liftAt(x, y) { for (const lf of L.lifts) for (const s of lf.plats) if (s.mesh.visible && x >= s.x1 && x <= s.x2 && Math.abs(s.y1 - y) < .45) return s; return null; }
 // stepping off a lift onto a ledge that is a little higher or lower
 function stepSeg(x, y) { for (const t of L.segs) if (!t.dead && t.kind !== 'lift' && x >= t.x1 - .35 && x <= t.x2 + .35) { const d = yAt(t, x) - y; if (d > -.5 && d < .8) return t; } return null; }
@@ -409,15 +413,17 @@ function updatePlayer(dt) {
     if (mv) { P.anim += dt * 11; P.stepT -= dt; if (P.stepT <= 0) { P.stepT = .17; P.stepI ^= 1; SFX.step(P.stepI); } } else P.anim = 0;
     if (P.seg.kind === 'rivet') P.seg.touched = true;
     if (inp.jump) { P.state = 'air'; P.vy = JUMP_V; P.vx = mv * WALK + s.belt * speedMul(); P.maxY = P.y; P.seg = null; SFX.jump(); }
-    else if (inp.u) { const ld = findLadder(1); if (ld) { P.state = 'climb'; P.ladder = ld; P.x = ld.x; } }
-    else if (inp.d) { const ld = findLadder(-1); if (ld) { P.state = 'climb'; P.ladder = ld; P.x = ld.x; P.y = ld.yt - .05; } }
+    else if (inp.u) { const ld = findLadder(1); if (ld) startClimb(ld, false); }
+    else if (inp.d) { const ld = findLadder(-1); if (ld) startClimb(ld, true); }
   } else if (P.state === 'air') {
     const oy = P.y; P.vy -= GRAV * dt; P.y += P.vy * dt; P.x = clamp(P.x + P.vx * dt, .3, W - .3); P.maxY = Math.max(P.maxY, P.y);
     for (const s of L.segs) if (s.kind === 'rivet' && !s.dead && Math.abs(P.x - (s.x1 + s.x2) / 2) < .5 && P.y > s.y1 && P.y < s.y1 + 2.6) s.touched = true;
     if (P.vy <= 0) { const s = landSeg(L, P.x, oy, P.y, .2); if (s) { const drop = P.maxY - yAt(s, P.x); P.seg = s; P.y = yAt(s, P.x); P.state = 'walk'; if (drop > 1.6) SFX.land(); if (D.fallKill && drop > D.fallMax) die(); } }
     if (P.y < -5) die();
   } else if (P.state === 'climb') {
-    const ld = P.ladder, c = (inp.u ? 1 : 0) - (inp.d ? 1 : 0); P.y += c * CLIMB * dt; P.anim += Math.abs(c) * dt * 9;
+    const ld = P.ladder; let c = (inp.u ? 1 : 0) - (inp.d ? 1 : 0);
+    if ((c > 0 && P.y >= P.climbHi) || (c < 0 && P.y <= P.climbLo)) { c = 0; if (G.t - (G.brokenT || -9) > 2.5) { G.brokenT = G.t; flash('Broken ladder!', 'You can hide here, but it doesn\'t reach the next floor', 1.6); } }
+    P.y = clamp(P.y + c * CLIMB * dt, P.climbLo, P.climbHi); P.anim += Math.abs(c) * dt * 9;
     if (c) { P.stepT -= dt; if (P.stepT <= 0) { P.stepT = .2; P.stepI ^= 1; SFX.step(P.stepI); } }
     if (P.y >= ld.yt) { P.y = ld.yt; P.seg = floorSeg(L, ld.kt, ld.x); P.state = 'walk'; }
     else if (P.y <= ld.yb) { P.y = ld.yb; P.seg = floorSeg(L, ld.kb, ld.x); P.state = 'walk'; }
