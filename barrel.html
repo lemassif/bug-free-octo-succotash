@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a20">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Barrel Blitz 3D</title>
+<style>
+  :root { --red: #e8402a; --cyan: #3ad8e8; --gold: #ffd34d; --ink: #f6f6f8; --mute: #a9adc8; --panel: rgba(12,12,32,.92); }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a20; color: var(--ink); font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; -webkit-user-select: none; user-select: none; touch-action: none; }
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  .hide { display: none !important; }
+
+  /* HUD */
+  #hud { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
+  #tl { position: absolute; left: max(10px, env(safe-area-inset-left)); top: max(8px, env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 4px; }
+  .chip { background: rgba(8,8,24,.78); border-left: 4px solid var(--red); padding: 5px 10px; border-radius: 6px; font-weight: 900; }
+  #score { font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; } #hi { font-size: 12px; color: var(--mute); }
+  #lives { color: #ff5a6a; font-size: 18px; letter-spacing: 2px; } #lvl { font-size: 13px; color: var(--gold); }
+  #bonusBox { position: absolute; left: 50%; top: max(8px, env(safe-area-inset-top)); transform: translateX(-50%); background: rgba(8,8,24,.78); border: 3px solid var(--cyan); border-radius: 8px; padding: 2px 12px; text-align: center; font-weight: 900; }
+  #bonusBox small { display: block; font-size: 10px; letter-spacing: .2em; color: var(--cyan); } #bonus { font-size: 20px; font-variant-numeric: tabular-nums; }
+  #rivets { position: absolute; left: 50%; top: calc(max(8px, env(safe-area-inset-top)) + 54px); transform: translateX(-50%); font-weight: 900; color: var(--gold); text-shadow: 0 2px 0 #000; }
+  #msg { position: absolute; left: 0; right: 0; top: 24%; text-align: center; font-size: clamp(28px, 7vw, 56px); font-weight: 900; text-shadow: 0 3px 0 #000, 0 0 14px rgba(0,0,0,.6); opacity: 0; transition: opacity .25s; color: #fff; }
+  #msg small { display: block; font-size: 16px; color: var(--gold); }
+
+  /* touch controls */
+  #touch { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
+  .tb { position: absolute; pointer-events: auto; touch-action: none; border: 0; border-radius: 20px; font: inherit; font-weight: 900; color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.4); box-shadow: 0 5px 0 rgba(0,0,0,.45); background: rgba(40,40,70,.8); font-size: 30px; }
+  .tb.on { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,.45); filter: brightness(1.35); }
+  #bL { left: max(14px, env(safe-area-inset-left)); bottom: calc(max(14px, env(safe-area-inset-bottom)) + 4px); width: 96px; height: 96px; }
+  #bR { left: calc(max(14px, env(safe-area-inset-left)) + 108px); bottom: calc(max(14px, env(safe-area-inset-bottom)) + 4px); width: 96px; height: 96px; }
+  #bJ { right: max(14px, env(safe-area-inset-right)); bottom: calc(max(14px, env(safe-area-inset-bottom)) + 4px); width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #ff8a6a, #c82a14); font-size: 20px; }
+  #bU { right: calc(max(14px, env(safe-area-inset-right)) + 124px); bottom: calc(max(14px, env(safe-area-inset-bottom)) + 84px); width: 84px; height: 74px; background: rgba(30,120,140,.85); }
+  #bD { right: calc(max(14px, env(safe-area-inset-right)) + 124px); bottom: calc(max(14px, env(safe-area-inset-bottom)) + 4px); width: 84px; height: 70px; background: rgba(30,120,140,.85); }
+  .tiny { position: absolute; pointer-events: auto; top: max(8px, env(safe-area-inset-top)); width: 44px; height: 44px; border: 0; border-radius: 12px; background: rgba(0,0,0,.5); color: #fff; font-weight: 900; font-size: 18px; }
+  #bPause { right: max(10px, env(safe-area-inset-right)); } #bCam { right: calc(max(10px, env(safe-area-inset-right)) + 52px); } #bSnd { right: calc(max(10px, env(safe-area-inset-right)) + 104px); }
+  @media (max-height: 480px) { #bL, #bR { width: 80px; height: 80px; } #bR { left: calc(max(14px, env(safe-area-inset-left)) + 90px); } #bJ { width: 92px; height: 92px; } #bU { right: calc(max(14px, env(safe-area-inset-right)) + 104px); bottom: calc(max(14px, env(safe-area-inset-bottom)) + 70px); width: 72px; height: 60px; } #bD { right: calc(max(14px, env(safe-area-inset-right)) + 104px); width: 72px; height: 58px; } }
+  @media (max-width: 560px) { #bU, #bD { right: calc(max(14px, env(safe-area-inset-right)) + 13px); width: 84px; height: 62px; } #bD { bottom: calc(max(14px, env(safe-area-inset-bottom)) + 124px); } #bU { bottom: calc(max(14px, env(safe-area-inset-bottom)) + 196px); } }
+  @media (max-width: 420px) { #bonusBox { top: calc(max(8px, env(safe-area-inset-top)) + 54px); } #rivets { top: calc(max(8px, env(safe-area-inset-top)) + 104px); } }
+
+  /* screens */
+  .screen { position: fixed; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 14px; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); text-align: center; overflow-y: auto; touch-action: pan-y; background: radial-gradient(120% 90% at 50% 10%, rgba(40,20,90,.45), rgba(6,6,20,.86)); }
+  .screen > :first-child { margin-top: auto; } .screen > :last-child { margin-bottom: auto; }
+  .logo { margin: 0; font-size: clamp(46px, 12vw, 96px); line-height: .9; font-weight: 900; letter-spacing: -.01em; color: #fff; text-shadow: 4px 4px 0 var(--red), 8px 8px 0 #4a0a00; }
+  .logo span { color: var(--gold); }
+  .logo small { display: block; font-size: .2em; letter-spacing: .35em; color: var(--cyan); text-shadow: none; margin-top: .7em; }
+  .tag { margin: 0; max-width: 42ch; font-size: clamp(14px, 3.6vw, 18px); font-weight: 700; line-height: 1.4; color: #e6e7f4; }
+  .btn { border: 0; border-radius: 10px; padding: 14px 34px; font: inherit; font-weight: 900; font-size: 18px; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; color: #fff; background: linear-gradient(180deg, #ff6a4a, #c82a14); box-shadow: 0 5px 0 #5a1000; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #5a1000; }
+  .btn.cyan { background: linear-gradient(180deg, #6ae8f4, #1a9ab0); color: #04222a; box-shadow: 0 5px 0 #0a4a5a; }
+  .btn.ghost { background: rgba(255,255,255,.1); box-shadow: none; border: 2px solid rgba(255,255,255,.3); }
+  .panel { background: var(--panel); border: 2px solid #2a2a5a; border-radius: 14px; padding: 16px; width: min(100%, 640px); text-align: left; }
+  .seg { display: flex; gap: 6px; background: rgba(255,255,255,.08); border-radius: 999px; padding: 4px; width: min(100%, 420px); }
+  .seg button { flex: 1; border: 0; border-radius: 999px; padding: 10px 6px; font: inherit; font-weight: 900; font-size: 16px; color: var(--mute); background: none; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: #fff; color: #0a0a20; }
+  #levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; width: min(100%, 720px); }
+  .lv { border: 2px solid #2a2a5a; border-radius: 12px; padding: 10px 6px; font: inherit; color: #fff; cursor: pointer; background: #14143a; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .lv i { font-style: normal; font-size: 24px; } .lv b { font-size: 22px; } .lv span { font-size: 12px; color: var(--mute); font-weight: 700; } .lv em { font-style: normal; color: var(--gold); letter-spacing: 2px; }
+  .lv.done { border-color: var(--gold); }
+  .help p { font-size: 15px; line-height: 1.45; margin: 6px 0; } .help b { color: var(--gold); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .confetti { position: fixed; top: -12px; width: 10px; height: 10px; z-index: 50; pointer-events: none; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(540deg); } }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hide">
+  <div id="tl">
+    <div class="chip"><div id="score">0</div><div id="hi">HI 0</div></div>
+    <div class="chip"><div id="lives"></div><div id="lvl"></div></div>
+  </div>
+  <div id="bonusBox"><small>BONUS</small><div id="bonus">5000</div></div>
+  <div id="rivets" class="hide"></div>
+  <div id="msg"></div>
+</div>
+
+<div id="touch" class="hide">
+  <button class="tb" id="bL" type="button" aria-label="Left">◀</button>
+  <button class="tb" id="bR" type="button" aria-label="Right">▶</button>
+  <button class="tb" id="bU" type="button" aria-label="Climb up">▲</button>
+  <button class="tb" id="bD" type="button" aria-label="Climb down">▼</button>
+  <button class="tb" id="bJ" type="button">JUMP</button>
+  <button class="tiny" id="bSnd" type="button" aria-label="Sound">🔊</button>
+  <button class="tiny" id="bCam" type="button" aria-label="Camera">🎥</button>
+  <button class="tiny" id="bPause" type="button" aria-label="Pause">II</button>
+</div>
+
+<section class="screen" id="title">
+  <h1 class="logo">BARREL<br><span>BLITZ</span><small>3D · 12 LEVELS</small></h1>
+  <p class="tag">Big Bongo the gorilla grabbed Pickles the puppy and climbed to the top of the tower! Jump the barrels, dodge the fireballs, climb the ladders and save her.</p>
+  <button class="btn" id="goPlay">Play</button>
+  <button class="btn ghost" id="goHelp">How to play</button>
+  <a href="index.html" style="color:#a8d8ff;font-size:14px">☰ Arcade menu</a>
+</section>
+
+<section class="screen hide" id="help">
+  <div class="panel help">
+    <h2 style="margin:0 0 6px;color:var(--gold)">How to play</h2>
+    <p><b>◀ ▶</b> walk. <b>▲ ▼</b> climb ladders (stand at the bottom or top of one). <b>JUMP</b> over barrels, crates and fireballs. Every jump over one is 100 points.</p>
+    <p>Ladders with missing rungs are <b>broken</b>. Only barrels can use them.</p>
+    <p>Grab a <b>hammer</b> to smash barrels and fireballs for 9 seconds. You can't climb while you hold it.</p>
+    <p><b>4 kinds of level:</b> 🛢️ Girders: climb to Pickles while barrels roll down. 📦 Factory: conveyor belts push you and carry crates. 🛗 Lifts: ride the moving lifts and watch for bouncing springs. 🔩 Rivets: walk over all 8 yellow rivets to make Big Bongo fall!</p>
+    <p><b>Easy:</b> slow barrels, 5 lives and falls don't hurt. <b>Medium</b> and <b>Hard</b> are faster, and a big fall costs a life.</p>
+    <p>Bonus points count down, so be quick. <b>Keyboard:</b> arrows or WASD, Space to jump, C camera, P pause, M sound.</p>
+  </div>
+  <button class="btn" id="helpBack">Got it</button>
+</section>
+
+<section class="screen hide" id="select">
+  <h2 style="margin:0;font-size:28px">CHOOSE A LEVEL</h2>
+  <div class="seg" id="diff"><button data-v="easy">Easy</button><button data-v="medium">Medium</button><button data-v="hard">Hard</button></div>
+  <div id="levels"></div>
+  <div id="selHi" style="color:var(--mute);font-size:13px"></div>
+  <button class="btn ghost" id="selBack">Back</button>
+</section>
+
+<section class="screen hide" id="pause">
+  <h2 class="logo" style="font-size:56px">PAUSED</h2>
+  <button class="btn" id="resume">Resume</button>
+  <button class="btn ghost" id="restart">Restart level</button>
+  <button class="btn ghost" id="toLevels">Levels</button>
+</section>
+
+<section class="screen hide" id="clear">
+  <h2 class="logo" id="clearTitle" style="font-size:clamp(36px,9vw,64px)">LEVEL CLEAR!</h2>
+  <p class="tag" id="clearSub"></p>
+  <div class="row"><button class="btn cyan" id="clearNext">Next level</button><button class="btn ghost" id="clearLevels">Levels</button></div>
+</section>
+
+<section class="screen hide" id="over">
+  <h2 class="logo" style="font-size:clamp(40px,10vw,72px)">GAME OVER</h2>
+  <p class="tag" id="overScore"></p>
+  <div class="row"><button class="btn" id="overAgain">Try again</button><button class="btn ghost" id="overLevels">Levels</button></div>
+</section>
+
+<script>setTimeout(function () { if (!window.BZ || !window.BZ.ok) { var t = document.querySelector('#title .tag'); if (t) t.textContent = 'Barrel Blitz needs a browser with 3D graphics (WebGL). Try Safari or Chrome.'; } }, 6000);</script>
+<script type="module" src="barrel3d.js"></script>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }</script>
+</body>
+</html>

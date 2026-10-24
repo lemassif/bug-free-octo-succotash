@@ -1,4 +1,4 @@
-> This repo is a small **retro arcade** with twelve self-contained browser games,
+> This repo is a small **retro arcade** with thirteen self-contained browser games,
 > plus a learning app. Open [`index.html`](index.html) for the **menu**, then
 > pick one:
 >
@@ -17,6 +17,7 @@
 > | **ChanceCraft** | [`chancecraft.html`](chancecraft.html) | block-building adventure: 20 levels on Earth and in space, boats, rockets and bosses — see below |
 > | **Super Strikers** | [`soccer.html`](soccer.html) | 3D five-a-side soccer with goal celebrations — see below |
 > | **Brain Box** | [`logic.html`](logic.html) | logic puzzles and word search: clue grids, sudoku, picture cross, queens and hidden words — see below |
+> | **Barrel Blitz 3D** | [`barrel.html`](barrel.html) | climb the tower past barrels and fireballs to rescue a puppy: 12 levels, Easy, Medium or Hard — see below |
 >
 > Every page cross-links, so you can hop between the menu and any game.
 >
@@ -427,3 +428,30 @@ its own track shape and scenery:
 - `grandprix.js` builds the tracks, cars and cities with three.js. Teams and
   drivers are made up for the game.
 
+# Barrel Blitz 3D
+
+A 3D take on the classic barrel-jumping climber. Big Bongo the gorilla has
+carried Pickles the puppy to the top of a building site; climb up and save her.
+The game plays left and right like the arcade original and is drawn in 3D, with
+three cameras (close, whole tower, and a side angle).
+
+| Level | Stage | What happens |
+|-------|-------|--------------|
+| 1, 5, 9 | 🛢️ Girders | barrels roll down sloped girders, sometimes down ladders; blue barrels light the oil drum and fireballs jump out |
+| 2, 6, 10 | 📦 Factory | conveyor belts push you and carry crates; fireballs wander the floors |
+| 3, 7, 11 | 🛗 Lifts | ride lifts up and down between platforms; Big Bongo throws bouncing springs |
+| 4, 8, 12 | 🔩 Rivets | walk over all 8 rivets and Big Bongo falls; jump the gaps they leave |
+
+- Any level can be played from the level picker. Stars show which levels have
+  been cleared on Easy, Medium and Hard, and the high score is saved.
+- **Easy:** slower hazards, 5 lives, and falls don't hurt. **Medium** and
+  **Hard** are faster, have 3 lives, more fireballs, and a big fall costs a
+  life. Hard also costs a life when the bonus timer runs out.
+- Each round of a stage (levels 1 to 4, 5 to 8, 9 to 12) is faster, with
+  more broken ladders.
+- Hammers smash barrels, crates and fireballs for 9 seconds. Jumping over a
+  hazard is 100 points; the bonus counts down and is added when you finish.
+- **Controls:** ◀ ▶ walk, ▲ ▼ climb, JUMP. Keyboard: arrows or WASD, Space
+  to jump, C camera, P pause, M sound.
+- `barrel3d.js` builds the levels and characters with three.js. The
+  characters are made up for the game.
