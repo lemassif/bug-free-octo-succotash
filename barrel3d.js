@@ -390,7 +390,9 @@ function hits(h) {
    Player
    ================================================================ */
 const inp = { l: 0, r: 0, u: 0, d: 0, jump: 0 };
-function findLadder(dir) { for (const ld of L.ladders) { if (ld.broken || Math.abs(P.x - ld.x) > .45) continue; if (dir > 0 && Math.abs(P.y - ld.yb) < .35) return ld; if (dir < 0 && Math.abs(P.y - ld.yt) < .35) return ld; } return null; }
+function findLadder(dir) { let best = null; for (const ld of L.ladders) { if (Math.abs(P.x - ld.x) > .65) continue; if ((dir > 0 && Math.abs(P.y - ld.yb) < .35) || (dir < 0 && Math.abs(P.y - ld.yt) < .35)) { if (!ld.broken) return ld; best = ld; } }
+  if (best && G.t - (G.brokenT || -9) > 2) { G.brokenT = G.t; flash('Broken ladder!', 'Find one with all its rungs', 1.4); }
+  return null; }
 function liftAt(x, y) { for (const lf of L.lifts) for (const s of lf.plats) if (s.mesh.visible && x >= s.x1 && x <= s.x2 && Math.abs(s.y1 - y) < .45) return s; return null; }
 // stepping off a lift onto a ledge that is a little higher or lower
 function stepSeg(x, y) { for (const t of L.segs) if (!t.dead && t.kind !== 'lift' && x >= t.x1 - .35 && x <= t.x2 + .35) { const d = yAt(t, x) - y; if (d > -.5 && d < .8) return t; } return null; }
@@ -407,8 +409,8 @@ function updatePlayer(dt) {
     if (mv) { P.anim += dt * 11; P.stepT -= dt; if (P.stepT <= 0) { P.stepT = .17; P.stepI ^= 1; SFX.step(P.stepI); } } else P.anim = 0;
     if (P.seg.kind === 'rivet') P.seg.touched = true;
     if (inp.jump) { P.state = 'air'; P.vy = JUMP_V; P.vx = mv * WALK + s.belt * speedMul(); P.maxY = P.y; P.seg = null; SFX.jump(); }
-    else if (inp.u && !P.hammer) { const ld = findLadder(1); if (ld) { P.state = 'climb'; P.ladder = ld; P.x = ld.x; } }
-    else if (inp.d && !P.hammer) { const ld = findLadder(-1); if (ld) { P.state = 'climb'; P.ladder = ld; P.x = ld.x; P.y = ld.yt - .05; } }
+    else if (inp.u) { const ld = findLadder(1); if (ld) { P.state = 'climb'; P.ladder = ld; P.x = ld.x; } }
+    else if (inp.d) { const ld = findLadder(-1); if (ld) { P.state = 'climb'; P.ladder = ld; P.x = ld.x; P.y = ld.yt - .05; } }
   } else if (P.state === 'air') {
     const oy = P.y; P.vy -= GRAV * dt; P.y += P.vy * dt; P.x = clamp(P.x + P.vx * dt, .3, W - .3); P.maxY = Math.max(P.maxY, P.y);
     for (const s of L.segs) if (s.kind === 'rivet' && !s.dead && Math.abs(P.x - (s.x1 + s.x2) / 2) < .5 && P.y > s.y1 && P.y < s.y1 + 2.6) s.touched = true;
@@ -484,7 +486,7 @@ function animate(dt) {
   else if (P.state === 'air') { h.legL.rotation.z = .6; h.legR.rotation.z = -.3; h.armL.rotation.z = 2.4; h.armR.rotation.z = -.5; }
   else if (P.state === 'climb') { h.legL.rotation.z = 0; h.legR.rotation.z = 0; h.legL.position.y = .72 + Math.max(0, sw) * .2; h.legR.position.y = .72 + Math.max(0, -sw) * .2; h.armL.rotation.x = -2.6 - sw * .3; h.armR.rotation.x = 2.6 - sw * .3; h.armL.rotation.z = h.armR.rotation.z = 0; }
   if (P.state !== 'climb') { h.legL.position.y = h.legR.position.y = .72; h.armL.rotation.x = h.armR.rotation.x = 0; }
-  if (P.hammer > 0) { h.armR.rotation.z = -Math.PI * .5 + Math.sin(G.t * 14) * 1.4; h.armR.rotation.x = 0; h.hammer.visible = P.hammer > 2 || Math.sin(G.t * 20) > 0; }
+  if (P.hammer > 0 && P.state !== 'climb') { h.armR.rotation.z = -Math.PI * .5 + Math.sin(G.t * 14) * 1.4; h.armR.rotation.x = 0; h.hammer.visible = P.hammer > 2 || Math.sin(G.t * 20) > 0; }
   if (P.state === 'dead') { b.rotation.y += dt * 14; b.rotation.z = Math.min(Math.PI / 2, P.deadT * 2.5); b.position.y = 0; } else { b.rotation.z = 0; }
   // gorilla
   G.apeAnim = Math.max(0, (G.apeAnim || 0) - dt);
