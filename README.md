@@ -451,7 +451,11 @@ three cameras (close, whole tower, and a side angle).
   more broken ladders.
 - Hammers smash barrels, crates and fireballs for 9 seconds. Jumping over a
   hazard is 100 points; the bonus counts down and is added when you finish.
-- **Controls:** ◀ ▶ walk, ▲ ▼ climb, JUMP. Keyboard: arrows or WASD, Space
+- **Controls:** ◀ ▶ walk, ▲ ▼ climb, JUMP (also off ladders). ▼ on a platform lies
+  down for up to 3 seconds so barrels, crates and springs bounce over. Keyboard: arrows or WASD, Space
   to jump, C camera, P pause, M sound.
+- The hero has a jointed body, blinks, looks scared when danger is close,
+  grins when he jumps a barrel, waves when left standing, and talks in speech
+  bubbles.
 - `barrel3d.js` builds the levels and characters with three.js. The
   characters are made up for the game.

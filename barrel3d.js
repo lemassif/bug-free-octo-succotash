@@ -139,26 +139,65 @@ const GEO = {
    Characters
    ================================================================ */
 function makeHero() {
+  // jointed body: hips > torso > neck > head, shoulder > elbow > hand, hip > knee > foot
   const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-  const skin = std(0xf2c79a), shirt = std(0xff7a1a), jeans = std(0x2f5fbf), capM = std(0x1f8fff), shoe = std(0xf4f4f4);
-  const add = (p, geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); p.add(m); return m; };
-  const leg = z => { const p = new THREE.Group(); p.position.set(0, .72, z); body.add(p); add(p, new THREE.CapsuleGeometry(.1, .4, 4, 8), jeans, 0, -.3, 0); const s = add(p, GEO.box, shoe, .06, -.64, 0); s.scale.set(.3, .12, .17); return p; };
-  const legL = leg(.13), legR = leg(-.13);
-  add(body, new THREE.CapsuleGeometry(.24, .3, 4, 12), shirt, 0, 1.02, 0);
-  const strap = add(body, GEO.box, jeans, .02, .84, 0); strap.scale.set(.5, .2, .5);
-  const arm = z => { const p = new THREE.Group(); p.position.set(0, 1.24, z); body.add(p); add(p, new THREE.CapsuleGeometry(.075, .34, 4, 8), shirt, 0, -.22, 0); add(p, new THREE.SphereGeometry(.09, 10, 8), skin, 0, -.48, 0); return p; };
-  const armL = arm(.32), armR = arm(-.32);
-  add(body, new THREE.SphereGeometry(.25, 18, 14), skin, 0, 1.54, 0);
-  add(body, new THREE.SphereGeometry(.265, 18, 8, 0, TAU, 0, Math.PI / 2), capM, 0, 1.58, 0);
-  const brim = add(body, GEO.box, capM, .24, 1.6, 0); brim.scale.set(.24, .04, .36);
-  for (const z of [.09, -.09]) add(body, new THREE.SphereGeometry(.04, 8, 6), M.black, .22, 1.56, z);
-  add(body, new THREE.SphereGeometry(.05, 8, 6), skin, .26, 1.5, 0);
-  // hammer held in the right hand
-  const hammer = new THREE.Group(); armR.add(hammer); hammer.position.set(0, -.5, 0);
-  const handle = add(hammer, new THREE.CylinderGeometry(.04, .04, .8, 8), std(0x9a6a3a), .0, .35, 0); void handle;
-  const head = add(hammer, GEO.box, M.steel, 0, .78, 0); head.scale.set(.42, .22, .22);
+  const skin = std(0xffc9a0, { roughness: .65, emissive: 0x3a1a0a }), shirt = std(0xff7a1a, { roughness: .8 }), denim = std(0x2f5fbf, { roughness: .85 }), capM = std(0x1f8fff, { roughness: .6 }),
+    shoe = std(0xf8f8f8, { roughness: .5 }), sole = std(0xe8323c), hair = std(0x7a4a22, { roughness: .9 }), white = std(0xffffff, { roughness: .3 }), ink = std(0x1a1410, { roughness: .4 }), mouthM = std(0x6a1a1a), tongue = std(0xff7a8a), freck = std(0xd88a5a), gold = std(0xffd34d, { metalness: .5, roughness: .3 });
+  const grp = (p, x, y, z) => { const o = new THREE.Group(); o.position.set(x, y, z); p.add(o); return o; };
+  const add = (p, geo, mat, x, y, z, sx, sy, sz) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); if (sx) m.scale.set(sx, sy, sz); p.add(m); return m; };
+  const cap = (r, l) => new THREE.CapsuleGeometry(r, l, 4, 10);
+  const hips = grp(body, 0, .78, 0);
+  add(hips, GEO.ball, denim, 0, .02, 0, .21, .13, .2);
+  // legs
+  const leg = z => { const thigh = grp(hips, 0, 0, z); add(thigh, cap(.085, .2), denim, 0, -.18, 0); const knee = grp(thigh, 0, -.37, 0); add(knee, cap(.075, .2), denim, 0, -.16, 0); add(knee, new THREE.CylinderGeometry(.088, .08, .05, 10), denim, 0, -.31, 0);
+    const foot = grp(knee, 0, -.36, 0); add(foot, GEO.ball, shoe, .06, -.02, 0, .17, .085, .1); add(foot, GEO.box, sole, .06, -.08, 0, .34, .035, .19); add(foot, GEO.box, std(0x3a7fff), .1, .04, 0, .1, .02, .12); return { thigh, knee, foot }; };
+  const L_ = leg(.11), R_ = leg(-.11);
+  // torso with dungarees
+  const torso = grp(hips, 0, .05, 0);
+  add(torso, cap(.2, .22), shirt, 0, .26, 0, 1, 1, .85);
+  add(torso, GEO.box, denim, .1, .2, 0, .1, .3, .3); add(torso, GEO.ball, denim, 0, .08, 0, .22, .14, .19);
+  for (const z of [.1, -.1]) { add(torso, GEO.box, denim, .06, .36, z, .22, .04, .045).rotation.z = -.3; add(torso, GEO.ball, gold, .16, .32, z, .025, .025, .025); }
+  add(torso, GEO.box, std(0xffd34d), .155, .22, 0, .01, .08, .08);                      // pocket badge
+  add(torso, new THREE.CylinderGeometry(.07, .08, .1, 10), skin, 0, .5, 0);             // neck
+  // head
+  const head = grp(torso, .01, .69, 0);
+  add(head, GEO.ball, skin, 0, 0, 0, .25, .26, .24);
+  add(head, GEO.ball, skin, .05, -.09, 0, .2, .16, .2);                                  // round chin
+  for (const z of [.12, -.12]) add(head, GEO.ball, std(0xff9a8a, { roughness: .8 }), .19, -.06, z, .035, .025, .03);   // rosy cheeks
+  for (const z of [.24, -.24]) { add(head, GEO.ball, skin, -.02, 0, z, .06, .08, .04); }
+  add(head, GEO.ball, skin, .25, -.02, 0, .05, .045, .05);                               // nose
+  for (const z of [.13, -.13]) for (const k of [0, 1, 2]) add(head, GEO.ball, freck, .21 - k * .01, -.05 + (k % 2) * .02, z + (k - 1) * .025, .008, .008, .006);
+  // hair under the cap and a cowlick
+  for (const [x, y, z] of [[-.16, .08, .14], [-.2, .02, 0], [-.16, .08, -.14], [-.08, .12, .2], [-.08, .12, -.2]]) add(head, GEO.ball, hair, x, y, z, .09, .08, .08);
+  const tuft = add(head, cap(.025, .1), hair, -.05, .3, .02); tuft.rotation.z = .6;
+  // cap with a star badge, worn a little crooked
+  const capG = grp(head, -.01, .14, 0); capG.rotation.x = .08;
+  add(capG, new THREE.SphereGeometry(.265, 20, 10, 0, TAU, 0, Math.PI / 2), capM, 0, 0, 0);
+  add(capG, new THREE.CylinderGeometry(.2, .2, .02, 20, 1, false, -Math.PI / 2, Math.PI), capM, .17, 0, 0, 1, 1, .95);
+  add(capG, GEO.ball, gold, .22, .1, 0, .025, .045, .045);
+  add(capG, GEO.ball, capM, 0, .27, 0, .03, .02, .03);
+  // eyes, brows, mouths
+  const eyes = [], pupils = [], brows = [];
+  for (const z of [.085, -.085]) { const e = grp(head, .2, .04, z); add(e, GEO.ball, white, 0, 0, 0, .045, .078, .066); const pu = add(e, GEO.ball, ink, .03, -.005, 0, .024, .045, .04); add(e, GEO.ball, white, .052, .012, .012, .01, .01, .01); eyes.push(e); pupils.push(pu);
+    const br = add(head, GEO.box, hair, .225, .115, z, .025, .03, .09); brows.push(br); }
+  const smile = add(head, new THREE.TorusGeometry(.075, .016, 6, 14, Math.PI), mouthM, .215, -.1, 0); smile.rotation.set(0, Math.PI / 2, Math.PI);
+  const grin = grp(head, .2, -.11, 0); add(grin, GEO.ball, mouthM, 0, 0, 0, .03, .045, .075); add(grin, GEO.ball, tongue, .01, -.02, 0, .02, .02, .045); add(grin, GEO.box, white, .025, .025, 0, .01, .015, .08);
+  const oh = add(head, GEO.ball, mouthM, .23, -.115, 0, .025, .045, .035);
+  grin.visible = false; oh.visible = false;
+  // arms
+  const arm = z => { const sh = grp(torso, 0, .42, z); add(sh, GEO.ball, shirt, 0, -.03, 0, .1, .1, .1); add(sh, cap(.065, .14), shirt, 0, -.12, 0); const el = grp(sh, 0, -.25, 0); add(el, cap(.055, .14), skin, 0, -.11, 0);
+    const hand = grp(el, 0, -.25, 0); add(hand, GEO.ball, skin, 0, 0, 0, .065, .07, .055); add(hand, GEO.ball, skin, .04, .02, 0, .025, .04, .025); return { sh, el, hand }; };
+  const AL = arm(.27), AR = arm(-.27);
+  // hammer held in the near hand
+  const hammer = grp(AR.hand, 0, 0, 0); hammer.rotation.z = -Math.PI / 2;
+  add(hammer, new THREE.CylinderGeometry(.04, .04, .8, 8), std(0xffa040), 0, .3, 0);
+  add(hammer, GEO.box, std(0xe8ecf4, { metalness: .4, roughness: .25 }), 0, .72, 0, .42, .22, .22);
   hammer.visible = false;
-  return { g, body, legL, legR, armL, armR, hammer };
+  // speech bubble
+  const cv = document.createElement('canvas'); cv.width = 512; cv.height = 128; const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+  const bubble = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true })); bubble.scale.set(4, 1, 1); bubble.position.y = 2.45; bubble.renderOrder = 12; bubble.visible = false; g.add(bubble);
+  return { g, body, hips, torso, head, capG, eyes, pupils, brows, smile, grin, oh, thighL: L_.thigh, kneeL: L_.knee, footL: L_.foot, thighR: R_.thigh, kneeR: R_.knee, footR: R_.foot,
+    shL: AL.sh, elL: AL.el, shR: AR.sh, elR: AR.el, hammer, bubble, bubbleCv: cv, bubbleTex: tex };
 }
 function makeApe() {
   const g = new THREE.Group(), fur = std(0x6b3a1e, { roughness: .9 }), tan = std(0xd9a066, { roughness: .8 }), dark = std(0x2a160a);
@@ -280,18 +319,18 @@ function startLevel() {
   L = buildLevel(G.level); H.length = 0; fx.length = 0; buildScene();
   G.rivets = L.segs.filter(s => s.kind === 'rivet').length; G.bonus = 5000 + 1000 * (L.round - 1); G.bonusT = 0;
   resetLife(); G.mode = 'play'; G.paused = false; G.camInit = false;
-  showScreen(null); hud(); flash(L.name, LEVELS[G.level].icon + ' Level ' + (G.level + 1) + ' · ' + G.diff.toUpperCase(), 2.2);
+  showScreen(null); hud(); setTimeout(() => say('start', true), 900); flash(L.name, LEVELS[G.level].icon + ' Level ' + (G.level + 1) + ' · ' + G.diff.toUpperCase(), 2.2);
 }
 function resetLife() {
   for (const h of H) levelGroup.remove(h.mesh); H.length = 0;
-  const s = floorSeg(L, L.start.k, L.start.x); Object.assign(P, { x: L.start.x, y: yAt(s, L.start.x), vx: 0, vy: 0, state: 'walk', seg: s, ladder: null, face: 1, hammer: 0, deadT: 0 });
+  const s = floorSeg(L, L.start.k, L.start.x); Object.assign(P, { x: L.start.x, y: yAt(s, L.start.x), vx: 0, vy: 0, state: 'walk', seg: s, ladder: null, face: 1, hammer: 0, deadT: 0, prone: false, idleT: 0, squash: 0 });
   G.throwT = 1.2; G.fireT = 4; G.springT = 2; G.spawned = 0; G.apeAnim = 0;
   for (const b of L.belts) b.crateT = Math.random() * 2;
   if (L.type === 'factory') { spawnFire(14, 2, 1); }
   if (L.type === 'lifts') spawnFire(24, 5, 1);
 }
 function die() {
-  if (P.state === 'dead') return; P.state = 'dead'; P.deadT = 0; P.hammer = 0; SFX.die(); burst(P.x, P.y + .8, 0xffffff, 14);
+  if (P.state === 'dead') return; P.state = 'dead'; P.deadT = 0; P.hammer = 0; P.prone = false; say('die', true); SFX.die(); burst(P.x, P.y + .8, 0xffffff, 14);
 }
 function afterDeath() {
   G.lives--; hud();
@@ -299,12 +338,30 @@ function afterDeath() {
   resetLife(); flash('Try again!', G.lives + (G.lives === 1 ? ' life' : ' lives') + ' left', 1.6);
 }
 function win() {
-  if (G.mode !== 'play') return; G.mode = 'clear'; G.timer = 0; P.hammer = 0; SFX.win();
+  if (G.mode !== 'play') return; G.mode = 'clear'; G.timer = 0; P.hammer = 0; P.prone = false; say('win', true); SFX.win();
   const bonus = G.bonus; G.score += bonus; const c = save.cleared[G.diff]; if (!c.includes(G.level)) c.push(G.level);
   if (G.score > save.hi) save.hi = G.score; store(); hud();
   for (const h of H) levelGroup.remove(h.mesh); H.length = 0;
   for (let i = 0; i < 6; i++) setTimeout(() => popup('❤', L.puppy.x + (Math.random() - .5) * 3, L.puppy.y + 1.5 + Math.random(), '#ff5a8a'), i * 200);
   G.clearBonus = bonus;
+}
+const LINES = {
+  start: ["I'm coming, Pickles!", 'Hang on, Pickles!', 'Here I go!', "Let's do this!"],
+  over: ['Woo-hoo!', 'Too easy!', 'Ha! Missed me!', 'Boing!', 'Yeah!', 'Over you go!'],
+  hammer: ['Smash time!', 'Look out, barrels!', 'Bonk bonk bonk!'],
+  idle: ['La la la...', "Come on, let's go!", 'Is it snack time yet?', "I'm not scared of you, Big Bongo!", 'Pickles needs me!'],
+  prone: ['Phew!', 'Hiding!', 'Nap time... just kidding!', 'Shhh...'],
+  scared: ['Yikes!', 'Uh-oh!', 'Whoa!'], ouch: ['Ouch, my toes!', 'Oof, big drop!'],
+  die: ['Oof!', 'Aw, man!', 'Bonk!'], win: ['Got you, Pickles!', 'We did it!', 'High five, Pickles!'], rivet: ['Pop!', 'Boop!'], ladderJump: ['Wheee!', 'Ninja jump!'],
+};
+function say(kind, force) {
+  if (!hero || (!force && G.t < (G.sayUntil || 0) + 1.2)) return;
+  const list = LINES[kind] || [kind], text = list[Math.floor(Math.random() * list.length)], c = hero.bubbleCv.getContext('2d'), w = hero.bubbleCv.width, h = hero.bubbleCv.height;
+  c.clearRect(0, 0, w, h); c.font = '900 40px "Trebuchet MS", sans-serif'; const tw = Math.min(w - 24, c.measureText(text).width + 44), x0 = (w - tw) / 2;
+  c.fillStyle = '#fff'; c.strokeStyle = '#1a1a2a'; c.lineWidth = 5; c.beginPath(); if (c.roundRect) c.roundRect(x0, 6, tw, 80, 24); else c.rect(x0, 6, tw, 80); c.fill(); c.stroke();
+  c.beginPath(); c.moveTo(w / 2 - 14, 84); c.lineTo(w / 2, 118); c.lineTo(w / 2 + 14, 84); c.closePath(); c.fill(); c.beginPath(); c.moveTo(w / 2 - 14, 86); c.lineTo(w / 2, 118); c.lineTo(w / 2 + 14, 86); c.stroke();
+  c.fillStyle = '#1a1a2a'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(text, w / 2, 47, w - 40);
+  hero.bubbleTex.needsUpdate = true; hero.bubble.visible = true; G.sayUntil = G.t + 1.8;
 }
 function addScore(n, x, y) { G.score += n; popup(String(n), x, y); hud(); }
 
@@ -369,8 +426,10 @@ function updateSpring(s, dt) {
   else { s.y -= 9 * dt; if (s.y < -4) removeHazard(s); }
 }
 function hits(h) {
-  const k = D.hit, cx = P.x, cy = P.y + .75, hy = h.y + h.r;
-  return Math.abs(cx - h.x) < (.3 + h.r * .8) * k + .1 && Math.abs(cy - hy) < (.7 + h.r * .8) * k;
+  // lying flat: barrels, crates and springs bounce over you, fireballs still burn
+  if (P.prone && h.type !== 'fire') return false;
+  const k = D.hit, cx = P.prone ? P.x + P.face * .2 : P.x, cy = P.y + (P.prone ? .22 : .75), hy = h.y + h.r, hw = P.prone ? .75 : .3, hh = P.prone ? .2 : .7;
+  return Math.abs(cx - h.x) < (hw + h.r * .8) * k + .1 && Math.abs(cy - hy) < (hh + h.r * .8) * k;
 }
 
 /* ================================================================
@@ -393,20 +452,26 @@ function updatePlayer(dt) {
   const mv = (inp.r ? 1 : 0) - (inp.l ? 1 : 0); if (mv && P.state !== 'climb') P.face = mv;
   if (P.state === 'walk') {
     const s = P.seg; if (!s || s.dead) { fallOff(); return; }
-    P.vx = mv * WALK; P.x = clamp(P.x + (P.vx + s.belt * speedMul()) * dt, .3, W - .3);
+    const wasProne = P.prone; if (!inp.d) P.proneLock = false; P.prone = !!inp.d && !inp.jump && !P.proneLock && !findLadder(-1);
+    P.proneT = P.prone ? (P.proneT || 0) + dt : 0; if (P.proneT > 3) { P.prone = false; P.proneLock = true; say('Up I get!', true); }
+    if (P.prone && !wasProne && Math.random() < .5) say('prone');
+    P.vx = mv * (P.prone ? 1.2 : WALK); P.x = clamp(P.x + (P.vx + s.belt * speedMul()) * dt, .3, W - .3);
     if (s.kind === 'lift') { if (s.jumped) { fallOff(); return; } }
     if (P.x < s.x1 || P.x > s.x2) { const n = nextSeg(L, s, P.x, yAt(s, P.x)) || liftAt(P.x, P.y) || (s.kind === 'lift' && stepSeg(P.x, P.y)); if (n) P.seg = n; else if (P.x < s.x1 - .25 || P.x > s.x2 + .25) { fallOff(); return; } }
     P.y = yAt(P.seg, P.x);
-    if (mv) { P.anim += dt * 11; P.stepT -= dt; if (P.stepT <= 0) { P.stepT = .17; P.stepI ^= 1; SFX.step(P.stepI); } } else P.anim = 0;
+    if (mv && !P.prone) { P.anim += dt * 11; P.stepT -= dt; if (P.stepT <= 0) { P.stepT = .17; P.stepI ^= 1; SFX.step(P.stepI); } } else P.anim = 0;
     if (P.seg.kind === 'rivet') P.seg.touched = true;
     if (inp.jump) { P.state = 'air'; P.vy = JUMP_V; P.vx = mv * WALK + s.belt * speedMul(); P.maxY = P.y; P.seg = null; SFX.jump(); }
     else if (inp.u) { const ld = findLadder(1); if (ld) startClimb(ld, false); }
-    else if (inp.d) { const ld = findLadder(-1); if (ld) startClimb(ld, true); }
+    else if (inp.d) { const ld = findLadder(-1); if (ld) { P.prone = false; startClimb(ld, true); } }
   } else if (P.state === 'air') {
     const oy = P.y; P.vy -= GRAV * dt; P.y += P.vy * dt; P.x = clamp(P.x + P.vx * dt, .3, W - .3); P.maxY = Math.max(P.maxY, P.y);
     for (const s of L.segs) if (s.kind === 'rivet' && !s.dead && Math.abs(P.x - (s.x1 + s.x2) / 2) < .5 && P.y > s.y1 && P.y < s.y1 + 2.6) s.touched = true;
-    if (P.vy <= 0) { const s = landSeg(L, P.x, oy, P.y, .2); if (s) { const drop = P.maxY - yAt(s, P.x); P.seg = s; P.y = yAt(s, P.x); P.state = 'walk'; if (drop > 1.6) SFX.land(); if (D.fallKill && drop > D.fallMax) die(); } }
+    if (P.vy <= 0) { const s = landSeg(L, P.x, oy, P.y, .2); if (s) { const drop = P.maxY - yAt(s, P.x); P.seg = s; P.y = yAt(s, P.x); P.state = 'walk'; P.squash = Math.min(1, drop / 3); if (drop > 1.6) SFX.land(); if (D.fallKill && drop > D.fallMax) die(); else if (drop > 3.5) say('ouch'); } }
     if (P.y < -5) die();
+  } else if (P.state === 'climb' && inp.jump) {
+    // jump off the ladder, sideways if an arrow is held
+    if (mv) P.face = mv; P.state = 'air'; P.vy = JUMP_V * .8; P.vx = mv * WALK; P.maxY = P.y; P.seg = null; SFX.jump(); if (Math.random() < .5) say('ladderJump');
   } else if (P.state === 'climb') {
     const ld = P.ladder; let c = (inp.u ? 1 : 0) - (inp.d ? 1 : 0);
     if ((c > 0 && P.y >= P.climbHi) || (c < 0 && P.y <= P.climbLo)) { c = 0; if (G.t - (G.brokenT || -9) > 2.5) { G.brokenT = G.t; flash('Broken ladder!', 'You can hide here, but it doesn\'t reach the next floor', 1.6); } }
@@ -418,13 +483,13 @@ function updatePlayer(dt) {
   inp.jump = 0;
   // rivets pop out once you have walked past them
   for (const s of L.segs) if (s.kind === 'rivet' && s.touched && !s.dead && P.seg !== s && !(P.state === 'air' && Math.abs(P.x - (s.x1 + s.x2) / 2) < .5)) {
-    s.dead = true; s.mesh.visible = false; G.rivets--; SFX.rivet(); addScore(100, (s.x1 + s.x2) / 2, s.y1 + 1); burst((s.x1 + s.x2) / 2, s.y1, 0xffd34d, 8); hud();
+    s.dead = true; s.mesh.visible = false; G.rivets--; SFX.rivet(); if (Math.random() < .4) say('rivet'); addScore(100, (s.x1 + s.x2) / 2, s.y1 + 1); burst((s.x1 + s.x2) / 2, s.y1, 0xffd34d, 8); hud();
     for (const h of H) if (h.seg === s) h.seg = floorSeg(L, s.k, h.x < s.x1 ? s.x1 - .1 : s.x2 + .1) || h.seg;
   }
   // pick-ups
   for (const it of L.items) if (!it.taken && Math.abs(P.x - it.x) < .7 && Math.abs(P.y + .9 - it.y) < 1.3) {
     it.taken = true; it.mesh.visible = false;
-    if (it.kind === 'hammer') { P.hammer = 9; hero.hammer.visible = true; SFX.hammer(); popup('HAMMER!', it.x, it.y + 1, '#5ad8ff'); }
+    if (it.kind === 'hammer') { P.hammer = 9; hero.hammer.visible = true; SFX.hammer(); say('hammer', true); popup('HAMMER!', it.x, it.y + 1, '#5ad8ff'); }
     else { const pts = it.kind === 'bone' ? 500 : 300; addScore(pts, it.x, it.y + .8); SFX.score(); }
   }
 }
@@ -454,7 +519,7 @@ function update(dt) {
   for (const h of H.slice()) {
     if (P.hammer > 0 && h.type !== 'spring') { const reach = Math.abs(P.x + P.face * .6 - h.x) < .9 && Math.abs(P.y + .6 - h.y - h.r) < 1.1; if (reach || hits(h)) { removeHazard(h); SFX.smash(); burst(h.x, h.y + .4, h.type === 'fire' ? 0xff8a2a : 0xc8924a, 12); addScore(h.type === 'fire' ? 500 : 300, h.x, h.y + 1.2); continue; } }
     if (hits(h)) { die(); break; }
-    if (P.state === 'air' && !h.scored && h.type !== 'spring' && Math.abs(P.x - h.x) < .6 && P.y > h.y + h.r * 1.4 && P.y < h.y + 3) { h.scored = true; addScore(100, h.x, h.y + 1.6); SFX.score(); }
+    if (P.state === 'air' && !h.scored && h.type !== 'spring' && Math.abs(P.x - h.x) < .6 && P.y > h.y + h.r * 1.4 && P.y < h.y + 3) { h.scored = true; G.cheer = 1; if (Math.random() < .55) say('over'); addScore(100, h.x, h.y + 1.6); SFX.score(); }
   }
   if (P.state !== 'dead' && L.type !== 'rivets' && Math.abs(P.x - L.ape.x) < 1.3 && P.y > L.ape.y - 1.4 && P.y < L.ape.y + 2.6) die();
   if (P.state !== 'dead' && L.drum && Math.abs(P.x - L.drum.x) < .8 && Math.abs(P.y - L.drum.y) < 1.2) die();
@@ -471,16 +536,46 @@ function update(dt) {
    ================================================================ */
 const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
 function animate(dt) {
-  // hero
+  // hero: posed every frame from the player state, with a face that reacts
   const h = hero, b = h.body; h.g.position.set(P.x, P.y, .3);
-  const turn = P.state === 'climb' ? Math.PI / 2 : P.face > 0 ? -.45 : Math.PI + .45; b.rotation.y = lerp(b.rotation.y, turn, 1 - Math.exp(-dt * 16));
-  const sw = Math.sin(P.anim);
-  if (P.state === 'walk') { h.legL.rotation.z = sw * .7; h.legR.rotation.z = -sw * .7; h.armL.rotation.z = -sw * .6; h.armR.rotation.z = sw * .6; h.armL.rotation.x = h.armR.rotation.x = 0; }
-  else if (P.state === 'air') { h.legL.rotation.z = .6; h.legR.rotation.z = -.3; h.armL.rotation.z = 2.4; h.armR.rotation.z = -.5; }
-  else if (P.state === 'climb') { h.legL.rotation.z = 0; h.legR.rotation.z = 0; h.legL.position.y = .72 + Math.max(0, sw) * .2; h.legR.position.y = .72 + Math.max(0, -sw) * .2; h.armL.rotation.x = -2.6 - sw * .3; h.armR.rotation.x = 2.6 - sw * .3; h.armL.rotation.z = h.armR.rotation.z = 0; }
-  if (P.state !== 'climb') { h.legL.position.y = h.legR.position.y = .72; h.armL.rotation.x = h.armR.rotation.x = 0; }
-  if (P.hammer > 0 && P.state !== 'climb') { h.armR.rotation.z = -Math.PI * .5 + Math.sin(G.t * 14) * 1.4; h.armR.rotation.x = 0; h.hammer.visible = P.hammer > 2 || Math.sin(G.t * 20) > 0; }
-  if (P.state === 'dead') { b.rotation.y += dt * 14; b.rotation.z = Math.min(Math.PI / 2, P.deadT * 2.5); b.position.y = 0; } else { b.rotation.z = 0; }
+  const moving = (inp.l || inp.r) && P.state === 'walk';
+  P.idleT = P.state === 'walk' && !moving && !P.prone && G.mode === 'play' ? (P.idleT || 0) + dt : 0;
+  if (P.idleT > 4 && G.t - (P.idleSaid || -99) > 9) { P.idleSaid = G.t; say('idle'); }
+  const idle = P.idleT > 2.2 || G.mode === 'title';
+  const turn = P.state === 'climb' ? Math.PI / 2 : P.state === 'dead' ? b.rotation.y : idle ? (P.face > 0 ? -1.1 : Math.PI + 1.1) : P.face > 0 ? -.45 : Math.PI + .45;
+  if (P.state !== 'dead') b.rotation.y = lerp(b.rotation.y, turn, 1 - Math.exp(-dt * 14));
+  const an = P.anim, sw = Math.sin(an), t = G.t; G.cheer = Math.max(0, (G.cheer || 0) - dt * 1.5); P.squash = Math.max(0, (P.squash || 0) - dt * 4);
+  const J = { hipsY: .78, hipsX: 0, lean: 0, bodyZ: 0, bodyY: 0, headZ: 0, headY: 0, thL: 0, thR: 0, knL: 0, knR: 0, ftL: 0, ftR: 0, shLz: .15, shRz: .15, shLx: -.15, shRx: .15, elL: .3, elR: .3 };
+  if (P.state === 'dead') { b.rotation.y += dt * 12; J.bodyZ = Math.min(Math.PI / 2, P.deadT * 2.5); J.shLx = -1.4; J.shRx = 1.4; J.thL = .5; J.thR = -.3; }
+  else if (G.mode === 'clear') { const hop = Math.abs(Math.sin(t * 7)); J.hipsY += hop * .25; J.shLz = J.shRz = 2.8; J.shLx = -.4; J.shRx = .4; J.elL = J.elR = .2; J.knL = J.knR = -hop * .6; J.thL = J.thR = hop * .3; }
+  else if (P.prone) { J.bodyZ = -Math.PI / 2 + .05; J.bodyY = .22; const c = moving ? Math.sin(t * 9) : 0; J.shLz = 2.6 + c * .5; J.shRz = 2.6 - c * .5; J.elL = J.elR = .5; J.thL = c * .3; J.thR = -c * .3; J.knL = J.knR = -.3; J.headZ = .9; J.headY = .5; }
+  else if (P.state === 'walk' && moving) { J.hipsY += Math.abs(sw) * .05; J.lean = -.14; J.thL = sw * .7; J.thR = -sw * .7; J.knL = -Math.max(0, -Math.cos(an)) * .9 - .1; J.knR = -Math.max(0, Math.cos(an)) * .9 - .1; J.ftL = J.ftR = .1; J.shLz = -sw * .7; J.shRz = sw * .7; J.elL = .5 + Math.max(0, -sw) * .5; J.elR = .5 + Math.max(0, sw) * .5; J.headZ = Math.sin(an * 2) * .04; }
+  else if (P.state === 'air') { const up = P.vy > 0; J.thL = 1.0; J.knL = -1.3; J.thR = up ? -.3 : .2; J.knR = up ? -.4 : -.6; J.shLz = up ? 2.6 : 1.8; J.shRz = P.hammer > 0 ? J.shRz : up ? 2.4 : 1.4; J.shLx = -.5; J.shRx = .5; J.elL = J.elR = .3; J.lean = -.1; }
+  else if (P.state === 'climb') { J.shLz = 2.7 + sw * .35; J.shRz = 2.7 - sw * .35; J.elL = .3 + Math.max(0, sw) * .6; J.elR = .3 + Math.max(0, -sw) * .6; J.thL = .6 + Math.max(0, sw) * .7; J.thR = .6 + Math.max(0, -sw) * .7; J.knL = -1 - Math.max(0, sw) * .5; J.knR = -1 - Math.max(0, -sw) * .5; J.lean = .05; }
+  else { // standing: breathe, tap a foot, look around, and sometimes wave
+    J.hipsY += Math.sin(t * 2.2) * .008; J.lean = Math.sin(t * 2.2) * .02;
+    if (idle) { const ph = (P.idleT || 0) % 6; J.headY = Math.sin(t * .9) * .5; if (ph > 3 || G.mode === 'title') { J.shLz = 2.9; J.shLx = -.3; J.elL = .4 + Math.sin(t * 10) * .5; } J.ftL = Math.max(0, Math.sin(t * 6)) * .35; }
+  }
+  if (G.cheer > 0 && P.state === 'air') { J.shLz = 3; J.shRz = P.hammer > 0 ? J.shRz : 3; }
+  if (P.hammer > 0 && P.state !== 'climb' && P.state !== 'dead') { J.shRz = 1.3 + Math.sin(t * 14) * 1.5; J.shRx = .2; J.elR = .2; h.hammer.visible = P.hammer > 2 || Math.sin(t * 20) > 0; }
+  const k8 = 1 - Math.exp(-dt * 18), L8 = (o, key, v) => { o[key] = lerp(o[key], v, k8); };
+  L8(h.hips.position, 'y', J.hipsY - P.squash * .12); L8(h.hips.position, 'x', J.hipsX); L8(h.torso.rotation, 'z', J.lean); L8(b.rotation, 'z', J.bodyZ); L8(b.position, 'y', J.bodyY); L8(b.position, 'x', P.prone ? -P.face * .95 : 0);
+  L8(h.head.rotation, 'z', J.headZ); L8(h.head.rotation, 'y', J.headY);
+  L8(h.thighL.rotation, 'z', J.thL); L8(h.thighR.rotation, 'z', J.thR); L8(h.kneeL.rotation, 'z', J.knL); L8(h.kneeR.rotation, 'z', J.knR); L8(h.footL.rotation, 'z', J.ftL); L8(h.footR.rotation, 'z', J.ftR);
+  L8(h.shL.rotation, 'z', J.shLz); L8(h.shR.rotation, 'z', J.shRz); L8(h.shL.rotation, 'x', J.shLx); L8(h.shR.rotation, 'x', J.shRx); L8(h.elL.rotation, 'z', J.elL); L8(h.elR.rotation, 'z', J.elR);
+  h.torso.scale.y = 1 + Math.sin(t * 2.2) * .015 - P.squash * .08;
+  // face: blink, look at danger, smile, grin or gasp
+  let near = 99, nx = 0; for (const z of H) { const d = Math.hypot(z.x - P.x, (z.y - P.y) * 1.5); if (d < near) { near = d; nx = z.x - P.x; } }
+  const scared = P.state !== 'dead' && G.mode === 'play' && near < 2.6 && !(P.hammer > 0);
+  if (scared && !P.wasScared && Math.random() < .35) say('scared');
+  P.wasScared = scared;
+  const blink = (t % 3.7) < .12 || P.state === 'dead';
+  for (const e of h.eyes) e.scale.y = blink ? .12 : scared ? 1.25 : 1;
+  for (const pu of h.pupils) { pu.position.y = scared ? .005 : 0; pu.position.z = clamp(nx * P.face * -.01, -.012, .012); }
+  h.brows.forEach((br, i) => { br.position.y = scared ? .135 : P.state === 'climb' ? .105 : .115; br.rotation.x = (i ? -1 : 1) * (scared ? -.25 : P.hammer > 0 ? .35 : 0); });
+  const happy = G.mode === 'clear' || G.cheer > 0 || P.hammer > 0 || idle;
+  h.grin.visible = happy && !scared; h.oh.visible = scared || P.state === 'dead' || (P.state === 'air' && P.vy > 2 && !happy); h.smile.visible = !h.grin.visible && !h.oh.visible;
+  h.bubble.visible = G.t < (G.sayUntil || 0) && G.mode !== 'title';
   // gorilla
   G.apeAnim = Math.max(0, (G.apeAnim || 0) - dt);
   const a = ape; a.body.position.y = Math.abs(Math.sin(G.t * 3)) * .08;
@@ -495,6 +590,7 @@ function animate(dt) {
   // hazards
   for (const z of H) {
     const m = z.mesh; m.position.set(z.x, z.y + (z.type === 'barrel' ? z.r : 0), z.type === 'barrel' ? .2 : .3);
+    if (P.prone && z.type !== 'fire' && Math.abs(z.y - P.y) < .6) { const dx = Math.abs(z.x - P.x); if (dx < 1.3) m.position.y += .55 * Math.cos(dx / 1.3 * Math.PI / 2); }
     if (z.type === 'barrel') { if (z.state === 'ladder') { m.rotation.set(0, Math.PI / 2, 0); } else m.rotation.set(0, 0, z.rot); }
     else if (z.type === 'fire') { const s = 1 + Math.sin(G.t * 20 + z.t) * .08; m.scale.set(s, 1 / s, s); m.position.y += Math.abs(Math.sin(G.t * 6 + z.t)) * .15; }
     else if (z.type === 'spring') { const sq = z.state === 'bounce' ? .6 + .4 * Math.min(1, (z.y - floorSeg(L, L.springK, 12).y1) / .6) : 1; m.scale.set(1, sq, 1); }
@@ -510,7 +606,7 @@ function animate(dt) {
   else { const near = cm === 2 ? 15 : 20, halfW = near * tanH * aspect, halfH = near * tanH; const tx = halfW * 2 >= W + 2 ? W / 2 : clamp(P.x, halfW - 1, W + 1 - halfW), ty = clamp(P.y + 1.2, halfH - 4, L.top - halfH + 2);
     look = new THREE.Vector3(tx, ty, 0); want = cm === 2 ? new THREE.Vector3(tx + (P.x > W / 2 ? -9 : 9), ty + 4, near * .9) : new THREE.Vector3(tx + (P.x - W / 2) * .12, ty + 1.5, near); }
   if (!G.camInit) { camPos.copy(want); camLook.copy(look); G.camInit = true; }
-  camPos.lerp(want, 1 - Math.exp(-dt * 4)); camLook.lerp(look, 1 - Math.exp(-dt * 5)); camera.position.copy(camPos); camera.lookAt(camLook);
+  camPos.lerp(want, 1 - Math.exp(-dt * 4)); camLook.lerp(look, 1 - Math.exp(-dt * 5)); camera.position.copy(camPos); camera.lookAt(camLook); if (G.debugCam) { const [px, py, pz, lx, ly, lz] = G.debugCam; camera.position.set(px, py, pz); camera.lookAt(lx, ly, lz); }
 }
 
 /* ================================================================
@@ -595,5 +691,5 @@ requestAnimationFrame(frame);
 G.mode = 'title'; G.cam = 0; G.camInit = false;
 showScreen('title');
 BZ.ok = true;
-BZ.debug = { G, P, inp, H, get L() { return L; }, startGame, startLevel, update, LEVELS, DIFF, save, floorSeg, yAt, win, die };
+BZ.debug = { get hero() { return hero; }, G, P, inp, H, get L() { return L; }, startGame, startLevel, update, LEVELS, DIFF, save, floorSeg, yAt, win, die };
 }
