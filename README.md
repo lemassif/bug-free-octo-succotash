@@ -1,4 +1,4 @@
-> This repo is a small **retro arcade** with fourteen self-contained browser games,
+> This repo is a small **retro arcade** with fifteen self-contained browser games,
 > plus a learning app. Open [`index.html`](index.html) for the **menu**, then
 > pick one:
 >
@@ -19,6 +19,7 @@
 > | **Brain Box** | [`logic.html`](logic.html) | logic puzzles and word search: clue grids, sudoku, picture cross, queens and hidden words — see below |
 > | **Barrel Blitz 3D** | [`barrel.html`](barrel.html) | climb the tower past barrels and fireballs to rescue a puppy: 12 levels, Easy, Medium or Hard — see below |
 > | **Vector Guard** | [`vector.html`](vector.html) | neon vector-style grid shooter: build energy blocks, blast Hackers, beat the Mother Saucer: 12 levels — see below |
+> | **Sky Shield** | [`shield.html`](shield.html) | Missile Command style city defense: 12 waves, Easy, Medium or Hard — see below |
 >
 > Every page cross-links, so you can hop between the menu and any game.
 >
@@ -481,3 +482,23 @@ core blasts every enemy off the grid.
 - **Controls:** drag on the left side to fly, FIRE and BUILD on the right.
   Keyboard: arrows or WASD, Space fire, B or Enter build, P pause, M sound.
 - `vector3d.js` draws everything as glowing wireframes with three.js.
+
+# Sky Shield
+
+A Missile Command style game. Missiles fall on six cities; tap the sky and a
+counter-missile flies there from the nearest of three bases and bursts into a
+fireball. Anything that flies into a fireball explodes, and those explosions
+can catch more missiles.
+
+- 12 waves (pick any to start). Later waves add missiles that split into
+  three, bombers and satellites that drop missiles, and smart bombs that dodge
+  fireballs. Points multiply as the waves go up (up to ×6).
+- After each wave: points for every city standing and every missile left.
+  Points earn spare cities that rebuild lost ones. Lose every city and it's
+  THE END.
+- **Easy:** slower missiles, bigger fireballs, 15 missiles per base and a
+  spare city every 5,000 points. **Medium** and **Hard** are faster with 10
+  per base.
+- **Controls:** tap or click the sky. Keyboard: arrows move the crosshair,
+  Space fires, P pause, M sound. Best played sideways on a phone.
+- `shield3d.js` builds the night scene, cities and bases with three.js.

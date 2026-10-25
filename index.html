@@ -61,6 +61,7 @@
   .name.chancecraft { color: #8fe36a; font-family: 'Courier New', monospace; font-weight: 900; letter-spacing: 2px; text-shadow: 2px 2px 0 #2f5d1c; }
   .name.barrel { color: #ffd34d; letter-spacing: 1px; text-shadow: 2px 2px 0 #c82a14; }
   .name.vector { color: #bff4ff; letter-spacing: 2px; text-shadow: 0 0 6px #5ad8ff, 0 0 14px #2a6aff; }
+  .name.shield { color: #ffffff; letter-spacing: 1px; text-shadow: 2px 2px 0 #ff4a4a; }
   .name.grandprix { color: #ff5a4a; font-style: italic; letter-spacing: 1px; }
   .name.brainbox { color: #ffd34d; letter-spacing: 2px; }
   .name.miner { color: #ffd34d; }
@@ -85,7 +86,7 @@
 </head>
 <body>
   <h1>RETRO ARCADE</h1>
-  <p class="sub">Fourteen hand-built games &amp; one learning academy · works on desktop, iPhone &amp; iPad</p>
+  <p class="sub">Fifteen hand-built games &amp; one learning academy · works on desktop, iPhone &amp; iPad</p>
 
   <div class="games">
     <a class="card learn" href="chance/">
@@ -479,6 +480,23 @@
       </svg>
       <span class="name vector">VECTOR GUARD</span>
       <span class="desc">A glowing neon grid shooter in the style of the old Intellivision classic. Build energy blocks into patterns, blast the Hackers that eat them, and take down the Mother Saucer. 12 levels on Easy, Medium or Hard.</span>
+      <span class="play">PLAY &#9654;</span>
+    </a>
+    <a class="card" href="shield.html">
+      <!-- Sky Shield: missile trails falling on a city, a counter-missile fireball, three bases -->
+      <svg class="art" viewBox="0 0 300 132" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs><linearGradient id="sss" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#02031a"/><stop offset="1" stop-color="#3a2a5a"/></linearGradient><radialGradient id="ssb"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#ff8ad8"/><stop offset="1" stop-color="#ff3ad8" stop-opacity="0"/></radialGradient></defs>
+        <rect width="300" height="132" rx="12" fill="url(#sss)"/>
+        <g fill="#fff"><circle cx="30" cy="14" r="1"/><circle cx="120" cy="10" r="1"/><circle cx="260" cy="22" r="1"/><circle cx="200" cy="8" r="1"/></g>
+        <g stroke="#ff4a4a" stroke-width="1.6"><path d="M40 0 L92 84"/><path d="M150 0 L176 70"/><path d="M260 0 L214 88"/><path d="M200 0 L120 54"/></g>
+        <circle cx="92" cy="84" r="2.5" fill="#ffd34d"/><circle cx="214" cy="88" r="2.5" fill="#ffd34d"/>
+        <circle cx="128" cy="50" r="18" fill="url(#ssb)"/><path d="M150 108 L130 56" stroke="#7ac8ff" stroke-width="1.4"/>
+        <path d="M0 132 L0 112 Q20 98 40 112 L120 112 Q150 96 180 112 L260 112 Q280 98 300 112 L300 132 Z" fill="#d8a83a"/>
+        <g fill="#5a7ad8"><rect x="58" y="98" width="8" height="14"/><rect x="68" y="102" width="7" height="10"/><rect x="200" y="96" width="8" height="16"/><rect x="210" y="101" width="7" height="11"/><rect x="226" y="99" width="8" height="13"/></g>
+        <g fill="#8a909c"><path d="M12 108 a8 8 0 0 1 16 0 Z"/><path d="M142 106 a8 8 0 0 1 16 0 Z"/><path d="M272 108 a8 8 0 0 1 16 0 Z"/></g>
+      </svg>
+      <span class="name shield">SKY SHIELD</span>
+      <span class="desc">Missile Command style: tap the sky to launch counter-missiles and save your six cities from falling missiles, bombers, satellites and smart bombs. 12 waves on Easy, Medium or Hard.</span>
       <span class="play">PLAY &#9654;</span>
     </a>
   </div>
