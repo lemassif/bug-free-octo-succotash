@@ -13,8 +13,8 @@ function boot() {
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); renderer.outputColorSpace = THREE.SRGBColorSpace;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(50, 1, .1, 400);
-scene.add(new THREE.HemisphereLight(0xc8d4ff, 0x302028, 1.1));
-const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(10, 30, 22); scene.add(sun);
+scene.add(new THREE.HemisphereLight(0xc8d4ff, 0x302028, .95));
+const sun = new THREE.DirectionalLight(0xffffff, 1.3); sun.position.set(10, 30, 22); scene.add(sun);
 const std = (c, o) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: .6, metalness: .05 }, o || {}));
 const canvasTex = (w, h, fn, rep) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; fn(cv.getContext('2d'), w, h); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; if (rep) t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; };
 
@@ -124,7 +124,7 @@ const crateTex = canvasTex(64, 64, (c, w, h) => { c.fillStyle = '#c8924a'; c.fil
 const liftTex = canvasTex(64, 16, (c, w, h) => { for (let x = -16; x < w; x += 16) { c.fillStyle = '#ffd34d'; c.fillRect(0, 0, w, h); } c.fillStyle = '#1d1d22'; for (let x = -16; x < w + 16; x += 16) { c.beginPath(); c.moveTo(x, h); c.lineTo(x + 8, 0); c.lineTo(x + 14, 0); c.lineTo(x + 6, h); c.fill(); } }, true);
 const drumTex = canvasTex(128, 64, (c, w, h) => { c.fillStyle = '#2a64c8'; c.fillRect(0, 0, w, h); c.fillStyle = '#fff'; c.fillRect(0, 22, w, 20); c.fillStyle = '#2a64c8'; c.font = '900 18px sans-serif'; c.textAlign = 'center'; c.fillText('OIL', 32, 39); c.fillText('OIL', 96, 39); c.fillStyle = '#1a448a'; c.fillRect(0, 4, w, 4); c.fillRect(0, h - 8, w, 4); });
 const M = {
-  girder: std(0xffffff, { map: girderTex, roughness: .55, metalness: .25 }), rivet: std(0xffd34d, { metalness: .6, roughness: .3 }), ladder: std(0x0a8aa8, { metalness: .2, roughness: .45 }),
+  girder: std(0xffffff, { map: girderTex, roughness: .55, metalness: .25 }), rivet: std(0xffd000, { metalness: .3, roughness: .3, emissive: 0x7a5a00 }), ladder: std(0x3ad8e8, { metalness: .2, roughness: .45 }),
   wood: std(0xffffff, { map: woodTex, roughness: .7 }), blueWood: std(0x6aa0ff, { map: woodTex, roughness: .7 }), hoop: std(0x3a3a44, { metalness: .7, roughness: .35 }),
   crate: std(0xffffff, { map: crateTex }), lift: std(0xffffff, { map: liftTex, metalness: .3 }), steel: std(0x8a909c, { metalness: .7, roughness: .35 }), dark: std(0x2a2c34, { metalness: .4 }),
   drum: std(0xffffff, { map: drumTex, metalness: .3, roughness: .4 }),
@@ -190,12 +190,12 @@ function makePuppy() {
   bubble.scale.set(2, 1, 1); bubble.position.set(.2, 1.7, 0); bubble.renderOrder = 5; g.add(bubble);
   return { g, head, tail, bubble };
 }
-function makeHammerItem() { const g = new THREE.Group(); const h = new THREE.Mesh(new THREE.CylinderGeometry(.05, .05, .8, 8), std(0x9a6a3a)); g.add(h); const hd = new THREE.Mesh(GEO.box, M.steel); hd.scale.set(.45, .24, .24); hd.position.y = .42; g.add(hd); return g; }
+function makeHammerItem() { const g = new THREE.Group(); const h = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, .8, 8), std(0xffa040, { emissive: 0x5a2a00 })); g.add(h); const hd = new THREE.Mesh(GEO.box, std(0xe8ecf4, { metalness: .4, roughness: .25, emissive: 0x404650 })); hd.scale.set(.45, .24, .24); hd.position.y = .42; g.add(hd); return g; }
 function makeBone() { const g = new THREE.Group(), m = std(0xf8f2e0); const c = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .6, 8), m); c.rotation.z = Math.PI / 2; g.add(c); for (const x of [-.3, .3]) for (const y of [-.07, .07]) { const s = new THREE.Mesh(GEO.ball, m); s.scale.setScalar(.1); s.position.set(x, y, 0); g.add(s); } return g; }
 function makeBall() { const g = new THREE.Group(); const s = new THREE.Mesh(GEO.ball, std(0xe8323c, { roughness: .3 })); s.scale.setScalar(.28); g.add(s); const st = new THREE.Mesh(new THREE.TorusGeometry(.28, .03, 6, 20), std(0xffffff)); g.add(st); return g; }
 
 /* plain light background so the platforms, ladders and hazards stand out */
-scene.background = new THREE.Color(0xd4ebff);
+scene.background = new THREE.Color(0x4a5a78);
 
 /* ================================================================
    Building the 3D level
