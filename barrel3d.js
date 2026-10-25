@@ -124,7 +124,7 @@ const crateTex = canvasTex(64, 64, (c, w, h) => { c.fillStyle = '#c8924a'; c.fil
 const liftTex = canvasTex(64, 16, (c, w, h) => { for (let x = -16; x < w; x += 16) { c.fillStyle = '#ffd34d'; c.fillRect(0, 0, w, h); } c.fillStyle = '#1d1d22'; for (let x = -16; x < w + 16; x += 16) { c.beginPath(); c.moveTo(x, h); c.lineTo(x + 8, 0); c.lineTo(x + 14, 0); c.lineTo(x + 6, h); c.fill(); } }, true);
 const drumTex = canvasTex(128, 64, (c, w, h) => { c.fillStyle = '#2a64c8'; c.fillRect(0, 0, w, h); c.fillStyle = '#fff'; c.fillRect(0, 22, w, 20); c.fillStyle = '#2a64c8'; c.font = '900 18px sans-serif'; c.textAlign = 'center'; c.fillText('OIL', 32, 39); c.fillText('OIL', 96, 39); c.fillStyle = '#1a448a'; c.fillRect(0, 4, w, 4); c.fillRect(0, h - 8, w, 4); });
 const M = {
-  girder: std(0xffffff, { map: girderTex, roughness: .55, metalness: .25 }), rivet: std(0xffd34d, { metalness: .6, roughness: .3 }), ladder: std(0x3ad8e8, { metalness: .3, roughness: .4 }),
+  girder: std(0xffffff, { map: girderTex, roughness: .55, metalness: .25 }), rivet: std(0xffd34d, { metalness: .6, roughness: .3 }), ladder: std(0x0a8aa8, { metalness: .2, roughness: .45 }),
   wood: std(0xffffff, { map: woodTex, roughness: .7 }), blueWood: std(0x6aa0ff, { map: woodTex, roughness: .7 }), hoop: std(0x3a3a44, { metalness: .7, roughness: .35 }),
   crate: std(0xffffff, { map: crateTex }), lift: std(0xffffff, { map: liftTex, metalness: .3 }), steel: std(0x8a909c, { metalness: .7, roughness: .35 }), dark: std(0x2a2c34, { metalness: .4 }),
   drum: std(0xffffff, { map: drumTex, metalness: .3, roughness: .4 }),
@@ -194,20 +194,8 @@ function makeHammerItem() { const g = new THREE.Group(); const h = new THREE.Mes
 function makeBone() { const g = new THREE.Group(), m = std(0xf8f2e0); const c = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .6, 8), m); c.rotation.z = Math.PI / 2; g.add(c); for (const x of [-.3, .3]) for (const y of [-.07, .07]) { const s = new THREE.Mesh(GEO.ball, m); s.scale.setScalar(.1); s.position.set(x, y, 0); g.add(s); } return g; }
 function makeBall() { const g = new THREE.Group(); const s = new THREE.Mesh(GEO.ball, std(0xe8323c, { roughness: .3 })); s.scale.setScalar(.28); g.add(s); const st = new THREE.Mesh(new THREE.TorusGeometry(.28, .03, 6, 20), std(0xffffff)); g.add(st); return g; }
 
-/* ================================================================
-   Background: night city behind the construction tower
-   ================================================================ */
-scene.background = canvasTex(4, 256, (c, w, h) => { const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#060818'); gr.addColorStop(.6, '#1a1a4a'); gr.addColorStop(1, '#4a2a5a'); c.fillStyle = gr; c.fillRect(0, 0, w, h); });
-{
-  const stars = new THREE.BufferGeometry(), p = []; for (let i = 0; i < 500; i++) p.push(-120 + Math.random() * 270, 10 + Math.random() * 90, -90 - Math.random() * 10);
-  stars.setAttribute('position', new THREE.Float32BufferAttribute(p, 3)); scene.add(new THREE.Points(stars, new THREE.PointsMaterial({ color: 0xffffff, size: .5 })));
-  const moon = new THREE.Mesh(new THREE.SphereGeometry(5, 24, 16), new THREE.MeshBasicMaterial({ color: 0xfff4d0 })); moon.position.set(52, 52, -85); scene.add(moon);
-  const winTex = canvasTex(32, 64, (c, w, h) => { c.fillStyle = '#141826'; c.fillRect(0, 0, w, h); for (let y = 2; y < h; y += 6) for (let x = 2; x < w; x += 6) { c.fillStyle = Math.random() < .45 ? ['#ffe08a', '#fff2c8', '#9fd8ff'][Math.floor(Math.random() * 3)] : '#1e2436'; c.fillRect(x, y, 3, 3); } }, true);
-  const bm = new THREE.MeshBasicMaterial({ map: winTex }), N = 60, im = new THREE.InstancedMesh(GEO.box, bm, N), d = new THREE.Object3D();
-  for (let i = 0; i < N; i++) { const h = 10 + Math.random() * 34, w = 5 + Math.random() * 7; d.position.set(-80 + i * 4.2 + Math.random() * 2, h / 2 - 2, -45 - Math.random() * 25); d.scale.set(w, h, w); d.updateMatrix(); im.setMatrixAt(i, d.matrix); }
-  scene.add(im);
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 120), std(0x22242c, { roughness: 1 })); ground.rotation.x = -Math.PI / 2; ground.position.set(14, -.45, -40); scene.add(ground);
-}
+/* plain light background so the platforms, ladders and hazards stand out */
+scene.background = new THREE.Color(0xd4ebff);
 
 /* ================================================================
    Building the 3D level
@@ -241,7 +229,6 @@ function buildScene() {
   mk(GEO.rail, rails); mk(GEO.rung, rungs);
   // tower frame
   for (const x of [-.8, W + .8]) { const c = new THREE.Mesh(new THREE.BoxGeometry(.6, L.top + 2, .6), M.girder); c.position.set(x, (L.top + 2) / 2 - .5, -.7); levelGroup.add(c); }
-  for (let y = 0; y < L.top; y += 6) for (const s of [-1, 1]) { const b = new THREE.Mesh(GEO.box, std(0x5a1a14)); const len = Math.hypot(W + 1.6, 6); b.scale.set(len, .18, .18); b.position.set(W / 2, y + 3, -1.6); b.rotation.z = s * Math.atan2(6, W + 1.6); levelGroup.add(b); }
   // lift shafts
   for (const lf of L.lifts) { for (const x of [lf.x - lf.w / 2 - .15, lf.x + lf.w / 2 + .15]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(.08, .08, lf.hi - lf.lo + 2, 6), M.steel); p.position.set(x, (lf.hi + lf.lo) / 2, -.9); levelGroup.add(p); }
     for (const y of [lf.lo - .6, lf.hi + .8]) { const b = new THREE.Mesh(GEO.box, M.dark); b.scale.set(lf.w + .6, .8, 1.6); b.position.set(lf.x, y, -.4); levelGroup.add(b); } }
