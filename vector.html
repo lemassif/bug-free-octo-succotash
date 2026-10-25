@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#02030a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Vector Guard</title>
+<style>
+  :root { --cyan: #5ad8ff; --green: #3aff8a; --pink: #ff3ad8; --gold: #ffd34d; --ink: #eaf6ff; --mute: #8aa0c8; --panel: rgba(4,8,28,.92); }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #02030a; color: var(--ink); font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; -webkit-user-select: none; user-select: none; touch-action: none; }
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  .hide { display: none !important; }
+  .neon { color: #fff; text-shadow: 0 0 6px var(--cyan), 0 0 18px var(--cyan); }
+
+  /* HUD */
+  #hud { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
+  #tl { position: absolute; left: max(10px, env(safe-area-inset-left)); top: max(8px, env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 4px; }
+  .chip { background: rgba(2,6,24,.7); border: 1px solid rgba(90,216,255,.5); box-shadow: 0 0 10px rgba(90,216,255,.25); padding: 5px 10px; border-radius: 6px; font-weight: 900; }
+  #score { font-size: 24px; line-height: 1; font-variant-numeric: tabular-nums; } #hi { font-size: 11px; color: var(--mute); }
+  #lives { color: var(--cyan); font-size: 15px; letter-spacing: 2px; } #lvl { font-size: 12px; color: var(--gold); }
+  #top { position: absolute; left: 50%; top: max(8px, env(safe-area-inset-top)); transform: translateX(-50%); display: flex; gap: 8px; align-items: center; }
+  #goal { font-weight: 900; font-size: 15px; color: var(--green); text-shadow: 0 0 8px var(--green); background: rgba(2,6,24,.7); padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(58,255,138,.5); }
+  #energy { background: rgba(2,6,24,.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,211,77,.5); font-weight: 900; font-size: 11px; color: var(--gold); min-width: 130px; }
+  #energyBar { height: 8px; border-radius: 4px; background: rgba(255,255,255,.12); overflow: hidden; margin-top: 3px; } #energyFill { height: 100%; background: linear-gradient(90deg, #ffd34d, #ff8a2a); box-shadow: 0 0 8px #ffd34d; }
+  #msg { position: absolute; left: 0; right: 0; top: 26%; text-align: center; font-size: clamp(28px, 7vw, 54px); font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--cyan), 0 0 26px var(--cyan); opacity: 0; transition: opacity .25s; letter-spacing: .04em; }
+  #msg small { display: block; font-size: 15px; color: var(--gold); text-shadow: 0 0 8px rgba(255,211,77,.6); letter-spacing: 0; }
+
+  /* touch controls */
+  #touch { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
+  #stickZone { position: absolute; left: 0; bottom: 0; width: 55%; height: 70%; pointer-events: auto; touch-action: none; }
+  #stickBase { position: fixed; width: 130px; height: 130px; margin: -65px 0 0 -65px; border-radius: 50%; border: 2px solid rgba(90,216,255,.6); box-shadow: 0 0 16px rgba(90,216,255,.35), inset 0 0 16px rgba(90,216,255,.25); left: 110px; top: calc(100% - 120px); pointer-events: none; opacity: .55; }
+  #stickBase.on { opacity: 1; } #stickKnob { position: absolute; left: 35px; top: 35px; width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #bff4ff, #2a8ad8); box-shadow: 0 0 14px var(--cyan); }
+  .tb { position: absolute; pointer-events: auto; touch-action: none; border: 0; border-radius: 50%; font: inherit; font-weight: 900; color: #fff; letter-spacing: .06em; }
+  .tb.on { transform: scale(.94); filter: brightness(1.4); }
+  #bFire { right: max(16px, env(safe-area-inset-right)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 6px); width: 112px; height: 112px; background: radial-gradient(circle at 40% 35%, #ff9ae8, #c81a9a); box-shadow: 0 0 22px rgba(255,58,216,.7); font-size: 19px; }
+  #bBuild { right: calc(max(16px, env(safe-area-inset-right)) + 124px); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 10px); width: 86px; height: 86px; background: radial-gradient(circle at 40% 35%, #9affc8, #12a85a); box-shadow: 0 0 18px rgba(58,255,138,.7); font-size: 14px; color: #02200e; }
+  .tiny { position: absolute; pointer-events: auto; top: max(8px, env(safe-area-inset-top)); width: 44px; height: 44px; border: 1px solid rgba(90,216,255,.5); border-radius: 12px; background: rgba(2,6,24,.6); color: #fff; font-weight: 900; font-size: 18px; }
+  #bPause { right: max(10px, env(safe-area-inset-right)); } #bSnd { right: calc(max(10px, env(safe-area-inset-right)) + 52px); }
+  @media (max-height: 480px) { #bFire { width: 92px; height: 92px; } #bBuild { width: 72px; height: 72px; right: calc(max(16px, env(safe-area-inset-right)) + 104px); } }
+  @media (max-width: 560px) { #bBuild { right: calc(max(16px, env(safe-area-inset-right)) + 13px); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 130px); } #top { top: calc(max(8px, env(safe-area-inset-top)) + 56px); left: auto; right: max(10px, env(safe-area-inset-right)); transform: none; flex-direction: column; align-items: flex-end; } }
+
+  /* screens */
+  .screen { position: fixed; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 14px; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); text-align: center; overflow-y: auto; touch-action: pan-y; background: radial-gradient(120% 90% at 50% 20%, rgba(10,30,90,.55), rgba(2,3,10,.9)); }
+  .screen > :first-child { margin-top: auto; } .screen > :last-child { margin-bottom: auto; }
+  .logo { margin: 0; font-size: clamp(46px, 12vw, 96px); line-height: .9; font-weight: 900; letter-spacing: .06em; color: transparent; -webkit-text-stroke: 2px #bff4ff; text-shadow: 0 0 10px var(--cyan), 0 0 30px #2a6aff; }
+  .logo span { -webkit-text-stroke-color: #ffb0f0; text-shadow: 0 0 10px var(--pink), 0 0 30px var(--pink); }
+  .logo small { display: block; font-size: .2em; letter-spacing: .4em; color: var(--green); -webkit-text-stroke: 0; text-shadow: 0 0 8px var(--green); margin-top: .7em; }
+  .tag { margin: 0; max-width: 44ch; font-size: clamp(14px, 3.6vw, 18px); font-weight: 700; line-height: 1.4; color: #d6e8ff; }
+  .btn { border: 2px solid var(--cyan); border-radius: 10px; padding: 13px 34px; font: inherit; font-weight: 900; font-size: 18px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; color: #fff; background: rgba(20,60,140,.5); box-shadow: 0 0 14px rgba(90,216,255,.5), inset 0 0 12px rgba(90,216,255,.3); text-shadow: 0 0 8px var(--cyan); }
+  .btn:active { transform: scale(.97); }
+  .btn.green { border-color: var(--green); box-shadow: 0 0 14px rgba(58,255,138,.5), inset 0 0 12px rgba(58,255,138,.3); background: rgba(10,90,50,.5); text-shadow: 0 0 8px var(--green); }
+  .btn.ghost { border-color: rgba(255,255,255,.35); box-shadow: none; background: rgba(255,255,255,.06); text-shadow: none; }
+  .panel { background: var(--panel); border: 1px solid rgba(90,216,255,.5); box-shadow: 0 0 20px rgba(90,216,255,.2); border-radius: 14px; padding: 16px; width: min(100%, 640px); text-align: left; }
+  .seg { display: flex; gap: 6px; background: rgba(255,255,255,.07); border-radius: 999px; padding: 4px; width: min(100%, 420px); border: 1px solid rgba(90,216,255,.3); }
+  .seg button { flex: 1; border: 0; border-radius: 999px; padding: 10px 6px; font: inherit; font-weight: 900; font-size: 16px; color: var(--mute); background: none; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--cyan); color: #02030a; box-shadow: 0 0 12px var(--cyan); }
+  #levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; width: min(100%, 720px); }
+  .lv { border: 1px solid rgba(90,216,255,.45); border-radius: 12px; padding: 10px 6px; font: inherit; color: #fff; cursor: pointer; background: rgba(6,16,50,.85); display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .lv b { font-size: 24px; text-shadow: 0 0 8px var(--cyan); } .lv span { font-size: 12px; color: var(--mute); font-weight: 700; } .lv em { font-style: normal; color: var(--gold); letter-spacing: 2px; }
+  .lv.boss { border-color: rgba(255,58,74,.7); } .lv.boss b { text-shadow: 0 0 8px #ff3a4a; } .lv.done { box-shadow: 0 0 12px rgba(255,211,77,.5); }
+  .help p { font-size: 15px; line-height: 1.45; margin: 6px 0; } .help b { color: var(--gold); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hide">
+  <div id="tl">
+    <div class="chip"><div id="score">0</div><div id="hi">HI 0</div></div>
+    <div class="chip"><div id="lives"></div><div id="lvl"></div></div>
+  </div>
+  <div id="top"><div id="goal">BLOCKS 0/8</div><div id="energy">ENERGY <span id="energyNum">6</span><div id="energyBar"><div id="energyFill"></div></div></div></div>
+  <div id="msg"></div>
+</div>
+
+<div id="touch" class="hide">
+  <div id="stickZone"></div>
+  <div id="stickBase"><div id="stickKnob"></div></div>
+  <button class="tb" id="bBuild" type="button">BUILD</button>
+  <button class="tb" id="bFire" type="button">FIRE</button>
+  <button class="tiny" id="bSnd" type="button" aria-label="Sound">🔊</button>
+  <button class="tiny" id="bPause" type="button" aria-label="Pause">II</button>
+</div>
+
+<section class="screen" id="title">
+  <h1 class="logo">VECTOR<br><span>GUARD</span><small>NEON GRID · 12 LEVELS</small></h1>
+  <p class="tag">Fly your ship over the energy grid, build glowing energy blocks into the pattern, and blast the Hackers before they break them. Watch out for the Mother Saucer!</p>
+  <button class="btn" id="goPlay">Play</button>
+  <button class="btn ghost" id="goHelp">How to play</button>
+  <a href="index.html" style="color:#a8d8ff;font-size:14px">☰ Arcade menu</a>
+</section>
+
+<section class="screen hide" id="help">
+  <div class="panel help">
+    <h2 class="neon" style="margin:0 0 6px">How to play</h2>
+    <p><b>Move</b> by dragging your thumb anywhere on the left side of the screen. <b>FIRE</b> shoots the way your ship is pointing.</p>
+    <p>Fly over a <b>glowing square</b> and press <b>BUILD</b> to make an energy block. Fill every glowing square to power up the grid and win the level. On <b>Easy</b> the ship builds by itself when you hover over a square.</p>
+    <p>Each block costs 1 <b>energy</b>. Energy refills slowly, and shooting enemies gives you more.</p>
+    <p>Build 4 blocks in a square and a <b>power gem</b> appears that shoots enemies for you!</p>
+    <p><b>Enemies:</b> pink Hackers eat your blocks (shoot them fast!), yellow Zappers shoot at you, and orange Bouncers zoom off the walls. On levels 4, 8 and 12 the <b>Mother Saucer</b> attacks: shoot its 3 glowing pods.</p>
+    <p><b>Keyboard:</b> arrows or WASD to fly, Space to fire, B or Enter to build, P pause, M sound.</p>
+  </div>
+  <button class="btn" id="helpBack">Got it</button>
+</section>
+
+<section class="screen hide" id="select">
+  <h2 class="neon" style="margin:0;font-size:28px">CHOOSE A LEVEL</h2>
+  <div class="seg" id="diff"><button data-v="easy">Easy</button><button data-v="medium">Medium</button><button data-v="hard">Hard</button></div>
+  <div id="levels"></div>
+  <div id="selHi" style="color:var(--mute);font-size:13px"></div>
+  <button class="btn ghost" id="selBack">Back</button>
+</section>
+
+<section class="screen hide" id="pause">
+  <h2 class="logo" style="font-size:56px">PAUSED</h2>
+  <button class="btn" id="resume">Resume</button>
+  <button class="btn ghost" id="restart">Restart level</button>
+  <button class="btn ghost" id="toLevels">Levels</button>
+</section>
+
+<section class="screen hide" id="clear">
+  <h2 class="logo" id="clearTitle" style="font-size:clamp(34px,9vw,64px)">GRID POWERED!</h2>
+  <p class="tag" id="clearSub"></p>
+  <div class="row"><button class="btn green" id="clearNext">Next level</button><button class="btn ghost" id="clearLevels">Levels</button></div>
+</section>
+
+<section class="screen hide" id="over">
+  <h2 class="logo" style="font-size:clamp(40px,10vw,72px)">GAME OVER</h2>
+  <p class="tag" id="overScore"></p>
+  <div class="row"><button class="btn" id="overAgain">Try again</button><button class="btn ghost" id="overLevels">Levels</button></div>
+</section>
+
+<script>setTimeout(function () { if (!window.VG || !window.VG.ok) { var t = document.querySelector('#title .tag'); if (t) t.textContent = 'Vector Guard needs a browser with 3D graphics (WebGL). Try Safari or Chrome.'; } }, 6000);</script>
+<script type="module" src="vector3d.js"></script>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }</script>
+</body>
+</html>

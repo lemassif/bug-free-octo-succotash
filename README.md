@@ -1,4 +1,4 @@
-> This repo is a small **retro arcade** with thirteen self-contained browser games,
+> This repo is a small **retro arcade** with fourteen self-contained browser games,
 > plus a learning app. Open [`index.html`](index.html) for the **menu**, then
 > pick one:
 >
@@ -18,6 +18,7 @@
 > | **Super Strikers** | [`soccer.html`](soccer.html) | 3D five-a-side soccer with goal celebrations — see below |
 > | **Brain Box** | [`logic.html`](logic.html) | logic puzzles and word search: clue grids, sudoku, picture cross, queens and hidden words — see below |
 > | **Barrel Blitz 3D** | [`barrel.html`](barrel.html) | climb the tower past barrels and fireballs to rescue a puppy: 12 levels, Easy, Medium or Hard — see below |
+> | **Vector Guard** | [`vector.html`](vector.html) | neon vector-style grid shooter: build energy blocks, blast Hackers, beat the Mother Saucer: 12 levels — see below |
 >
 > Every page cross-links, so you can hop between the menu and any game.
 >
@@ -459,3 +460,24 @@ three cameras (close, whole tower, and a side angle).
   bubbles.
 - `barrel3d.js` builds the levels and characters with three.js. The
   characters are made up for the game.
+
+# Vector Guard
+
+A neon, vector-line grid shooter in the spirit of the early-80s Intellivision
+game. Your ship flies over an energy grid around a glowing core. Fly over each
+glowing square and build an energy block there; fill the whole pattern and the
+core blasts every enemy off the grid.
+
+- **Enemies:** pink Hackers fly to your blocks and eat them (they flash red
+  while being hacked), yellow Zappers circle and shoot at you, and orange
+  Bouncers ricochet off the walls.
+- **Energy:** each block costs 1; it refills slowly and shooting enemies adds
+  more. Four blocks in a square make a **power gem** that fires at enemies.
+- **Mother Saucer** on levels 4, 8 and 12: shoot its 3 glowing pods while it
+  drops Hackers and fires spreads of shots.
+- 12 levels with different block patterns. **Easy** has 5 lives, slower
+  enemies, bullets that curve toward enemies, and builds automatically when you
+  hover over a square. Stars and the high score are saved.
+- **Controls:** drag on the left side to fly, FIRE and BUILD on the right.
+  Keyboard: arrows or WASD, Space fire, B or Enter build, P pause, M sound.
+- `vector3d.js` draws everything as glowing wireframes with three.js.
