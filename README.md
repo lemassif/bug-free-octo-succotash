@@ -451,6 +451,8 @@ three cameras (close, whole tower, and a side angle).
   life. Hard also costs a life when the bonus timer runs out.
 - Each round of a stage (levels 1 to 4, 5 to 8, 9 to 12) is faster, with
   more broken ladders.
+- **Checkpoints:** a green flag goes up each time you reach a higher floor;
+  after losing a life you restart at the flag, blinking and safe for a moment.
 - Hammers smash barrels, crates and fireballs for 9 seconds. Jumping over a
   hazard is 100 points; the bonus counts down and is added when you finish.
 - **Controls:** ◀ ▶ walk, ▲ ▼ climb, JUMP (also off ladders). ▼ on a platform lies

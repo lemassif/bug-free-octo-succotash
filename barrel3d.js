@@ -316,14 +316,28 @@ const SFX = {
 const P = { x: 0, y: 0, vx: 0, vy: 0, state: 'walk', seg: null, ladder: null, face: 1, maxY: 0, hammer: 0, anim: 0, deadT: 0, stepT: 0, stepI: 0 };
 function startGame(level) { G.level = level; G.score = 0; D = DIFF[G.diff]; G.lives = D.lives; startLevel(); }
 function startLevel() {
-  L = buildLevel(G.level); H.length = 0; fx.length = 0; buildScene();
+  L = buildLevel(G.level); H.length = 0; fx.length = 0; buildScene(); G.check = null; checkFlag = null;
   G.rivets = L.segs.filter(s => s.kind === 'rivet').length; G.bonus = 5000 + 1000 * (L.round - 1); G.bonusT = 0;
   resetLife(); G.mode = 'play'; G.paused = false; G.camInit = false;
   showScreen(null); hud(); setTimeout(() => say('start', true), 900); flash(L.name, LEVELS[G.level].icon + ' Level ' + (G.level + 1) + ' · ' + G.diff.toUpperCase(), 2.2);
 }
+// checkpoints: the first time you stand on a higher floor, a flag goes up there
+let checkFlag = null;
+function setCheckpoint() {
+  const s = P.seg; if (!s || s.kind === 'lift' || s.kind === 'rivet' || s.k === L.goalK || G.mode !== 'play') return;
+  const y = yAt(s, P.x); if (y < (G.check ? G.check.y : yAt(floorSeg(L, L.start.k, L.start.x), L.start.x)) + 2) return;
+  G.check = { k: s.k, x: clamp(P.x, s.x1 + .4, s.x2 - .4), y };
+  if (checkFlag) levelGroup.remove(checkFlag);
+  checkFlag = new THREE.Group(); const pole = new THREE.Mesh(new THREE.CylinderGeometry(.05, .05, 1.8, 6), M.steel); pole.position.y = .9; checkFlag.add(pole);
+  const flag = new THREE.Mesh(new THREE.PlaneGeometry(.8, .5), new THREE.MeshStandardMaterial({ color: 0x3ad86a, emissive: 0x0a4a1a, side: THREE.DoubleSide })); flag.position.set(.42, 1.5, 0); checkFlag.add(flag); checkFlag.userData.flag = flag;
+  checkFlag.position.set(G.check.x, y, -.5); levelGroup.add(checkFlag);
+  popup('CHECKPOINT!', G.check.x, y + 2.2, '#3ad86a'); SFX.score();
+}
 function resetLife() {
   for (const h of H) levelGroup.remove(h.mesh); H.length = 0;
-  const s = floorSeg(L, L.start.k, L.start.x); Object.assign(P, { x: L.start.x, y: yAt(s, L.start.x), vx: 0, vy: 0, state: 'walk', seg: s, ladder: null, face: 1, hammer: 0, deadT: 0, prone: false, idleT: 0, squash: 0 });
+  // come back at the last checkpoint flag if there is one
+  const cp = G.check && floorSeg(L, G.check.k, G.check.x), sx = cp ? G.check.x : L.start.x, s = cp || floorSeg(L, L.start.k, L.start.x);
+  Object.assign(P, { safe: cp ? 2.5 : 0, x: sx, y: yAt(s, sx), vx: 0, vy: 0, state: 'walk', seg: s, ladder: null, face: 1, hammer: 0, deadT: 0, prone: false, idleT: 0, squash: 0 });
   G.throwT = 1.2; G.fireT = 4; G.springT = 2; G.spawned = 0; G.apeAnim = 0;
   for (const b of L.belts) b.crateT = Math.random() * 2;
   if (L.type === 'factory') { spawnFire(14, 2, 1); }
@@ -335,7 +349,7 @@ function die() {
 function afterDeath() {
   G.lives--; hud();
   if (G.lives <= 0) { G.mode = 'over'; if (G.score > save.hi) { save.hi = G.score; store(); } $('overScore').textContent = 'Score ' + G.score.toLocaleString(); showScreen('over'); return; }
-  resetLife(); flash('Try again!', G.lives + (G.lives === 1 ? ' life' : ' lives') + ' left', 1.6);
+  resetLife(); flash('Try again!', (G.check ? 'Back at your checkpoint · ' : '') + G.lives + (G.lives === 1 ? ' life' : ' lives') + ' left', 1.8);
 }
 function win() {
   if (G.mode !== 'play') return; G.mode = 'clear'; G.timer = 0; P.hammer = 0; P.prone = false; say('win', true); SFX.win();
@@ -428,6 +442,7 @@ function updateSpring(s, dt) {
 function hits(h) {
   // lying flat: barrels, crates and springs bounce over you, fireballs still burn
   if (P.prone && h.type !== 'fire') return false;
+  if (P.safe > 0) return false;
   const k = D.hit, cx = P.prone ? P.x + P.face * .2 : P.x, cy = P.y + (P.prone ? .22 : .75), hy = h.y + h.r, hw = P.prone ? .75 : .3, hh = P.prone ? .2 : .7;
   return Math.abs(cx - h.x) < (hw + h.r * .8) * k + .1 && Math.abs(cy - hy) < (hh + h.r * .8) * k;
 }
@@ -461,6 +476,7 @@ function updatePlayer(dt) {
     P.y = yAt(P.seg, P.x);
     if (mv && !P.prone) { P.anim += dt * 11; P.stepT -= dt; if (P.stepT <= 0) { P.stepT = .17; P.stepI ^= 1; SFX.step(P.stepI); } } else P.anim = 0;
     if (P.seg.kind === 'rivet') P.seg.touched = true;
+    setCheckpoint();
     if (inp.jump) { P.state = 'air'; P.vy = JUMP_V; P.vx = mv * WALK + s.belt * speedMul(); P.maxY = P.y; P.seg = null; SFX.jump(); }
     else if (inp.u) { const ld = findLadder(1); if (ld) startClimb(ld, false); }
     else if (inp.d) { const ld = findLadder(-1); if (ld) { P.prone = false; startClimb(ld, true); } }
@@ -521,8 +537,8 @@ function update(dt) {
     if (hits(h)) { die(); break; }
     if (P.state === 'air' && !h.scored && h.type !== 'spring' && Math.abs(P.x - h.x) < .6 && P.y > h.y + h.r * 1.4 && P.y < h.y + 3) { h.scored = true; G.cheer = 1; if (Math.random() < .55) say('over'); addScore(100, h.x, h.y + 1.6); SFX.score(); }
   }
-  if (P.state !== 'dead' && L.type !== 'rivets' && Math.abs(P.x - L.ape.x) < 1.3 && P.y > L.ape.y - 1.4 && P.y < L.ape.y + 2.6) die();
-  if (P.state !== 'dead' && L.drum && Math.abs(P.x - L.drum.x) < .8 && Math.abs(P.y - L.drum.y) < 1.2) die();
+  if (P.state !== 'dead' && !(P.safe > 0) && L.type !== 'rivets' && Math.abs(P.x - L.ape.x) < 1.3 && P.y > L.ape.y - 1.4 && P.y < L.ape.y + 2.6) die();
+  if (P.state !== 'dead' && !(P.safe > 0) && L.drum && Math.abs(P.x - L.drum.x) < .8 && Math.abs(P.y - L.drum.y) < 1.2) die();
   // bonus counts down
   G.bonusT += dt; if (G.bonusT >= D.tick) { G.bonusT = 0; if (G.bonus > 0) { G.bonus -= 100; hud(); if (G.bonus <= 0 && D.bonusKill) die(); } }
   // reached Pickles?
@@ -538,6 +554,8 @@ const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
 function animate(dt) {
   // hero: posed every frame from the player state, with a face that reacts
   const h = hero, b = h.body; h.g.position.set(P.x, P.y, .3);
+  if (P.safe > 0) { if (G.mode === 'play' && !G.paused) P.safe -= dt; h.g.visible = P.safe <= 0 || Math.sin(G.t * 25) > -.3; } else h.g.visible = true;
+  if (checkFlag) checkFlag.userData.flag.rotation.y = Math.sin(G.t * 4) * .35;
   const moving = (inp.l || inp.r) && P.state === 'walk';
   P.idleT = P.state === 'walk' && !moving && !P.prone && G.mode === 'play' ? (P.idleT || 0) + dt : 0;
   if (P.idleT > 4 && G.t - (P.idleSaid || -99) > 9) { P.idleSaid = G.t; say('idle'); }
