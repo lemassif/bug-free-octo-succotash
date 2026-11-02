@@ -4,7 +4,7 @@
 >
 > | App | File | Description |
 > |------|------|-------------|
-> | **Chance Academy** | [`chance/`](chance/index.html) | a 60-day science, math &amp; phonics curriculum for a curious second-grader — see [`CHANCE.md`](CHANCE.md) |
+> | **Chance Academy** | [`chance/`](chance/index.html) | a 60-day science, math &amp; phonics curriculum for a curious second-grader, plus the Spelling Rocket game for his weekly spelling words — see [`CHANCE.md`](CHANCE.md) |
 > | **Cubert** | [`cubert.html`](cubert.html) | cube-hopping isometric arcade with 20 levels you can start from — see [`CUBERT.md`](CUBERT.md) |
 > | **Miner 2049er** | [`miner.html`](miner.html) | platformer (documented below) |
 > | **Ferrow Light** | [`ferrow-light.html`](ferrow-light.html) | a four-chapter Zork-style text adventure |

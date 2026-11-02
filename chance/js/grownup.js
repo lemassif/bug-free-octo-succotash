@@ -36,7 +36,9 @@ window.Grownup = (function () {
     comprehension: 'Reading comprehension',
     'homework-math': 'Homework math (from school)',
     'homework-spelling': 'Homework spelling (from school)',
-    'homework-question': 'Homework questions (from school)'
+    'homework-question': 'Homework questions (from school)',
+    'rocket-find': 'Spelling Rocket: finding the word',
+    'rocket-spelling': 'Spelling Rocket: typing the spelling'
   };
 
   function render(body) {
@@ -146,6 +148,22 @@ window.Grownup = (function () {
         return w ? w.w + ' (' + w.parts.join('-') + ')' : id;
       });
       body.appendChild(item('', list.join(', '), 'These needed more than one try. The Word Wall tile replays each one, sound by sound.'));
+    }
+
+    /* ------------------------ spelling rocket ------------------------ */
+    /* The latest first try at typing each word. A word he missed and
+       then fixed still counts as one to practise. */
+    var firstTry = {};
+    log.forEach(function (e) {
+      if (e.domain === 'rocket-spelling' && e.word && e.attempt === 1) firstTry[e.word] = e.correct;
+    });
+    var rocketWords = Object.keys(firstTry);
+    if (rocketWords.length) {
+      var missed = rocketWords.filter(function (w) { return !firstTry[w]; });
+      body.appendChild(el('div', 'week-title', 'SPELLING ROCKET'));
+      body.appendChild(item(missed.length ? 'watch' : 'good',
+        (rocketWords.length - missed.length) + ' of ' + rocketWords.length + ' words spelled right on the first try',
+        missed.length ? 'Practice these: ' + missed.join(', ') : 'Every word right the first time.'));
     }
 
     /* --------------------------- last 7 days ------------------------- */

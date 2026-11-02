@@ -45,6 +45,7 @@ const SCRIPTS = [
   'js/grownup.js',
   'js/studio.js',
   'js/hwui.js',
+  'js/rocket.js',
   'js/app.js'
 ];
 

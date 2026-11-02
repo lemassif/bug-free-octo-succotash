@@ -407,5 +407,12 @@ window.Phrases = {
   stationDone: 'Station complete. You earned a star.',
   missionDone: 'Mission complete! Fantastic work today.',
   tapTheAnswer: 'Here is the answer. Tap it with me, and say it out loud.',
-  micOff: "I didn't hear you. Hold the microphone button and say it out loud."
+  micOff: "I didn't hear you. Hold the microphone button and say it out loud.",
+  // Spelling Rocket
+  rocketSayIt: 'You found it! Now say the word out loud.',
+  rocketSpellIt: 'Now spell it on the keyboard.',
+  rocketBlastOff: 'Three, two, one, blast off!',
+  rocketBreak: 'Five words done! Time for a soccer break. Swipe the ball into the goal.',
+  rocketBack: 'Back to space for more words!',
+  rocketDone: 'You found every word this week. Amazing flying!'
 };

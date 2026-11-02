@@ -33,6 +33,7 @@ window.App = (function () {
 
   function go(name, arg) {
     if (name === 'home' && reloadPending) { location.reload(); return; }
+    if (name !== 'rocket' && window.Rocket && Rocket.inGame()) Rocket.stopGame();
     currentScreen = name;
     Voice.stop();
     hideCoach();
@@ -47,6 +48,7 @@ window.App = (function () {
     if (name === 'studio') Studio.render($('studioBody'));
     if (name === 'homework') HWUI.renderPicker($('homeworkBody'));
     if (name === 'hwedit') HWUI.renderEditor($('hwEditBody'));
+    if (name === 'rocket') Rocket.render($('rocketBody'));
     if (name === 'mission' && arg) Stations.run(arg.day, arg.station);
   }
 
@@ -247,6 +249,10 @@ window.App = (function () {
     var hwBadge = $('tileHwCount');
     hwBadge.textContent = hw;
     hwBadge.hidden = !hw;
+
+    // words still to fly this week
+    var rk = window.Rocket ? Rocket.tileCount() : 0, rkBadge = $('tileRocketCount');
+    if (rkBadge) { rkBadge.textContent = rk; rkBadge.hidden = !rk; }
 
     var streak = Progress.data.streak.count;
     $('homeGreeting').textContent = streak > 1
@@ -553,13 +559,13 @@ window.App = (function () {
     });
     document.body.appendChild(b);
     Voice.onTalking(function (talking) {
-      // the lesson bar already carries its own Stop
-      b.hidden = !talking || currentScreen === 'mission';
+      // the lesson bar and the rocket game already carry their own Stop
+      b.hidden = !talking || currentScreen === 'mission' || !!(window.Rocket && Rocket.inGame());
     });
   }
 
   function boot() {
-    ['home', 'mission', 'map', 'rewards', 'wordwall', 'grownup', 'studio', 'homework', 'hwedit'].forEach(function (k) {
+    ['home', 'mission', 'map', 'rewards', 'wordwall', 'grownup', 'studio', 'homework', 'hwedit', 'rocket'].forEach(function (k) {
       screens[k] = $('screen-' + k);
     });
 

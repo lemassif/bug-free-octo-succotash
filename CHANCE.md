@@ -33,7 +33,7 @@ what checks his pronunciation.
 ## What a day looks like
 
 Everything is driven by pictures. He never has to read a menu to get started:
-one big card for today's mission, six picture tiles, and a small grown-up door
+one big card for today's mission, eight picture tiles, and a small grown-up door
 in the corner. Each mission has the same three stops, so the shape is
 predictable and his attention goes to the content:
 
@@ -59,9 +59,11 @@ They are deliberately small next to the wide green button, so what to do *next*
 is still the obvious thing to tap. The little 🏠 in the top corner asks the same
 question.
 
-The other tiles: **Mission Map** (all 60 days, jump to any one), **My Rewards**
+The other tiles: **Spelling Rocket** (this week's spelling words as a space game,
+see below), **Mission Map** (all 60 days, jump to any one), **My Rewards**
 (badges, goals, and the share button), **Word Wall** (all 180 phonics words,
-tap any one to hear it sounded out).
+tap any one to hear it sounded out), **Scan Homework** (turn a worksheet photo
+into a lesson).
 
 ---
 
@@ -205,6 +207,52 @@ it on paper, and taps "I finished it". Sometimes that is all you have time for.
 
 Homework earns stars and feeds the report, but it does **not** consume a day of
 the 60-day course — it is extra, not a substitute.
+
+---
+
+## 🚀 Spelling Rocket: this week's spelling words, as a space game
+
+Tap **🚀 Spelling Rocket** on the home screen.
+
+### Once a week (grown-up, about a minute)
+
+1. Tap **📷 Take a picture of this week's spelling words** and photograph the
+   list that came home from school. It is the same on-device reader as Scan
+   Homework: nothing is uploaded.
+2. **Check the list.** Untick anything that isn't a spelling word and fix any
+   misread word. *Add a word…* covers anything it missed. **Type the words**
+   works too, and so does a list already scanned through Scan Homework.
+3. Tap **🚀 Save this week's words**.
+
+The list stays until you replace it. **New week's words** scans the next list,
+and **Fix or add words** edits this one. After a week the screen reminds you
+that the list is old.
+
+### What Chance does
+
+| Step | What happens |
+|---|---|
+| **Find it** | The owl says a word ("Fly to the word: *night*"). That word is racing across the sky with three of the week's other words. He drags his finger to fly the rocket into the right one. Bumping a wrong word just nudges him back, and the owl reads him the word he hit ("That one says *light*. Find *night*."), so even a miss is reading practice. The word to find is never printed on the screen. He has to read the words in the sky. |
+| **Say it** | The found word docks on the rocket. He taps 🎤 and says it, with the same pronunciation check and owl coaching as Read & Say. 🔊 and 🐢 play it whole or sounded out. **👍 I said it** is always there for a dead microphone or a noisy room. |
+| **Spell it** | The word disappears and letter boxes appear. He types it **on the iPad keyboard**. Autocorrect, autocapitalise and spellcheck are switched off, so iOS cannot spell it for him. A miss turns the right letters green and the rest orange. A second miss sounds it out. A third shows the word to copy, so it is never a wall. |
+| **Launch** | 🚀 LAUNCH, a 3-2-1 countdown, blast-off at warp speed, then the next word. |
+| **Soccer break** | Every **5 words**: five penalty kicks. He swipes the ball with his finger. The direction aims it, and a faster flick hits it higher (too fast goes over the bar). The keeper dives, but he can't reach the corners. Then **Back to space** for the next five. |
+
+At the end of the list: a mission-complete card with how many words he spelled
+right the first time, the words to practise, and **Fly again**, which flies just
+those words.
+
+He earns a ⭐ for each round of five (once a day per list), through the same star
+counter as the course. Words he says into the microphone count toward the Word
+Sayer badges. If he stops halfway, the rocket remembers his place, and the home
+tile shows how many words are left.
+
+### What you see in the report
+
+Grown-Ups shows a **SPELLING ROCKET** section: how many words he spelled right
+on the first try, and the ones to practise. His spelling slips also feed the
+habits list, as *Spells it the way it sounds* (nite for night) or *Swaps the
+vowel sound*. Those are the same habits the homework spelling test tracks.
 
 ---
 
@@ -548,6 +596,7 @@ kind.
 | `chance/js/homework.js` | homework photos, the question generator, realistic misspellings, and building a lesson from scanned words |
 | `chance/js/scan.js` | reads the words and math off a homework photo, on the device |
 | `chance/js/hwui.js` | the homework screens: camera, the grown-up word check, the hand-built editor |
+| `chance/js/rocket.js` | the Spelling Rocket: the week's word list, the space game, the spelling boxes and the soccer break |
 | `chance/vendor/tesseract/` | the text-recognition engine and its English data (Apache-2.0; licence files beside it) |
 | `chance/js/updater.js` | version check and the in-app update |
 | `chance/js/recordings.js` | stores your recorded lines in IndexedDB, keyed by the text of the line; export/import |
@@ -560,6 +609,7 @@ kind.
 | `chance/js/app.js` | icon home screen, routing, sheets |
 | `chance/test/regress.js` | the regression suite — see below |
 | `chance/test/scan.js` | photo → words → lesson, end to end |
+| `chance/test/rocket.js` | the Spelling Rocket, end to end: steering, microphone, keyboard, soccer, report |
 
 ## Running the tests
 
@@ -568,6 +618,7 @@ npx http-server -p 8099 -s .        # from the repo root
 node chance/test/regress.js         # the multi-file app
 node chance/test/sound.js           # the sound-reliability checks
 node chance/test/scan.js            # scan a worksheet photo into a lesson
+node chance/test/rocket.js          # the Spelling Rocket, five words, soccer and all
 BASE=http://127.0.0.1:8099/dist/chance-academy.html node chance/test/regress.js
 ```
 
