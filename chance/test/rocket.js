@@ -5,15 +5,18 @@
      npx http-server -p 8099 -s .          (from the repo root)
      node chance/test/rocket.js
 
-   Walks the whole week the way Chance and a grown-up would:
+   Walks the whole journey the way Chance and a grown-up would:
 
      🚀 tile -> type the week's words -> grown-up check -> save
-       -> blast off -> steer the rocket to the spoken word (a real
-          finger drag) -> say it -> spell it on the keyboard (a miss
-          first, then right) -> LAUNCH -> next word
-       -> after five words, the soccer break with real swipes
-       -> back to space -> finish the list -> stars and the report
-       -> leaving halfway saves his place
+       -> build a rocket -> tap the planet or star with the spoken
+          word (a real tap; a wrong one first) -> say it (fake
+          microphone) -> spell it on the keyboard (a miss first,
+          then right) -> a rocket piece flies onto the pad
+       -> five pieces -> LAUNCH -> Venus -> soccer break with real
+          swipes -> new rocket -> Saturn -> galaxy -> beyond
+       -> stars, the report, and leaving halfway saves the rocket
+       -> the recording booth lists every rocket line, and a
+          recorded line plays instead of the computer voice
 
    Also checks the things that would quietly ruin it on an iPad:
    autocorrect and friends switched off on the spelling box, the
@@ -62,9 +65,11 @@ function check(name, ok, detail) {
     b.click();
   }, [sel, label]);
   const mode = () => page.evaluate(() => Rocket._game() ? Rocket._game().mode : null);
+  const built = () => page.evaluate(() => Rocket._state().journey.built);
 
   /* A stand-in for the iPad's speech recogniser: it "hears" whatever
-     the test puts in window.__heard. */
+     the test puts in window.__heard. Also counts which lines were
+     played from a recording. */
   await page.addInitScript(() => {
     window.__heard = '';
     window.SpeechRecognition = window.webkitSpeechRecognition = function () {
@@ -100,49 +105,89 @@ function check(name, ok, detail) {
   await wait(200);
   const chips = await page.evaluate(() => [...document.querySelectorAll('.rk-chip')].map(c => c.textContent));
   check('the week\'s words are saved', chips.join(',') === WORDS.join(','), chips.join(','));
+  const trail = await page.evaluate(() => [...document.querySelectorAll('.rk-stop')].map(s => s.textContent));
+  check('the trail shows Venus, Saturn, galaxy, beyond', trail.length === 4 && trail[0].includes('Venus') && trail[1].includes('Saturn') &&
+    trail[2].includes('galaxy') && trail[3].includes('beyond'), trail.join(' | '));
+  check('the go button says build a rocket', (await page.evaluate(() => document.querySelector('.rk-go').textContent)).includes('Build a rocket'));
   await page.evaluate(() => App.go('home'));
-  check('home tile counts the words', await page.evaluate(() => document.getElementById('tileRocketCount').textContent) === '7');
+  check('home tile counts words to the first launch', await page.evaluate(() => document.getElementById('tileRocketCount').textContent) === '5');
+
+  console.log('RECORDING BOOTH');
   await page.click('[data-go="rocket"]');
   await wait(150);
+  await tapIn('#rocketBody button', 'Record your voice for the rocket');
+  await wait(200);
+  const booth = await page.evaluate(() => ({
+    shown: !document.getElementById('screen-studio').hidden,
+    text: document.getElementById('studioBody').textContent
+  }));
+  check('the button opens the rocket group in the booth', booth.shown && booth.text.includes('Spelling Rocket: your voice'), booth.text.slice(0, 80));
+  check('the first line to record is the welcome', booth.text.includes(await page.evaluate(() => Rocket.LINES.start)));
+  const inv = await page.evaluate(() => {
+    const g = Recordings.inventory().find(x => x.id === 'rocket');
+    return { n: g.lines.length, texts: g.lines.map(l => l.text) };
+  });
+  check('every rocket line and every word is recordable', inv.texts.includes('Great job Chance! Now we can build a rocket to go to Venus!') &&
+    inv.texts.includes('Great job Chance! Now we can build a rocket to go to Saturn!') &&
+    inv.texts.includes('Great job Chance! Now we can build a rocket to go beyond the galaxy!') &&
+    WORDS.every(w => inv.texts.includes(w)), inv.n + ' lines');
+  check('the old rocket phrases are gone from the app group', await page.evaluate(() =>
+    !Recordings.inventory().find(x => x.id === 'app').lines.some(l => /Amazing flying|Back to space for more/.test(l.text))));
 
-  console.log('FLY');
+  /* Pretend Grandpa recorded the "find" line: from now on it must
+     come from the recording, not the computer voice. */
+  await page.evaluate(() => {
+    window.__played = [];
+    const has = Recordings.has, play = Recordings.play;
+    Recordings.has = (t, k) => t === Rocket.LINES.find || has(t, k);
+    Recordings.play = (t, k) => { if (t === Rocket.LINES.find) { window.__played.push(t); return Promise.resolve(true); } return play(t, k); };
+  });
+
+  await page.evaluate(() => App.go('rocket'));
+  await wait(150);
+
+  console.log('FIND');
   const starsBefore = await page.evaluate(() => Progress.data.totals.stars);
   await page.click('.rk-go');
-  await wait(400);
-  const g1 = await page.evaluate(() => { const g = Rocket._game(); return { word: g.word, words: g.bubbles.map(b => b.word) }; });
-  check('four words race across the sky', g1.words.length === 4, g1.words.join(','));
+  await wait(500);
+  const g1 = await page.evaluate(() => { const g = Rocket._game(); return { word: g.word, words: g.bodies.map(b => b.word), kinds: g.bodies.map(b => b.kind) }; });
+  check('four planets and stars carry words', g1.words.length === 4, g1.words.join(',') + ' / ' + g1.kinds.join(','));
+  check('there are planets and stars', g1.kinds.includes('planet') && g1.kinds.includes('star'), g1.kinds.join(','));
   check('the target is up there exactly once', g1.words.filter(w => w === g1.word).length === 1, g1.word);
   check('the target word is not printed in the prompt',
     !(await page.evaluate(() => document.querySelector('.rk-prompt').textContent)).includes(g1.word));
   check('the floating Stop stays out of the game', await page.evaluate(() => {
     const f = document.querySelector('.float-stop'); return !f || f.hidden;
   }));
+  check('"Find this word" played from Grandpa\'s recording', await until(() => window.__played.length > 0, null, 6000));
+  check('the pad shows 0 of 5 pieces', (await built()) === 0 &&
+    await page.evaluate(() => document.querySelectorAll('.rk-pips i.off').length + document.querySelectorAll('.rk-pips i.now').length === 5));
 
-  // fly there with a real finger drag, chasing the moving word
-  const canvasBox = await page.$eval('.rk-canvas', c => { const r = c.getBoundingClientRect(); return { x: r.left, y: r.top }; });
-  let pos = await page.evaluate(() => { const r = Rocket._game().rocket; return { x: r.x, y: r.y }; });
-  await page.mouse.move(canvasBox.x + pos.x, canvasBox.y + pos.y);
-  await page.mouse.down();
-  let found = false;
-  for (let i = 0; i < 160 && !found; i++) {
-    const t = await page.evaluate(() => {
-      const g = Rocket._game(), b = g.bubbles.find(x => x.target);
-      return { x: b.x, y: b.y + 70 * g.S + 10, mode: g.mode };
-    });
-    if (t.mode !== 'fly') { found = true; break; }
-    await page.mouse.move(canvasBox.x + t.x, canvasBox.y + t.y, { steps: 2 });
-    await wait(50);
-  }
-  await page.mouse.up();
-  check('steering the rocket into the word docks it', (await mode()) === 'say', await mode());
+  const cb = await page.$eval('.rk-canvas', c => { const r = c.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
+  await until(() => Rocket._game().bodies.every(b => b.alpha > 0.9), null, 3000);
+  // a wrong planet first: nothing bad happens, it just reads it to him
+  const wrongB = await page.evaluate(() => { const b = Rocket._game().bodies.find(x => !x.target); return { x: b.x, y: b.y, w: b.word }; });
+  await page.mouse.click(cb.x + wrongB.x, cb.y + wrongB.y);
+  await wait(100);
+  check('a wrong tap keeps him looking', (await mode()) === 'find');
+  const findEv = await page.evaluate(() => Progress.data.log.filter(e => e.domain === 'rocket-find').slice(-1)[0]);
+  check('the wrong tap is logged', findEv && findEv.correct === false, findEv && findEv.word);
+  const tgt = await page.evaluate(() => { const b = Rocket._game().bodies.find(x => x.target); return { x: b.x, y: b.y }; });
+  await page.mouse.click(cb.x + tgt.x, cb.y + tgt.y);
+  await wait(100);
+  check('tapping the right planet or star finds it', (await mode()) === 'say', await mode());
 
   console.log('SAY');
   check('the found word is shown to read aloud', (await page.evaluate(() => document.querySelector('.rk-word').textContent)) === g1.word);
-  check('there is a microphone and an I-said-it button', await page.evaluate(() =>
-    !!document.querySelector('.rk-card .mic-btn') && [...document.querySelectorAll('.rk-card button')].some(b => b.textContent.includes('I said it'))));
-  await tapIn('.rk-card button', 'I said it');
-  await wait(150);
-  check('then it asks him to spell it', (await mode()) === 'spell');
+  await page.evaluate(() => { window.__heard = 'banana'; });
+  await page.click('.rk-card .mic-btn');
+  await until(() => /I heard/.test(document.querySelector('.rk-card .heard').textContent), null, 4000);
+  const heardText = await page.evaluate(() => document.querySelector('.rk-card .heard').textContent);
+  check('saying the wrong word coaches and stays put', (await mode()) === 'say' && heardText.includes('I heard: banana'), heardText);
+  await page.evaluate((w) => { window.__heard = w; }, g1.word);
+  await until(() => !document.querySelector('.rk-card .mic-btn.live'), null, 4000);
+  await page.click('.rk-card .mic-btn');
+  check('saying it right moves on to spelling', await until(() => Rocket._game().mode === 'spell', null, 15000), await mode());
 
   console.log('SPELL');
   const attrs = await page.$eval('.rk-input', i => ({
@@ -164,72 +209,46 @@ function check(name, ok, detail) {
   await page.fill('.rk-input', '');
   await page.keyboard.type(g1.word);
   await page.keyboard.press('Enter');
-  await wait(200);
-  check('right spelling -> ready to launch', (await mode()) === 'ready');
-  check('the launch button is there', await page.evaluate(() => !!document.querySelector('.rk-launch') && document.querySelector('.rk-launch').textContent.includes('LAUNCH')));
-  check('his place is saved', await page.evaluate(() => Rocket._state().pos) === 1);
-
-  console.log('LAUNCH');
-  await page.click('.rk-launch');
-  check('countdown, blast off, next word', await until(() => Rocket._game().mode === 'fly' && Rocket._state().pos === 1, null, 6000));
+  await wait(100);
+  check('right spelling -> a rocket piece', (await mode()) === 'piece');
+  check('the piece flies onto the pad, then the next word', await until(() => Rocket._game().mode === 'find' && Rocket._state().journey.built === 1, null, 5000));
+  check('the HUD shows 1 piece built', await page.evaluate(() => document.querySelectorAll('.rk-pips i.on').length) === 1);
   const g2 = await page.evaluate(() => Rocket._game().word);
   check('a new word to find', g2 !== g1.word, g1.word + ' -> ' + g2);
 
-  // words 2 to 5, quickly: find, say, spell, launch
-  async function oneWord(expectButton) {
+  // the rest, quickly: find, say, spell, wait for the piece
+  async function oneWord() {
+    await until(() => Rocket._game() && Rocket._game().mode === 'find', null, 6000);
     await page.evaluate(() => Rocket._found());
-    await wait(80);
+    await wait(60);
     await tapIn('.rk-card button', 'I said it');
-    await wait(80);
+    await wait(60);
     const w = await page.evaluate(() => Rocket._game().word);
     await page.keyboard.type(w);
     await page.keyboard.press('Enter');
-    await wait(120);
-    const label = await page.evaluate(() => document.querySelector('.rk-launch') && document.querySelector('.rk-launch').textContent);
-    return label || '';
+    await until(() => ['find', 'ready'].includes(Rocket._game().mode), null, 5000);
+    return w;
   }
-  console.log('MICROPHONE');
-  await page.evaluate(() => Rocket._found());
-  await wait(80);
-  const spokenBefore = await page.evaluate(() => Progress.data.totals.wordsSpoken);
-  await page.evaluate(() => { window.__heard = 'banana'; });
-  await page.click('.rk-card .mic-btn');
-  await until(() => /I heard/.test(document.querySelector('.rk-card .heard').textContent), null, 4000);
-  const heardText = await page.evaluate(() => document.querySelector('.rk-card .heard').textContent);
-  check('saying the wrong word coaches and stays put', (await mode()) === 'say' && heardText.includes('I heard: banana'), heardText);
-  await page.evaluate((w) => { window.__heard = w; }, g2);
-  await until(() => !document.querySelector('.rk-card .mic-btn.live'), null, 4000);
-  await page.click('.rk-card .mic-btn');
-  check('saying it right moves on to spelling', await until(() => Rocket._game().mode === 'spell', null, 15000), await mode());
-  check('it counts as a word read aloud', (await page.evaluate(() => Progress.data.totals.wordsSpoken)) === spokenBefore + 1);
-  await page.keyboard.type(g2);
-  await page.keyboard.press('Enter');
-  await wait(120);
-  check('word 2 -> LAUNCH', (await page.evaluate(() => document.querySelector('.rk-launch').textContent)).includes('LAUNCH'));
-  await page.click('.rk-launch');
-  await until(() => Rocket._game().mode === 'fly' && Rocket._state().pos === 2, null, 6000);
+  for (let k = 2; k <= 5; k++) await oneWord();
+  check('five words -> rocket built', (await mode()) === 'ready' && (await built()) === 5, await mode());
+  check('the launch button names Venus', (await page.evaluate(() => document.querySelector('.rk-launch').textContent)).includes('LAUNCH to Venus'));
+  check('the whole rocket is on the pad', await page.evaluate(() => document.querySelectorAll('.rk-pips i.on').length) === 5);
 
-  for (let k = 3; k <= 4; k++) {
-    const label = await oneWord();
-    check('word ' + k + ' -> LAUNCH', label.includes('LAUNCH'), label);
-    await page.click('.rk-launch');
-    await until(() => Rocket._game().mode === 'fly', null, 6000);
-  }
-  const fifth = await oneWord();
-  check('after five words: soccer break', fifth.includes('Soccer'), fifth);
-  const pips = await page.evaluate(() => document.querySelectorAll('.rk-pips i.on').length);
-  check('the round shows five stars', pips === 5, String(pips));
+  console.log('LAUNCH');
+  await page.click('.rk-launch');
+  check('countdown, blast off, arrive at Venus', await until(() => Rocket._game().mode === 'arrive', null, 10000), await mode());
+  check('Venus is on screen', await page.evaluate(() => Rocket._game().dest.leg === 0 && document.querySelector('.rk-panel').textContent.includes('Venus')));
+  check('a star for reaching Venus', (await page.evaluate(() => Progress.data.totals.stars)) - starsBefore === 1);
+  check('the next rocket starts empty', (await built()) === 0 && await page.evaluate(() => Rocket._state().journey.leg) === 1);
 
   console.log('SOCCER');
-  await page.click('.rk-launch');
+  await tapIn('.rk-panel button', 'Soccer');
   await wait(200);
   check('soccer break starts', (await mode()) === 'soccer');
-  const cb = await page.$eval('.rk-canvas', c => { const r = c.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
   const results = [];
   for (let s = 0; s < 5; s++) {
     await until(() => Rocket._soccer() && Rocket._soccer().phase === 'aim', null, 5000);
     const spot = await page.evaluate(() => Rocket._soccer().spot);
-    // aim alternately at the left and right side of the goal
     const dx = (s % 2 ? 1 : -1) * cb.w * 0.12;
     await page.mouse.move(cb.x + spot.x, cb.y + spot.y);
     await page.mouse.down();
@@ -237,38 +256,55 @@ function check(name, ok, detail) {
     await page.mouse.move(cb.x + spot.x + dx, cb.y + spot.y - 260, { steps: 3 });
     await page.mouse.up();
     await wait(60);
-    const phase = await page.evaluate(() => Rocket._soccer() && Rocket._soccer().phase);
-    results.push(phase);
+    results.push(await page.evaluate(() => Rocket._soccer() && Rocket._soccer().phase));
     await until(() => !Rocket._soccer() || Rocket._soccer().phase !== 'flight', null, 3000);
   }
   check('a finger swipe kicks the ball', results.every(p => p === 'flight' || p === 'result'), results.join(','));
   check('five shots, then back to space', await until(() => {
     const b = document.querySelector('.rk-launch'); return !!b && b.textContent.includes('Back to space');
   }, null, 6000));
-  const goals = await page.evaluate(() => Rocket._soccer().goals);
-  console.log('       (' + goals + ' goals out of 5)');
+  console.log('       (' + (await page.evaluate(() => Rocket._soccer().goals)) + ' goals out of 5)');
   await page.click('.rk-launch');
-  check('back in space for word 6', await until(() => Rocket._game().mode === 'fly' && Rocket._state().pos === 5, null, 4000));
+  check('back in space building the Saturn rocket', await until(() => Rocket._game().mode === 'find', null, 4000) &&
+    (await page.evaluate(() => Rocket._game().layer.querySelector('.rk-label').textContent)).includes('Saturn'));
 
-  console.log('FINISH');
-  const sixth = await oneWord();
-  check('word 6 -> LAUNCH', sixth.includes('LAUNCH'), sixth);
+  console.log('SATURN, GALAXY, BEYOND');
+  async function leg(name) {
+    for (let k = 0; k < 5; k++) await oneWord();
+    const label = await page.evaluate(() => document.querySelector('.rk-launch') && document.querySelector('.rk-launch').textContent);
+    check('5 more words -> LAUNCH to ' + name, (label || '').includes(name), label);
+    await page.click('.rk-launch');
+    return until(() => Rocket._game().mode === 'arrive', null, 10000);
+  }
+  check('arrive at Saturn', await leg('Saturn'));
+  await tapIn('.rk-panel button', 'Soccer');
+  await until(() => Rocket._soccer() && Rocket._soccer().phase === 'aim', null, 3000);
+  // skip the shots: straight back to space
+  await page.evaluate(() => { const s = Rocket._soccer(); s.shots = 5; s.phase = 'result'; s.msgT = 0; });
+  await until(() => !!document.querySelector('.rk-launch') && document.querySelector('.rk-launch').textContent.includes('Back to space'), null, 3000);
   await page.click('.rk-launch');
-  await until(() => Rocket._game().mode === 'fly', null, 6000);
-  const last = await oneWord();
-  check('the last word -> Finish', last.includes('Finish'), last);
+  check('arrive at a new galaxy', await leg('a new galaxy'));
+  await tapIn('.rk-panel button', 'Soccer');
+  await until(() => Rocket._soccer() && Rocket._soccer().phase === 'aim', null, 3000);
+  await page.evaluate(() => { const s = Rocket._soccer(); s.shots = 5; s.phase = 'result'; s.msgT = 0; });
+  await until(() => !!document.querySelector('.rk-launch') && document.querySelector('.rk-launch').textContent.includes('Back to space'), null, 3000);
+  await page.click('.rk-launch');
+  check('arrive beyond the galaxy', await leg('beyond the galaxy'));
+  check('the last stop offers Finish', (await page.evaluate(() => document.querySelector('.rk-launch').textContent)).includes('Finish'));
+  check('20 words spelled', await page.evaluate(() => Rocket._state().journey.spelled) === 20);
   await page.click('.rk-launch');
   await wait(200);
-  check('mission complete card', (await mode()) === 'done' &&
-    (await page.evaluate(() => document.querySelector('.rk-panel').textContent)).includes('Mission complete'));
+  check('super speller card', (await mode()) === 'done' &&
+    (await page.evaluate(() => document.querySelector('.rk-panel').textContent)).includes('beyond the galaxy'));
   const summary = await page.evaluate(() => document.querySelector('.rk-sum').textContent);
   check('the summary names the word to practise', summary.includes(g1.word), summary);
   const starsAfter = await page.evaluate(() => Progress.data.totals.stars);
-  check('one star for each round of words', starsAfter - starsBefore === 2, starsBefore + ' -> ' + starsAfter);
+  check('one star for each stop', starsAfter - starsBefore === 4, starsBefore + ' -> ' + starsAfter);
 
   await tapIn('.rk-panel button', 'Home');
   await wait(200);
   check('Home leaves the game', await page.evaluate(() => !document.querySelector('.rk-layer') && !document.getElementById('screen-home').hidden));
+  check('home tile is quiet after the whole journey', await page.evaluate(() => document.getElementById('tileRocketCount').textContent) !== '5');
 
   console.log('REPORT');
   await page.evaluate(() => App.go('grownup'));
@@ -293,8 +329,8 @@ function check(name, ok, detail) {
   await page.evaluate(() => App.go('rocket'));
   await wait(150);
   const resume = await page.evaluate(() => document.querySelector('.rk-go').textContent);
-  check('leaving halfway saves his place', resume.includes('Word 2 of 7'), resume);
-  check('home tile counts what is left', await page.evaluate(() => { App.go('home'); return document.getElementById('tileRocketCount').textContent; }) === '6');
+  check('leaving halfway saves the rocket', resume.includes('Keep building') && resume.includes('1 of 5'), resume);
+  check('home tile counts words to the launch', await page.evaluate(() => { App.go('home'); return document.getElementById('tileRocketCount').textContent; }) === '4');
 
   console.log('\nCONSOLE ERRORS: ' + (errors.length ? errors.join('\n  ') : 'none'));
   if (errors.length) failures++;

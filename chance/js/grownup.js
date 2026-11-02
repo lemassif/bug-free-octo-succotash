@@ -151,11 +151,15 @@ window.Grownup = (function () {
     }
 
     /* ------------------------ spelling rocket ------------------------ */
-    /* The latest first try at typing each word. A word he missed and
-       then fixed still counts as one to practise. */
+    /* This week's list only. Each word comes round several times on
+       the way to the galaxy; a word he missed on any first try this
+       week stays on the practise list even after he gets it. */
+    var week = window.Rocket && Rocket.week ? Rocket.week() : null;
     var firstTry = {};
     log.forEach(function (e) {
-      if (e.domain === 'rocket-spelling' && e.word && e.attempt === 1) firstTry[e.word] = e.correct;
+      if (e.domain !== 'rocket-spelling' || !e.word || e.attempt !== 1) return;
+      if (week && (e.t < week.setAt || week.words.indexOf(e.word) === -1)) return;
+      firstTry[e.word] = firstTry[e.word] !== false && e.correct;
     });
     var rocketWords = Object.keys(firstTry);
     if (rocketWords.length) {

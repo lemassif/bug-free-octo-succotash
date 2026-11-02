@@ -45,7 +45,7 @@ window.App = (function () {
     if (name === 'rewards') renderRewards();
     if (name === 'wordwall') renderWordWall();
     if (name === 'grownup') Grownup.render($('grownupBody'));
-    if (name === 'studio') Studio.render($('studioBody'));
+    if (name === 'studio') { Studio.render($('studioBody')); if (arg && arg.group) Studio.open($('studioBody'), arg.group); }
     if (name === 'homework') HWUI.renderPicker($('homeworkBody'));
     if (name === 'hwedit') HWUI.renderEditor($('hwEditBody'));
     if (name === 'rocket') Rocket.render($('rocketBody'));

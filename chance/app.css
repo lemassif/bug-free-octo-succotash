@@ -473,6 +473,18 @@ table.tbl th { background: #eef4fb; font-size: 13px; letter-spacing: .5px; }
 }
 .rk-pips i.on { background: rgba(255, 211, 77, .25); border-color: var(--sun); }
 .rk-pips i.now { border-color: #9fe8ff; background: rgba(90, 216, 255, .2); }
+.rk-pips i.off { opacity: .35; filter: grayscale(1); }
+.rk-trail { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+.rk-stop {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 4px;
+  border-radius: 16px; background: rgba(0, 0, 0, .04); border: 2px solid transparent; text-align: center;
+}
+.rk-stop .em { font-size: 30px; line-height: 1.1; }
+.rk-stop .nm { font-weight: 800; font-size: 14px; }
+.rk-stop .ct { font-size: 12px; opacity: .7; }
+.rk-stop.been { background: rgba(47, 191, 113, .14); border-color: #2fbf71; }
+.rk-stop.been .ct::after { content: ' ✓'; }
+.rk-stop.next { border-color: var(--sun); background: rgba(255, 211, 77, .18); }
 .rk-label { color: #fff; font-weight: 800; font-size: 15px; opacity: .9; white-space: nowrap; }
 .rk-layer.soccer .rk-pips, .rk-layer.soccer .rk-label, .rk-layer.soccer .rk-hear { visibility: hidden; }
 .rk-prompt {

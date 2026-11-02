@@ -286,5 +286,11 @@ window.Studio = (function () {
     return n;
   }
 
-  return { render: render };
+  /* Straight into one group's booth, e.g. from the Spelling Rocket. */
+  function open(body, id) {
+    var g = Recordings.inventory().filter(function (x) { return x.id === id; })[0];
+    if (g) openGroup(body, g); else render(body);
+  }
+
+  return { render: render, open: open };
 })();

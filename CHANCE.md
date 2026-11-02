@@ -228,24 +228,51 @@ The list stays until you replace it. **New week's words** scans the next list,
 and **Fix or add words** edits this one. After a week the screen reminds you
 that the list is old.
 
-### What Chance does
+### What Chance does: build a rocket, one word at a time
 
 | Step | What happens |
 |---|---|
-| **Find it** | The owl says a word ("Fly to the word: *night*"). That word is racing across the sky with three of the week's other words. He drags his finger to fly the rocket into the right one. Bumping a wrong word just nudges him back, and the owl reads him the word he hit ("That one says *light*. Find *night*."), so even a miss is reading practice. The word to find is never printed on the screen. He has to read the words in the sky. |
-| **Say it** | The found word docks on the rocket. He taps 🎤 and says it, with the same pronunciation check and owl coaching as Read & Say. 🔊 and 🐢 play it whole or sounded out. **👍 I said it** is always there for a dead microphone or a noisy room. |
-| **Spell it** | The word disappears and letter boxes appear. He types it **on the iPad keyboard**. Autocorrect, autocapitalise and spellcheck are switched off, so iOS cannot spell it for him. A miss turns the right letters green and the rest orange. A second miss sounds it out. A third shows the word to copy, so it is never a wall. |
-| **Launch** | 🚀 LAUNCH, a 3-2-1 countdown, blast-off at warp speed, then the next word. |
-| **Soccer break** | Every **5 words**: five penalty kicks. He swipes the ball with his finger. The direction aims it, and a faster flick hits it higher (too fast goes over the bar). The keeper dives, but he can't reach the corners. Then **Back to space** for the next five. |
+| **Find it** | The voice says "Find this word:" and then the word. Four words float in the sky, each written on a planet or a star. He taps the one that matches. A wrong tap costs nothing: the voice reads him the word he tapped ("That one says *light*. Look for *night*."), so even a miss is reading. The word to find is never printed on the screen. |
+| **Say it** | The planet floats to the middle. He taps 🎤 and says the word, with the same pronunciation check as Read & Say. 🔊 and 🐢 play it whole or sounded out. **👍 I said it** is always there for a dead microphone or a noisy room. |
+| **Spell it** | The word disappears and letter boxes appear. He types it **on the iPad keyboard**. Autocorrect, autocapitalise and spellcheck are off, so iOS cannot spell it for him. A miss turns the right letters green and the rest orange. A second miss sounds it out. A third shows the word to copy. |
+| **A rocket piece** | Every word he spells earns a piece of the rocket, which flies down onto the launch pad: engine, fuel tank, window, nose cone, boosters. The pieces still to come show as dashed outlines. |
+| **Launch** | Five pieces and the rocket is built. 🚀 LAUNCH, a 3-2-1 countdown, warp speed, and he arrives. |
+| **Soccer break** | At each stop: five penalty kicks. He swipes the ball with his finger. The direction aims it, a faster flick hits it higher, and too fast goes over the bar. Then a new rocket for the next stop. |
 
-At the end of the list: a mission-complete card with how many words he spelled
-right the first time, the words to practise, and **Fly again**, which flies just
-those words.
+The journey:
 
-He earns a ⭐ for each round of five (once a day per list), through the same star
-counter as the course. Words he says into the microphone count toward the Word
-Sayer badges. If he stops halfway, the rocket remembers his place, and the home
-tile shows how many words are left.
+| Words spelled | Destination |
+|---|---|
+| 5 | 🟠 Venus |
+| 10 | 🪐 Saturn |
+| 15 | 🌌 a new galaxy |
+| 20 | ✨ beyond the galaxy, where it is all stardust |
+
+A short list keeps going round, so every stop is reachable with 5 words or 25.
+The words he missed come back first.
+
+He earns a ⭐ for each stop (once a day per list), through the same star counter
+as the course. If he stops halfway, every piece on the pad is saved, and the home
+tile shows how many words are left to the next launch.
+
+### Your voice, not the computer's
+
+Every direction and every bit of praise in the rocket game is a fixed sentence,
+so each one can be recorded once. Tap **🎙️ Record your voice for the rocket**
+(on the Spelling Rocket screen, or Grown-Ups → Use your own voice → **🚀 Spelling
+Rocket: your voice**). The list has 40 lines, then this week's words:
+
+- "Hi Chance! Let's build a rocket. Spell five words and we can fly to Venus!"
+- "Find this word:", "That one says", "Look for"
+- "Great job, Chance!", "Here comes the rocket engine!" and the other pieces
+- "Great job Chance! Now we can build a rocket to go to Venus!" (and Saturn,
+  a new galaxy, beyond the galaxy)
+- "Three, two, one, blast off!", "We made it to Venus!", and so on
+
+Words are separate clips, never glued into a sentence, so "Find this word:"
+followed by "night" plays as two of your recordings. A line you haven't recorded
+uses the computer voice, so you can record a few at a time. The Spelling Rocket
+screen shows how many are done.
 
 ### What you see in the report
 
@@ -609,7 +636,7 @@ kind.
 | `chance/js/app.js` | icon home screen, routing, sheets |
 | `chance/test/regress.js` | the regression suite — see below |
 | `chance/test/scan.js` | photo → words → lesson, end to end |
-| `chance/test/rocket.js` | the Spelling Rocket, end to end: steering, microphone, keyboard, soccer, report |
+| `chance/test/rocket.js` | the Spelling Rocket, end to end: tapping planets, microphone, keyboard, rocket pieces, all 4 stops, soccer, your-voice recordings, report |
 
 ## Running the tests
 
@@ -618,7 +645,7 @@ npx http-server -p 8099 -s .        # from the repo root
 node chance/test/regress.js         # the multi-file app
 node chance/test/sound.js           # the sound-reliability checks
 node chance/test/scan.js            # scan a worksheet photo into a lesson
-node chance/test/rocket.js          # the Spelling Rocket, five words, soccer and all
+node chance/test/rocket.js          # the Spelling Rocket, Venus to beyond the galaxy
 BASE=http://127.0.0.1:8099/dist/chance-academy.html node chance/test/regress.js
 ```
 

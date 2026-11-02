@@ -25,7 +25,7 @@
    pre-cached on install; they are saved the first time a homework
    photo is read. */
 
-const CACHE = 'chance-academy-v1.7.0';
+const CACHE = 'chance-academy-v1.8.0';
 const ASSETS = [
   './',
   './index.html',
