@@ -43,6 +43,19 @@ function check(cond, msg) {
   check(await page.isVisible('#fabNew'), 'New entry button shows on the journal');
   await shot('01-empty');
 
+  // ---- no names ship with the app: the family adds them in Settings
+  await page.goto(BASE + '#/settings');
+  const whoList = 'section:has(h2:has-text("Who was there")) .ms-add';
+  check(await page.$$eval('.chip.person', (e) => e.length) === 0, 'the Who list starts empty (no names in the code)');
+  for (const name of ['Grandpa', 'Grandma', 'Sam', 'Robin']) {
+    await page.fill(whoList + ' input', name);
+    await page.click(whoList + ' button');
+    await page.waitForSelector(`.chip.person:has-text("${name}")`);
+  }
+  check(true, 'family names can be added in Settings');
+  await page.goto(BASE + '#/');
+  await page.waitForSelector('.welcome');
+
   // ---- write an entry
   await page.click('#fabNew');
   await page.waitForSelector('form.edit');
@@ -57,10 +70,9 @@ function check(cond, msg) {
 
   await page.click('#msPeople');
   const people = await page.$$eval('.ms-panel .ms-opt span', (els) => els.map((e) => e.textContent));
-  check(people.join(',') === 'PAPA,MEMA,Susan,Joshua,Jackie,Rebekah,Satomi,Sora,Katie,Lorenzo,Haru,Chance,Tatiana',
-    'Who list has all 13 family members in order');
-  await page.check('.ms-opt:has-text("PAPA") input');
-  await page.check('.ms-opt:has-text("Chance") input');
+  check(people.join(',') === 'Grandpa,Grandma,Sam,Robin', 'Who list shows the family in the order added');
+  await page.check('.ms-opt:has-text("Grandpa") input');
+  await page.check('.ms-opt:has-text("Sam") input');
   await page.fill('.ms-panel .ms-add input', 'Uncle Bob');
   await page.click('.ms-panel .ms-add button');
   await page.waitForSelector('.ms-opt:has-text("Uncle Bob") input:checked');
@@ -78,24 +90,24 @@ function check(cond, msg) {
   const chipCount = await page.$$eval('.ms .chip', (els) => els.length);
   check(chipCount === 4, 'ticked choices show as chips (3 people + 1 activity)');
 
-  // ---- two fish: Chance's Big One with a photo, and PAPA's little fish
+  // ---- two fish: Sam's Big One with a photo, and Grandpa's little fish
   await page.click('button:has-text("Add a fish")');
   check(await page.isVisible('.ms .chip.activity:has-text("Fish caught")'), 'adding a fish ticks "Fish caught"');
   check(await page.$$('#fishLen1') .then((x) => x.length === 0), 'nothing asks for a length');
   await page.setInputFiles('.fish-edit:nth-child(1) input[type=file]:not([capture])', PHOTO);
   await page.waitForSelector('.fish-edit:nth-child(1) .fish-photo img');
-  await page.selectOption('#fishWho1', 'Chance');
+  await page.selectOption('#fishWho1', 'Sam');
   await page.fill('#fishKind1', 'Smallmouth bass');
   await page.check('.fish-edit:nth-child(1) .crown-pick input');
   await page.click('button:has-text("Add a fish")');
-  await page.selectOption('#fishWho2', 'PAPA');
+  await page.selectOption('#fishWho2', 'Grandpa');
   await page.fill('#fishKind2', 'Yellow perch');
   await page.click('button:has-text("Add a fish")');
   await page.click('.fish-edit:nth-child(3) button:has-text("Remove")');
   check(await page.$$eval('.fish-edit', (e) => e.length) === 2, 'a fish can be removed from the form');
 
-  await page.fill('#fTitle', 'Chance’s first pike');
-  await page.fill('#fBody', 'Calm morning off the dock.\nChance reeled in a pike by himself.');
+  await page.fill('#fTitle', 'First pike of the summer');
+  await page.fill('#fBody', 'Calm morning off the dock.\nSam reeled in a pike by himself.');
   await page.setInputFiles('input[type=file][multiple]', [PHOTO, PHOTO]);
   await page.waitForFunction(() => document.querySelectorAll('.photo-grid.edit .thumb').length === 2);
   check(true, 'two photos chosen from the library show before saving');
@@ -104,14 +116,14 @@ function check(cond, msg) {
   await page.click('button[type=submit]');
   await page.waitForSelector('article.entry');
   const viewText = await page.textContent('article.entry');
-  check(viewText.includes('Chance’s first pike') && viewText.includes('reeled in a pike'), 'saved entry shows its headline and text');
+  check(viewText.includes('First pike of the summer') && viewText.includes('reeled in a pike'), 'saved entry shows its headline and text');
   check(/July 14, 2024/.test(viewText), 'saved entry shows its date');
   check(/Arrived 4:30\sPM · Left 7:05\sPM/.test(viewText), 'saved entry shows arrive and depart times');
-  check(await page.$$eval('article .chip.person', (e) => e.map((x) => x.textContent).join(',')) === 'PAPA,Chance,Uncle Bob', 'people show in list order');
+  check(await page.$$eval('article .chip.person', (e) => e.map((x) => x.textContent).join(',')) === 'Grandpa,Sam,Uncle Bob', 'people show in list order');
   check((await page.textContent('article')).includes('Fish caught (2)'), 'entry lists its two fish');
-  check(await page.isVisible('.fish-tile:has-text("Chance") .badge.big'), 'Chance’s smallmouth is The Big One');
-  check((await page.textContent('.fish-tile:has-text("PAPA") .badge.king')) === '👑 PAPA, King of the Little Fish', 'the crown names PAPA, the catcher, not the fish');
-  check(!(await page.isVisible('.fish-tile:has-text("Chance") .badge.king')), 'Chance’s Big One gets no little-fish crown');
+  check(await page.isVisible('.fish-tile:has-text("Sam") .badge.big'), 'Sam’s smallmouth is The Big One');
+  check((await page.textContent('.fish-tile:has-text("Grandpa") .badge.king')) === '👑 Grandpa, King of the Little Fish', 'the crown names Grandpa, the catcher, not the fish');
+  check(!(await page.isVisible('.fish-tile:has-text("Sam") .badge.king')), 'Sam’s Big One gets no little-fish crown');
   await page.waitForFunction(() => [...document.querySelectorAll('article .photo-grid img')].filter((i) => i.complete && i.naturalWidth).length === 2);
   check(true, 'both photos load on the entry');
   await shot('04-entry');
@@ -128,17 +140,17 @@ function check(cond, msg) {
   await page.click('button:has-text("Share")');
   const mailto = await page.getAttribute('.share-box a[href^="mailto:"]', 'href');
   const mailBody = decodeURIComponent(mailto.split('body=')[1]);
-  check(mailBody.includes('Who: PAPA, Chance, Uncle Bob') && mailBody.includes('What: Fish caught, Swimming'), 'email share includes who and what');
-  check(mailBody.includes('Fish: Smallmouth bass — Chance; Yellow perch — PAPA'), 'email share lists the fish');
+  check(mailBody.includes('Who: Grandpa, Sam, Uncle Bob') && mailBody.includes('What: Fish caught, Swimming'), 'email share includes who and what');
+  check(mailBody.includes('Fish: Smallmouth bass — Sam; Yellow perch — Grandpa'), 'email share lists the fish');
 
   // ---- Fish Board
   await page.click('#btnBack');
   await page.click('#tabs a[data-tab=fish]');
   await page.waitForSelector('.card.big-one');
-  check((await page.textContent('.card.big-one')).includes('Caught by Chance'), 'Fish Board puts Chance’s Big One on top');
+  check((await page.textContent('.card.big-one')).includes('Caught by Sam'), 'Fish Board puts Sam’s Big One on top');
   const crown = await page.textContent('.card.crown');
-  check(crown.includes('Kings of the Little Fish 2024') && !crown.includes('Chance'), 'every other fish is listed under Kings of the Little Fish');
-  check((await page.textContent('.card.crown .king-group h3')) === '👑 PAPA', 'the board crowns the catcher by name');
+  check(crown.includes('Kings of the Little Fish 2024') && !crown.includes('Sam'), 'every other fish is listed under Kings of the Little Fish');
+  check((await page.textContent('.card.crown .king-group h3')) === '👑 Grandpa', 'the board crowns the catcher by name');
   check(await page.$$eval('.card.crown .fish-tile .badge.king', (e) => e.length) === 0, 'fish on the board carry no crown of their own');
   check(await page.isVisible('#fabNew') && await page.isVisible('#tabs'), 'tabs and New entry show on the Fish Board');
   await page.click('.card.big-one .thumb');
