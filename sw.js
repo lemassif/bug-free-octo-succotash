@@ -1,5 +1,5 @@
 /* Retro Arcade service worker — caches the whole arcade for offline play. */
-const CACHE = 'arcade-v40';
+const CACHE = 'arcade-v41';
 const ASSETS = [
   './',
   './index.html',
@@ -51,8 +51,6 @@ const ASSETS = [
    one only pre-caches its entry point so the menu link works
    offline; opening it once installs the rest. */
 ASSETS.push('./chance/', './chance/index.html', './chance/app.css');
-/* Island Dreams (./island/) likewise has its own worker. */
-ASSETS.push('./island/', './island/index.html', './island/app.css');
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
