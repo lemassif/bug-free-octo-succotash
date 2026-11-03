@@ -110,6 +110,7 @@ class CloudStore {
     const row = {
       entry_date: entry.entry_date,
       arrive_time: entry.arrive_time || null,
+      depart_date: entry.depart_date || null,
       depart_time: entry.depart_time || null,
       title: entry.title || '',
       body: entry.body || '',
@@ -360,6 +361,7 @@ class LocalStore {
       id: entry.id || crypto.randomUUID(),
       entry_date: entry.entry_date,
       arrive_time: entry.arrive_time || null,
+      depart_date: entry.depart_date || null,
       depart_time: entry.depart_time || null,
       title: entry.title || '',
       body: entry.body || '',

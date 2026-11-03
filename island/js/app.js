@@ -14,7 +14,7 @@
 import { createStore } from './store.js';
 import { preparePhoto } from './photos.js';
 
-export const VERSION = '1.3.0';
+export const VERSION = '1.3.1';
 const REPO_GUIDE = 'https://github.com/lemassif/bug-free-octo-succotash/blob/main/ISLAND.md';
 const DRAFT_KEY = 'island-dreams-draft';
 const PENDING_EMAIL_KEY = 'island-dreams-email';
@@ -117,23 +117,38 @@ function parseDate(d) {
   return new Date(y, m - 1, day);
 }
 
+/* When a visit happened. entry_date is the arrive date; a missing
+   depart date means they left the same day.
+   Long:  "Sunday, July 14, 2024 · Arrived 4:30 PM · Left 7:05 PM", or for
+          a stay of several days two lines, "Arrived Friday, July 11, 2025
+          at 4:30 PM" and "Left Monday, July 14, 2025 at 10:00 AM".
+   Short: "Sun, Jul 14, 2024 · 4:30 PM – 7:05 PM", or "Fri, Jul 11 – Mon,
+          Jul 14, 2025" for several days. */
 function fmtDate(entry, opts) {
-  const d = parseDate(entry.entry_date);
-  let s = d.toLocaleDateString(undefined, {
-    weekday: (opts && opts.short) ? 'short' : 'long',
-    month: (opts && opts.short) ? 'short' : 'long',
-    day: 'numeric',
-    year: 'numeric'
+  const short = !!(opts && opts.short);
+  const a = parseDate(entry.entry_date);
+  const multi = !!entry.depart_date && entry.depart_date !== entry.entry_date;
+  const day = (d, withYear) => d.toLocaleDateString(undefined, {
+    weekday: short ? 'short' : 'long', month: short ? 'short' : 'long', day: 'numeric',
+    year: withYear ? 'numeric' : undefined
   });
   const clock = (hhmm) => {
     const [hh, mm] = hhmm.split(':').map(Number);
-    const t = new Date(d);
-    t.setHours(hh, mm);
+    const t = new Date(2000, 0, 1, hh, mm);
     return t.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
   };
   const arrive = entry.arrive_time ? clock(entry.arrive_time) : '';
   const depart = entry.depart_time ? clock(entry.depart_time) : '';
-  if (opts && opts.short) {
+
+  if (multi) {
+    const d = parseDate(entry.depart_date);
+    if (short) {
+      return `${day(a, a.getFullYear() !== d.getFullYear())} – ${day(d, true)}`;
+    }
+    return `Arrived ${day(a, true)}${arrive ? ' at ' + arrive : ''}\nLeft ${day(d, true)}${depart ? ' at ' + depart : ''}`;
+  }
+  let s = day(a, true);
+  if (short) {
     if (arrive || depart) s += ' · ' + (arrive && depart ? `${arrive} – ${depart}` : arrive ? 'arrived ' + arrive : 'left ' + depart);
   } else {
     if (arrive) s += ' · Arrived ' + arrive;
@@ -844,6 +859,7 @@ function renderEdit(id) {
     id: existing ? existing.id : null,
     entry_date: src.entry_date || now.date,
     arrive_time: (src.arrive_time || (existing ? '' : now.time) || '').slice(0, 5),
+    depart_date: src.depart_date || (src.depart_time && src.entry_date) || '',
     depart_time: (src.depart_time || '').slice(0, 5),
     title: src.title || '',
     body: src.body || '',
@@ -862,7 +878,8 @@ function renderEdit(id) {
     state.dirty = true;
     if (!form.id) {
       writeDraft({
-        entry_date: form.entry_date, arrive_time: form.arrive_time, depart_time: form.depart_time,
+        entry_date: form.entry_date, arrive_time: form.arrive_time,
+        depart_date: form.depart_date, depart_time: form.depart_time,
         title: form.title, body: form.body,
         people: [...form.people], activities: [...form.activities]
       });
@@ -873,8 +890,15 @@ function renderEdit(id) {
     oninput: () => { form.entry_date = date.value; markDirty(); } });
   const arrive = h('input', { type: 'time', id: 'fArrive', value: form.arrive_time,
     oninput: () => { form.arrive_time = arrive.value; markDirty(); } });
+  const departDate = h('input', { type: 'date', id: 'fDepartDate', value: form.depart_date, max: '2100-12-31',
+    oninput: () => { form.depart_date = departDate.value; markDirty(); } });
   const depart = h('input', { type: 'time', id: 'fDepart', value: form.depart_time,
-    oninput: () => { form.depart_time = depart.value; markDirty(); } });
+    oninput: () => {
+      form.depart_time = depart.value;
+      // a depart time with no date yet most likely means the same day
+      if (depart.value && !form.depart_date) { form.depart_date = form.entry_date; departDate.value = form.entry_date; }
+      markDirty();
+    } });
   const title = h('input', { type: 'text', id: 'fTitle', maxlength: 200, value: form.title, placeholder: 'e.g. Chance’s first pike',
     oninput: () => { form.title = title.value; markDirty(); } });
   const body = h('textarea', { id: 'fBody', rows: 8, placeholder: 'What happened today?',
@@ -967,12 +991,21 @@ function renderEdit(id) {
 
   async function onSave(ev) {
     ev.preventDefault();
-    if (!form.entry_date) { toast('Please pick a date.'); date.focus(); return; }
+    if (!form.entry_date) { toast('Please pick the arrive date.'); date.focus(); return; }
+    const leftAt = (form.depart_date || form.entry_date) + 'T' + (form.depart_time || '23:59');
+    const cameAt = form.entry_date + 'T' + (form.arrive_time || '00:00');
+    if ((form.depart_date || form.depart_time) && leftAt < cameAt) {
+      toast('The depart date and time are before the arrival. Please check them.', true);
+      departDate.focus();
+      return;
+    }
     save.disabled = true;
     save.textContent = 'Saving…';
     try {
       const saved = await store.saveEntry({
-        id: form.id, entry_date: form.entry_date, arrive_time: form.arrive_time, depart_time: form.depart_time,
+        id: form.id, entry_date: form.entry_date, arrive_time: form.arrive_time,
+        depart_date: form.depart_date && form.depart_date !== form.entry_date ? form.depart_date : null,
+        depart_time: form.depart_time,
         title: form.title.trim(), body: form.body.replace(/\s+$/, ''),
         people: ordered('person', [...form.people]), activities: ordered('activity', [...form.activities])
       });
@@ -1042,9 +1075,11 @@ function renderEdit(id) {
     h('h2', null, existing ? 'Change this entry' : 'New entry'),
     restored ? h('p', { class: 'note' }, 'We kept what you started last time. ',
       h('button', { type: 'button', class: 'btn link', onclick: () => { clearDraft(); state.dirty = false; renderEdit(null); } }, 'Start over')) : null,
-    h('label', { for: 'fDate' }, 'Date'), date,
     h('div', { class: 'two' },
-      h('div', null, h('label', { for: 'fArrive' }, 'Arrive time'), arrive),
+      h('div', null, h('label', { for: 'fDate' }, 'Arrive date'), date),
+      h('div', null, h('label', { for: 'fArrive' }, 'Arrive time'), arrive)),
+    h('div', { class: 'two' },
+      h('div', null, h('label', { for: 'fDepartDate' }, 'Depart date'), departDate),
       h('div', null, h('label', { for: 'fDepart' }, 'Depart time'), depart)),
     h('label', { for: 'msPeople' }, 'Who was there?'),
     multiSelect({ kind: 'person', id: 'msPeople', prompt: 'Choose people', addPrompt: 'Add someone new',

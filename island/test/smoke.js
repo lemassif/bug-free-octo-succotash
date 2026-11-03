@@ -44,10 +44,11 @@ function check(cond, msg) {
   const today = await page.inputValue('#fDate');
   check(/^\d{4}-\d{2}-\d{2}$/.test(today), 'date starts as today');
   check(/^\d{2}:\d{2}$/.test(await page.inputValue('#fArrive')), 'arrive time starts as now');
-  check((await page.inputValue('#fDepart')) === '', 'depart time starts empty');
+  check((await page.inputValue('#fDepart')) === '' && (await page.inputValue('#fDepartDate')) === '', 'depart date and time start empty');
   await page.fill('#fDate', '2024-07-14');
   await page.fill('#fArrive', '16:30');
   await page.fill('#fDepart', '19:05');
+  check((await page.inputValue('#fDepartDate')) === '2024-07-14', 'a depart time with no depart date fills in the arrive date');
 
   await page.click('#msPeople');
   const people = await page.$$eval('.ms-panel .ms-opt span', (els) => els.map((e) => e.textContent));
@@ -169,6 +170,27 @@ function check(cond, msg) {
   check((await page.textContent('article .body')).includes('Changed.'), 'edits are saved');
   check(await page.$$eval('article .photo-grid .thumb', (e) => e.length) === 1, 'removed photo is gone');
   check((await page.textContent('article')).includes('Rock bass'), 'fish edits are saved');
+
+  // ---- a stay of several days
+  await page.click('a:has-text("Edit")');
+  await page.waitForSelector('form.edit');
+  check((await page.inputValue('#fDepartDate')) === '2024-07-14', 'a same-day visit shows its depart date when edited');
+  await page.fill('#fDepartDate', '2024-07-12');
+  await page.click('button[type=submit]');
+  await page.waitForFunction(() => /before the arrival/.test(document.getElementById('toast').textContent));
+  check(await page.isVisible('form.edit'), 'leaving before arriving is refused');
+  await page.fill('#fDepartDate', '2024-07-17');
+  await page.fill('#fDepart', '10:00');
+  await page.click('button[type=submit]');
+  await page.waitForSelector('article.entry');
+  const when = await page.textContent('article.entry > .when');
+  check(/Arrived Sunday, July 14, 2024 at 4:30\sPM/.test(when) && /Left Wednesday, July 17, 2024 at 10:00\sAM/.test(when),
+    'a stay of several days shows both dates and times');
+  await page.click('#btnBack');
+  await page.waitForSelector('.entry-card');
+  check((await page.textContent('.entry-card .when')) === 'Sun, Jul 14 – Wed, Jul 17, 2024', 'the journal card shows the date range');
+  await page.click('.entry-card');
+  await page.waitForSelector('article.entry');
 
   // ---- survives a reload
   await page.reload();

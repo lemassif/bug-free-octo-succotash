@@ -35,6 +35,7 @@ create table if not exists public.entries (
   id           uuid primary key default gen_random_uuid(),
   entry_date   date not null,
   arrive_time  time,
+  depart_date  date,  -- empty means they left the same day they arrived
   depart_time  time,
   title        text not null default '' check (length(title) <= 200),
   body         text not null default '' check (length(body) <= 50000),
@@ -48,6 +49,7 @@ create table if not exists public.entries (
 -- Earlier versions had one "time" per entry. It becomes the arrive time.
 alter table public.entries add column if not exists arrive_time time;
 alter table public.entries add column if not exists depart_time time;
+alter table public.entries add column if not exists depart_date date;
 do $$
 begin
   if exists (select 1 from information_schema.columns
