@@ -148,6 +148,7 @@ removed).
 | `island/sw.js` | saves the app for opening offline |
 | `island/vendor/supabase.js` | Supabase's client library, v2.117.3 |
 | `island/test/smoke.js` | browser test of the this-device mode |
+| `island/test/signin.js` | checks the Home Screen app stays signed in (fake Supabase, about two minutes) |
 
 Run the test from the repo root:
 
