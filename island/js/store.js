@@ -19,10 +19,9 @@
    every fish ever caught. A fish row carries path/thumb_path just
    like a photo row, so photoUrls() and the lightbox take either. */
 
-export const DEFAULT_PEOPLE = [
-  'PAPA', 'MEMA', 'Susan', 'Joshua', 'Jackie', 'Rebekah', 'Satomi',
-  'Sora', 'Katie', 'Lorenzo', 'Haru', 'Chance', 'Tatiana'
-];
+/* No names ship with the app: the family adds them in Settings or from
+   the "Who was there?" drop-down, and they are kept in the journal. */
+export const DEFAULT_PEOPLE = [];
 
 export const DEFAULT_ACTIVITIES = [
   'Fish caught', 'Campfires', 'Ship sightings', 'Tubing', 'Swimming',

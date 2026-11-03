@@ -14,7 +14,7 @@
 import { createStore } from './store.js';
 import { preparePhoto } from './photos.js';
 
-export const VERSION = '1.3.3';
+export const VERSION = '1.3.4';
 const REPO_GUIDE = 'https://github.com/lemassif/bug-free-octo-succotash/blob/main/ISLAND.md';
 const DRAFT_KEY = 'island-dreams-draft';
 const PENDING_EMAIL_KEY = 'island-dreams-email';
@@ -221,11 +221,10 @@ function allFish(year) {
   return out;
 }
 
-/* Chance's rule. At four years old he caught a six-pound smallmouth
-   bass: that fish is The Big One. Next to it every other fish is a
-   little fish, so the PERSON who catches any other fish is King of the
-   Little Fish. The crown goes on the catcher, never on the fish.
-   Nobody measures anything. */
+/* The family's rule. Their record fish is The Big One; next to it
+   every other fish is a little fish, so the PERSON who catches any other
+   fish is King of the Little Fish. The crown goes on the catcher, never
+   on the fish. Nobody measures anything. */
 function fishBadge(f) {
   if (f.big_one) return h('span', { class: 'badge big' }, '🏆 The Big One');
   if (f.caught_by) return h('span', { class: 'badge king' }, `👑 ${f.caught_by}, King of the Little Fish`);
@@ -596,8 +595,8 @@ function renderFishBoard() {
       h('div', { class: 'fish-list' }, bigOnes.map((f) => tile(f))))
     : h('section', { class: 'card big-one' },
       h('h2', null, '🏆 The Big One'),
-      h('p', null, 'Chance’s six-pound smallmouth bass, caught when he was four, belongs here.'),
-      h('p', { class: 'small muted' }, 'Write an entry for the day he caught it, tap ＋ Add a fish, add the photo, and tick 🏆 The Big One.')));
+      h('p', null, 'The family’s record fish belongs here.'),
+      h('p', { class: 'small muted' }, 'Write an entry for the day it was caught, tap ＋ Add a fish, add the photo, and tick 🏆 The Big One.')));
 
   const byYear = new Map();
   little.forEach((f) => {
@@ -955,7 +954,7 @@ function renderEdit(id) {
       if (depart.value && !form.depart_date) { form.depart_date = form.entry_date; departDate.value = form.entry_date; }
       markDirty();
     } });
-  const title = h('input', { type: 'text', id: 'fTitle', maxlength: 200, value: form.title, placeholder: 'e.g. Chance’s first pike',
+  const title = h('input', { type: 'text', id: 'fTitle', maxlength: 200, value: form.title, placeholder: 'e.g. First pike of the summer',
     oninput: () => { form.title = title.value; markDirty(); } });
   const body = h('textarea', { id: 'fBody', rows: 8, placeholder: 'What happened today?',
     oninput: () => { form.body = body.value; markDirty(); grow(); } });
@@ -1144,7 +1143,7 @@ function renderEdit(id) {
     (activities = multiSelect({ kind: 'activity', id: 'msActivities', prompt: 'Choose activities', addPrompt: 'Add a new activity',
       selected: form.activities, onChange: markDirty })),
     h('label', null, 'Fish 🎣'),
-    h('p', { class: 'small muted hint' }, 'Snap every fish and pick who caught it. Next to Chance’s six-pound smallmouth, every fish is a little fish, so whoever catches one is 👑 King of the Little Fish.'),
+    h('p', { class: 'small muted hint' }, 'Snap every fish and pick who caught it. Next to The Big One, every fish is a little fish, so whoever catches one is 👑 King of the Little Fish.'),
     fishBox,
     h('button', { type: 'button', class: 'btn add-fish', onclick: addFish }, '＋ Add a fish'),
     h('datalist', { id: 'speciesList' }, SPECIES.map((sp) => h('option', { value: sp }))),

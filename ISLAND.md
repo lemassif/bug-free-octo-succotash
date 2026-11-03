@@ -1,7 +1,7 @@
 # Island Dreams
 
-Our family journal from camp in the Thousand Islands. It replaces the paper
-journal we started in July 2023.
+Our family journal from camp. It replaces the paper journal we started in
+July 2023.
 
 **Open it:** `https://lemassif.github.io/bug-free-octo-succotash/island/`
 (or tap **Island Dreams** on the arcade menu). It works in any phone, tablet
@@ -15,9 +15,9 @@ iPad, open it in Safari, tap Share, then **Add to Home Screen**.
   Friday, depart Monday). Entering only a depart time assumes the same day,
   and the app won't save a departure that comes before the arrival. Change
   the arrive date to copy in older pages from the paper journal.
-- **Who was there?** A drop-down where you can tick more than one: PAPA, MEMA,
-  Susan, Joshua, Jackie, Rebekah, Satomi, Sora, Katie, Lorenzo, Haru, Chance,
-  Tatiana. The last line of the list adds someone new.
+- **Who was there?** A drop-down where you can tick more than one of the
+  family. The last line of the list adds someone new. No names are written into
+  the app's code; they live only in the journal itself.
 - **What did we do?** Also a multi-select drop-down: Fish caught, Campfires,
   Ship sightings, Tubing, Swimming, Cooking on the boat, Geocaching,
   Sightseeing, Fireworks, Work on the house, Open camp, Close camp, Get boat
@@ -35,18 +35,17 @@ choice off a list in Settings (⚙︎); older entries that use it keep it.
 
 ## Fish Board
 
-The **🐟 Fish Board** tab runs on Chance's rule. When he was four, Chance
-caught a six-pound smallmouth bass. That fish is **🏆 The Big One**, and next
-to it every other fish is a little fish. So whoever catches any other fish is
-**👑 King of the Little Fish**.
+The **🐟 Fish Board** tab runs on the family rule. The family's record fish is
+**🏆 The Big One**, and next to it every other fish is a little fish. So
+whoever catches any other fish is **👑 King of the Little Fish**.
 
 - **The Big One** sits at the top with its photo. To put it there, write an
-  entry for the day Chance caught it, add the fish, and tick
+  entry for the day it was caught, add the fish, and tick
   **🏆 This is The Big One**.
 - **Kings of the Little Fish** come next, one card per summer. The crown
   goes on the **person**, not the fish. Each catcher gets a 👑 heading with
   their name, and their little fish are listed under it with photos. In an
-  entry, a little fish shows "👑 PAPA, King of the Little Fish".
+  entry, a little fish shows "👑 <name>, King of the Little Fish".
 
 ## Reading and sharing
 
@@ -83,6 +82,16 @@ flowchart LR
   D -. "only if your email is on the family list" .- R{{Rules in setup.sql}}
   S -. same rule .- R
 ```
+
+### What is and isn't public
+
+This repository holds only the app's code, and the site at the address above
+shows only a sign-in screen to anyone not on the family list. The journal
+itself (entries, photos, fish, names and email addresses) lives in Supabase,
+behind the rules in `setup.sql`. Keep personal details out of the code:
+`setup.sql` uses `you@example.com` as a placeholder, so type your own address
+only into the copy you paste into Supabase, never into the file on GitHub.
+(GitHub Pages on a free account needs the repository to be public.)
 
 ### One-time setup
 

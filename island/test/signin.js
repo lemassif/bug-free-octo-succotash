@@ -24,9 +24,9 @@ function check(cond, msg) {
 
 const now = () => Math.floor(Date.now() / 1000);
 const fakeSession = () => ({
-  access_token: 'h.' + Buffer.from(JSON.stringify({ exp: now() + 3600, sub: 'u1', email: 'papa@x.com' })).toString('base64url') + '.s',
+  access_token: 'h.' + Buffer.from(JSON.stringify({ exp: now() + 3600, sub: 'u1', email: 'family@x.com' })).toString('base64url') + '.s',
   token_type: 'bearer', expires_in: 3600, expires_at: now() + 3600, refresh_token: 'r' + Math.random(),
-  user: { id: 'u1', email: 'papa@x.com', aud: 'authenticated' }
+  user: { id: 'u1', email: 'family@x.com', aud: 'authenticated' }
 });
 
 /* A page wired to a fake Supabase. net.up = false makes renewals fail as if offline. */
@@ -58,7 +58,7 @@ async function openApp(ctx, net) {
 
   // ---- 1. the app is closed while you're in Mail
   let p = await openApp(ctx, net);
-  await p.fill('#signinEmail', 'papa@x.com');
+  await p.fill('#signinEmail', 'family@x.com');
   await p.click('button[type=submit]');
   await p.waitForSelector('#signinCode');
   await p.close();

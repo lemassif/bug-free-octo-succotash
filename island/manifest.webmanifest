@@ -1,7 +1,7 @@
 {
   "name": "Island Dreams",
   "short_name": "Island Dreams",
-  "description": "Our family's journal of summers at camp in the Thousand Islands.",
+  "description": "Our family's journal of summers at camp.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

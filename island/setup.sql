@@ -71,10 +71,9 @@ create table if not exists public.photos (
 );
 create index if not exists photos_entry_id on public.photos (entry_id);
 
--- Every fish caught, with its photo, for the Fish Board. Chance's
--- six-pound smallmouth bass (caught at age four) is The Big One
--- (big_one = true); every other fish makes its catcher King of the
--- Little Fish. Nothing is measured.
+-- Every fish caught, with its photo, for the Fish Board. The family's
+-- record fish is The Big One (big_one = true); every other fish makes
+-- its catcher King of the Little Fish. Nothing is measured.
 create table if not exists public.fish (
   id         uuid primary key default gen_random_uuid(),
   entry_id   uuid not null references public.entries (id) on delete cascade,
@@ -137,35 +136,23 @@ create policy "family adds photos" on storage.objects for insert to authenticate
 create policy "family removes photos" on storage.objects for delete to authenticated
   using (bucket_id = 'photos' and public.is_member());
 
--- Starting choices for the drop-downs (only added if the list is empty).
+-- Starting activities for the drop-down (only added if the list is empty).
+-- People are added by the family in the app (⚙︎ → Who was there?).
 insert into public.options (kind, label)
 select kind, label from (values
-  (1, 'person', 'PAPA'),
-  (2, 'person', 'MEMA'),
-  (3, 'person', 'Susan'),
-  (4, 'person', 'Joshua'),
-  (5, 'person', 'Jackie'),
-  (6, 'person', 'Rebekah'),
-  (7, 'person', 'Satomi'),
-  (8, 'person', 'Sora'),
-  (9, 'person', 'Katie'),
-  (10, 'person', 'Lorenzo'),
-  (11, 'person', 'Haru'),
-  (12, 'person', 'Chance'),
-  (13, 'person', 'Tatiana'),
-  (14, 'activity', 'Fish caught'),
-  (15, 'activity', 'Campfires'),
-  (16, 'activity', 'Ship sightings'),
-  (17, 'activity', 'Tubing'),
-  (18, 'activity', 'Swimming'),
-  (19, 'activity', 'Cooking on the boat'),
-  (20, 'activity', 'Geocaching'),
-  (21, 'activity', 'Sightseeing'),
-  (22, 'activity', 'Fireworks'),
-  (23, 'activity', 'Work on the house'),
-  (24, 'activity', 'Open camp'),
-  (25, 'activity', 'Close camp'),
-  (26, 'activity', 'Get boat out of water')
+  (1, 'activity', 'Fish caught'),
+  (2, 'activity', 'Campfires'),
+  (3, 'activity', 'Ship sightings'),
+  (4, 'activity', 'Tubing'),
+  (5, 'activity', 'Swimming'),
+  (6, 'activity', 'Cooking on the boat'),
+  (7, 'activity', 'Geocaching'),
+  (8, 'activity', 'Sightseeing'),
+  (9, 'activity', 'Fireworks'),
+  (10, 'activity', 'Work on the house'),
+  (11, 'activity', 'Open camp'),
+  (12, 'activity', 'Close camp'),
+  (13, 'activity', 'Get boat out of water')
 ) as seed (n, kind, label)
 where not exists (select 1 from public.options)
 order by n;
@@ -186,7 +173,9 @@ begin
   end if;
 end $$;
 
--- The first family member. CHANGE THIS to your own email address.
+-- The first family member. CHANGE you@example.com to your own email address.
+-- (Left as the example, this step does nothing.)
 insert into public.members (email, name, added_by)
-values ('ricksebastian.skl@gmail.com', 'Me', 'setup')
+select email, 'Me', 'setup' from (values ('you@example.com')) as first_member (email)
+where email not like '%@example.com'
 on conflict (email) do nothing;
