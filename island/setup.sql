@@ -34,7 +34,8 @@ grant execute on function public.is_member() to authenticated;
 create table if not exists public.entries (
   id           uuid primary key default gen_random_uuid(),
   entry_date   date not null,
-  entry_time   time,
+  arrive_time  time,
+  depart_time  time,
   title        text not null default '' check (length(title) <= 200),
   body         text not null default '' check (length(body) <= 50000),
   people       text[] not null default '{}',
@@ -43,6 +44,18 @@ create table if not exists public.entries (
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now()
 );
+
+-- Earlier versions had one "time" per entry. It becomes the arrive time.
+alter table public.entries add column if not exists arrive_time time;
+alter table public.entries add column if not exists depart_time time;
+do $$
+begin
+  if exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'entries' and column_name = 'entry_time') then
+    update public.entries set arrive_time = entry_time where arrive_time is null;
+    alter table public.entries drop column entry_time;
+  end if;
+end $$;
 
 create table if not exists public.photos (
   id         uuid primary key default gen_random_uuid(),
@@ -146,10 +159,30 @@ select kind, label from (values
   (19, 'activity', 'Cooking on the boat'),
   (20, 'activity', 'Geocaching'),
   (21, 'activity', 'Sightseeing'),
-  (22, 'activity', 'Fireworks')
+  (22, 'activity', 'Fireworks'),
+  (23, 'activity', 'Work on the house'),
+  (24, 'activity', 'Open camp'),
+  (25, 'activity', 'Close camp'),
+  (26, 'activity', 'Get boat out of water')
 ) as seed (n, kind, label)
 where not exists (select 1 from public.options)
 order by n;
+
+-- Choices added in later versions reach journals set up before them,
+-- once only, so anything the family took off the list stays off.
+create table if not exists public.setup_steps (step text primary key, done_at timestamptz not null default now());
+alter table public.setup_steps enable row level security; -- no policies: the app never reads it
+
+do $$
+begin
+  if not exists (select 1 from public.setup_steps where step = 'activities-1.3') then
+    insert into public.options (kind, label)
+    values ('activity', 'Work on the house'), ('activity', 'Open camp'),
+           ('activity', 'Close camp'), ('activity', 'Get boat out of water')
+    on conflict (kind, label) do nothing;
+    insert into public.setup_steps (step) values ('activities-1.3');
+  end if;
+end $$;
 
 -- The first family member. CHANGE THIS to your own email address.
 insert into public.members (email, name, added_by)

@@ -14,13 +14,14 @@
 import { createStore } from './store.js';
 import { preparePhoto } from './photos.js';
 
-export const VERSION = '1.2.3';
+export const VERSION = '1.3.0';
 const REPO_GUIDE = 'https://github.com/lemassif/bug-free-octo-succotash/blob/main/ISLAND.md';
 const DRAFT_KEY = 'island-dreams-draft';
 const PENDING_EMAIL_KEY = 'island-dreams-email';
 
 const ICONS = {
-  'Fish caught': '🎣', 'Campfires': '🔥', 'Ship sightings': '🚢',
+  'Fish caught': '🎣', 'Campfires': '🔥', 'Ship sightings': '🚢', 'Work on the house': '🔨',
+  'Open camp': '🔑', 'Close camp': '🔒', 'Get boat out of water': '⚓',
   'Tubing': '🛟', 'Swimming': '🏊', 'Cooking on the boat': '🍳', 'Geocaching': '🧭',
   'Sightseeing': '📸', 'Fireworks': '🎆'
 };
@@ -124,11 +125,19 @@ function fmtDate(entry, opts) {
     day: 'numeric',
     year: 'numeric'
   });
-  if (entry.entry_time) {
-    const [hh, mm] = entry.entry_time.split(':').map(Number);
+  const clock = (hhmm) => {
+    const [hh, mm] = hhmm.split(':').map(Number);
     const t = new Date(d);
     t.setHours(hh, mm);
-    s += ' · ' + t.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    return t.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  };
+  const arrive = entry.arrive_time ? clock(entry.arrive_time) : '';
+  const depart = entry.depart_time ? clock(entry.depart_time) : '';
+  if (opts && opts.short) {
+    if (arrive || depart) s += ' · ' + (arrive && depart ? `${arrive} – ${depart}` : arrive ? 'arrived ' + arrive : 'left ' + depart);
+  } else {
+    if (arrive) s += ' · Arrived ' + arrive;
+    if (depart) s += ' · Left ' + depart;
   }
   return s;
 }
@@ -145,7 +154,7 @@ function todayParts() {
 function sortEntries() {
   state.entries.sort((a, b) =>
     b.entry_date.localeCompare(a.entry_date) ||
-    String(b.entry_time || '').localeCompare(String(a.entry_time || '')) ||
+    String(b.arrive_time || '').localeCompare(String(a.arrive_time || '')) ||
     String(b.created_at).localeCompare(String(a.created_at)));
 }
 
@@ -834,7 +843,8 @@ function renderEdit(id) {
   const form = {
     id: existing ? existing.id : null,
     entry_date: src.entry_date || now.date,
-    entry_time: (src.entry_time || (existing ? '' : now.time) || '').slice(0, 5),
+    arrive_time: (src.arrive_time || (existing ? '' : now.time) || '').slice(0, 5),
+    depart_time: (src.depart_time || '').slice(0, 5),
     title: src.title || '',
     body: src.body || '',
     people: new Set(src.people || []),
@@ -852,7 +862,8 @@ function renderEdit(id) {
     state.dirty = true;
     if (!form.id) {
       writeDraft({
-        entry_date: form.entry_date, entry_time: form.entry_time, title: form.title, body: form.body,
+        entry_date: form.entry_date, arrive_time: form.arrive_time, depart_time: form.depart_time,
+        title: form.title, body: form.body,
         people: [...form.people], activities: [...form.activities]
       });
     }
@@ -860,8 +871,10 @@ function renderEdit(id) {
 
   const date = h('input', { type: 'date', id: 'fDate', required: true, value: form.entry_date, max: '2100-12-31',
     oninput: () => { form.entry_date = date.value; markDirty(); } });
-  const time = h('input', { type: 'time', id: 'fTime', value: form.entry_time,
-    oninput: () => { form.entry_time = time.value; markDirty(); } });
+  const arrive = h('input', { type: 'time', id: 'fArrive', value: form.arrive_time,
+    oninput: () => { form.arrive_time = arrive.value; markDirty(); } });
+  const depart = h('input', { type: 'time', id: 'fDepart', value: form.depart_time,
+    oninput: () => { form.depart_time = depart.value; markDirty(); } });
   const title = h('input', { type: 'text', id: 'fTitle', maxlength: 200, value: form.title, placeholder: 'e.g. Chance’s first pike',
     oninput: () => { form.title = title.value; markDirty(); } });
   const body = h('textarea', { id: 'fBody', rows: 8, placeholder: 'What happened today?',
@@ -959,7 +972,7 @@ function renderEdit(id) {
     save.textContent = 'Saving…';
     try {
       const saved = await store.saveEntry({
-        id: form.id, entry_date: form.entry_date, entry_time: form.entry_time,
+        id: form.id, entry_date: form.entry_date, arrive_time: form.arrive_time, depart_time: form.depart_time,
         title: form.title.trim(), body: form.body.replace(/\s+$/, ''),
         people: ordered('person', [...form.people]), activities: ordered('activity', [...form.activities])
       });
@@ -1029,9 +1042,10 @@ function renderEdit(id) {
     h('h2', null, existing ? 'Change this entry' : 'New entry'),
     restored ? h('p', { class: 'note' }, 'We kept what you started last time. ',
       h('button', { type: 'button', class: 'btn link', onclick: () => { clearDraft(); state.dirty = false; renderEdit(null); } }, 'Start over')) : null,
+    h('label', { for: 'fDate' }, 'Date'), date,
     h('div', { class: 'two' },
-      h('div', null, h('label', { for: 'fDate' }, 'Date'), date),
-      h('div', null, h('label', { for: 'fTime' }, 'Time'), time)),
+      h('div', null, h('label', { for: 'fArrive' }, 'Arrive time'), arrive),
+      h('div', null, h('label', { for: 'fDepart' }, 'Depart time'), depart)),
     h('label', { for: 'msPeople' }, 'Who was there?'),
     multiSelect({ kind: 'person', id: 'msPeople', prompt: 'Choose people', addPrompt: 'Add someone new',
       selected: form.people, onChange: markDirty }),

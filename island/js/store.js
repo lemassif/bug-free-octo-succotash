@@ -26,7 +26,8 @@ export const DEFAULT_PEOPLE = [
 
 export const DEFAULT_ACTIVITIES = [
   'Fish caught', 'Campfires', 'Ship sightings', 'Tubing', 'Swimming',
-  'Cooking on the boat', 'Geocaching', 'Sightseeing', 'Fireworks'
+  'Cooking on the boat', 'Geocaching', 'Sightseeing', 'Fireworks',
+  'Work on the house', 'Open camp', 'Close camp', 'Get boat out of water'
 ];
 
 export function createStore(config) {
@@ -108,7 +109,8 @@ class CloudStore {
   async saveEntry(entry) {
     const row = {
       entry_date: entry.entry_date,
-      entry_time: entry.entry_time || null,
+      arrive_time: entry.arrive_time || null,
+      depart_time: entry.depart_time || null,
       title: entry.title || '',
       body: entry.body || '',
       people: entry.people || [],
@@ -275,6 +277,8 @@ function loadScript(src) {
 /* ------------------------------------------------------------------ */
 
 const DB_NAME = 'island-dreams';
+const SEED_VERSION = 2;
+const ADDED_IN_V2 = ['Work on the house', 'Open camp', 'Close camp', 'Get boat out of water'];
 
 class LocalStore {
   constructor() {
@@ -307,7 +311,14 @@ class LocalStore {
         ...DEFAULT_ACTIVITIES.map((label) => ({ kind: 'activity', label }))
       ];
       for (const o of seed) await this.put('options', { ...o, key: o.kind + '|' + o.label, position: ++position });
+      await this.put('options', { key: 'meta|seed', kind: 'meta', label: '', version: SEED_VERSION });
     }
+    // lists started before a later version get that version's new choices once
+    const meta = (await this.get('options', 'meta|seed')) || { key: 'meta|seed', kind: 'meta', label: '', version: 1 };
+    if (meta.version < 2) {
+      for (const label of ADDED_IN_V2) await this.addOption('activity', label);
+    }
+    if (meta.version < SEED_VERSION) await this.put('options', { ...meta, version: SEED_VERSION });
   }
 
   tx(store, mode, fn) {
@@ -332,6 +343,10 @@ class LocalStore {
   async listEntries() {
     const [entries, photos, fish] = await Promise.all([this.all('entries'), this.all('photos'), this.all('fish')]);
     entries.forEach((e) => {
+      if (e.entry_time !== undefined) { // before arrive/depart times
+        if (!e.arrive_time) e.arrive_time = e.entry_time;
+        delete e.entry_time;
+      }
       e.photos = photos.filter((p) => p.entry_id === e.id).map(stripBlobs).sort(byCreated);
       e.fish = fish.filter((f) => f.entry_id === e.id).map(stripBlobs).sort(byCreated);
     });
@@ -344,7 +359,8 @@ class LocalStore {
     const row = {
       id: entry.id || crypto.randomUUID(),
       entry_date: entry.entry_date,
-      entry_time: entry.entry_time || null,
+      arrive_time: entry.arrive_time || null,
+      depart_time: entry.depart_time || null,
       title: entry.title || '',
       body: entry.body || '',
       people: [...(entry.people || [])],
@@ -425,14 +441,14 @@ class LocalStore {
   }
 
   async listOptions() {
-    return (await this.all('options')).sort(byPosition);
+    return (await this.all('options')).filter((o) => o.kind !== 'meta').sort(byPosition);
   }
 
   async addOption(kind, label) {
     label = clean(label);
     const key = kind + '|' + label;
     if (await this.get('options', key)) return;
-    const max = Math.max(0, ...(await this.all('options')).map((o) => o.position));
+    const max = Math.max(0, ...(await this.listOptions()).map((o) => o.position));
     await this.put('options', { key, kind, label, position: max + 1 });
   }
 

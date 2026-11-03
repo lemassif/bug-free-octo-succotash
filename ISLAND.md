@@ -10,14 +10,16 @@ iPad, open it in Safari, tap Share, then **Add to Home Screen**.
 
 ## What each entry holds
 
-- **Date and time.** These start as right now. Change them to copy in older
-  pages from the paper journal.
+- **Date, arrive time and depart time.** The date and arrive time start as
+  right now; fill in the depart time when you leave. Both times are optional.
+  Change the date to copy in older pages from the paper journal.
 - **Who was there?** A drop-down where you can tick more than one: PAPA, MEMA,
   Susan, Joshua, Jackie, Rebekah, Satomi, Sora, Katie, Lorenzo, Haru, Chance,
   Tatiana. The last line of the list adds someone new.
 - **What did we do?** Also a multi-select drop-down: Fish caught, Campfires,
   Ship sightings, Tubing, Swimming, Cooking on the boat, Geocaching,
-  Sightseeing, Fireworks. You can add new activities here too.
+  Sightseeing, Fireworks, Work on the house, Open camp, Close camp, Get boat
+  out of water. You can add new activities here too.
 - **Fish.** Tap **＋ Add a fish** once for each fish. Each one gets its own
   photo (camera or library), who caught it, and the kind of fish. The
   kind-of-fish box suggests the river's usual catches. Nothing gets measured.
@@ -114,6 +116,15 @@ This takes one person about 20 minutes on a computer.
    a service like Resend works too.
 7. Open the app, sign in with your email, and add everyone else under
    ⚙︎ → Family.
+
+### Updating an existing journal
+
+When a new version of the app needs a database change, run the newest
+`island/setup.sql` again in the SQL Editor. It keeps every entry and photo.
+Version 1.3 uses it to turn the old single time into the arrive time, add the
+depart time, and add Work on the house, Open camp, Close camp and Get boat out
+of water to the activity list (once; anything the family removed stays
+removed).
 
 ### Free-plan limits
 

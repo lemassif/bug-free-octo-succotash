@@ -43,9 +43,11 @@ function check(cond, msg) {
   await page.waitForSelector('form.edit');
   const today = await page.inputValue('#fDate');
   check(/^\d{4}-\d{2}-\d{2}$/.test(today), 'date starts as today');
-  check(/^\d{2}:\d{2}$/.test(await page.inputValue('#fTime')), 'time starts as now');
+  check(/^\d{2}:\d{2}$/.test(await page.inputValue('#fArrive')), 'arrive time starts as now');
+  check((await page.inputValue('#fDepart')) === '', 'depart time starts empty');
   await page.fill('#fDate', '2024-07-14');
-  await page.fill('#fTime', '16:30');
+  await page.fill('#fArrive', '16:30');
+  await page.fill('#fDepart', '19:05');
 
   await page.click('#msPeople');
   const people = await page.$$eval('.ms-panel .ms-opt span', (els) => els.map((e) => e.textContent));
@@ -62,8 +64,9 @@ function check(cond, msg) {
 
   await page.click('#msActivities');
   const acts = await page.$$eval('.ms-panel .ms-opt span', (els) => els.map((e) => e.textContent.replace(/^\S+ /, '')));
-  check(acts.join(',') === 'Fish caught,Campfires,Ship sightings,Tubing,Swimming,Cooking on the boat,Geocaching,Sightseeing,Fireworks',
-    'What list has the 9 starting activities in order');
+  check(acts.join(',') === 'Fish caught,Campfires,Ship sightings,Tubing,Swimming,Cooking on the boat,Geocaching,Sightseeing,Fireworks,' +
+    'Work on the house,Open camp,Close camp,Get boat out of water',
+    'What list has the 13 starting activities in order');
   await page.check('.ms-opt:has-text("Swimming") input');
   await page.click('.ms-panel .ms-done');
   const chipCount = await page.$$eval('.ms .chip', (els) => els.length);
@@ -97,6 +100,7 @@ function check(cond, msg) {
   const viewText = await page.textContent('article.entry');
   check(viewText.includes('Chance’s first pike') && viewText.includes('reeled in a pike'), 'saved entry shows its headline and text');
   check(/July 14, 2024/.test(viewText), 'saved entry shows its date');
+  check(/Arrived 4:30\sPM · Left 7:05\sPM/.test(viewText), 'saved entry shows arrive and depart times');
   check(await page.$$eval('article .chip.person', (e) => e.map((x) => x.textContent).join(',')) === 'PAPA,Chance,Uncle Bob', 'people show in list order');
   check((await page.textContent('article')).includes('Fish caught (2)'), 'entry lists its two fish');
   check(await page.isVisible('.fish-tile:has-text("Chance") .badge.big'), 'Chance’s smallmouth is The Big One');
@@ -141,6 +145,7 @@ function check(cond, msg) {
   // ---- list and search
   await page.waitForSelector('.entry-card');
   check((await page.textContent('.year')).startsWith('2024'), 'entries are grouped by year');
+  check(/4:30\sPM – 7:05\sPM/.test(await page.textContent('.entry-card .when')), 'the journal card shows the visit as arrive – depart');
   await page.fill('.filters input', 'pike');
   check(await page.$$eval('.entry-card', (e) => e.length) === 1, 'search finds the entry');
   await page.fill('.filters input', 'perch');
@@ -218,6 +223,28 @@ function check(cond, msg) {
   // ---- narrow phone: nothing wider than the screen
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   check(!overflow, 'no sideways scrolling on a phone');
+
+  // ---- a browser that used an older version keeps its data and gets the new choices
+  await page.evaluate(() => new Promise((res) => {
+    const r = indexedDB.open('island-dreams');
+    r.onsuccess = () => {
+      const t = r.result.transaction(['options', 'entries'], 'readwrite');
+      const o = t.objectStore('options');
+      ['Work on the house', 'Open camp', 'Close camp', 'Get boat out of water', 'Fireworks'].forEach((l) => o.delete('activity|' + l));
+      o.delete('meta|seed');
+      t.objectStore('entries').put({ id: 'old1', entry_date: '2023-07-20', entry_time: '09:15:00', title: 'Old entry', body: '',
+        people: [], activities: [], author_email: '', created_at: '2023-07-20', updated_at: '2023-07-20' });
+      t.oncomplete = res;
+    };
+  }));
+  await page.reload();
+  await page.waitForSelector('.entry-card');
+  check(/9:15\sAM/.test(await page.textContent('.entry-card .when')), 'an old entry’s time becomes its arrive time');
+  await page.goto(BASE + '#/settings');
+  await page.waitForSelector('.chip.activity');
+  const upgraded = await page.$$eval('.chip.activity', (e) => e.map((x) => x.textContent));
+  check(upgraded.some((t) => t.includes('Get boat out of water')) && !upgraded.some((t) => t.includes('Fireworks')),
+    'an older list gets the four new activities, and a removed one stays removed');
 
   check(errors.length === 0, 'no errors in the console' + (errors.length ? ': ' + errors.join(' | ') : ''));
   await browser.close();
