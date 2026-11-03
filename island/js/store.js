@@ -62,10 +62,29 @@ class CloudStore {
     });
   }
 
+  /* The signed-in person, or null when nobody is signed in on this device.
+
+     The access token lasts an hour, so opening the app usually renews it
+     first. If that renewal can't reach Supabase (an iPhone Home Screen app
+     often opens a moment before its connection is up), supabase-js keeps
+     the saved sign-in but reports no session, and repeats that answer for
+     a minute. That is not a sign-out: throw `stillSignedIn` so the app
+     waits and retries instead of asking for a new code. */
   async session() {
-    const { data } = await this.sb.auth.getSession();
+    const { data, error } = await this.sb.auth.getSession();
     const s = data && data.session;
-    return s ? { email: (s.user.email || '').toLowerCase() } : null;
+    if (s) return { email: (s.user.email || '').toLowerCase() };
+    if (error && this.hasSavedSignIn()) {
+      const e = new Error('Could not reach the journal to renew the sign-in.');
+      e.stillSignedIn = true;
+      e.cause = error;
+      throw e;
+    }
+    return null;
+  }
+
+  hasSavedSignIn() {
+    try { return !!window.localStorage.getItem(this.sb.auth.storageKey); } catch (e) { return false; }
   }
 
   /* cb(event). Deferred because supabase-js deadlocks if its own calls

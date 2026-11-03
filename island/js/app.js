@@ -14,7 +14,7 @@
 import { createStore } from './store.js';
 import { preparePhoto } from './photos.js';
 
-export const VERSION = '1.3.1';
+export const VERSION = '1.3.2';
 const REPO_GUIDE = 'https://github.com/lemassif/bug-free-octo-succotash/blob/main/ISLAND.md';
 const DRAFT_KEY = 'island-dreams-draft';
 const PENDING_EMAIL_KEY = 'island-dreams-email';
@@ -245,7 +245,7 @@ async function boot() {
   }
   $('localBanner').hidden = store.mode !== 'local';
   store.onAuthChange((event) => {
-    if (event === 'SIGNED_OUT' || (event === 'SIGNED_IN' && !state.signedIn)) authCheck();
+    if (event === 'SIGNED_OUT' || (!state.signedIn && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED'))) authCheck();
   });
   window.addEventListener('hashchange', route);
   window.addEventListener('beforeunload', (e) => {
@@ -262,7 +262,13 @@ function authCheck() {
 
 async function doAuthCheck() {
   let session;
-  try { session = await store.session(); } catch (e) { session = null; }
+  try {
+    session = await store.session();
+  } catch (e) {
+    if (e && e.stillSignedIn) return renderReconnecting();
+    session = null;
+  }
+  reconnect.tries = 0;
   state.signedIn = !!session;
   chrome(false);
   if (!session) {
@@ -303,11 +309,23 @@ function chrome(on) {
 
 function renderSignIn() {
   let pending = '';
-  try { pending = sessionStorage.getItem(PENDING_EMAIL_KEY) || ''; } catch (e) { /* ignore */ }
+  // Kept in localStorage, not sessionStorage: an iPhone Home Screen app is
+  // often closed while the person is in Mail fetching the code, and comes
+  // back as a fresh start that has lost sessionStorage. Codes expire after
+  // an hour, so an older pending sign-in is dropped.
+  try {
+    const saved = JSON.parse(localStorage.getItem(PENDING_EMAIL_KEY) || 'null');
+    if (saved && Date.now() - saved.at < 60 * 60 * 1000) pending = saved.email;
+  } catch (e) { /* ignore */ }
   const hashError = /error_description=([^&]+)/.exec(location.hash);
   if (hashError) toast(decodeURIComponent(hashError[1].replace(/\+/g, ' ')), true);
 
-  const remember = (v) => { try { v ? sessionStorage.setItem(PENDING_EMAIL_KEY, v) : sessionStorage.removeItem(PENDING_EMAIL_KEY); } catch (e) { /* ignore */ } };
+  const remember = (v) => {
+    try {
+      if (v) localStorage.setItem(PENDING_EMAIL_KEY, JSON.stringify({ email: v, at: Date.now() }));
+      else localStorage.removeItem(PENDING_EMAIL_KEY);
+    } catch (e) { /* ignore */ }
+  };
 
   if (!pending) {
     const email = h('input', { type: 'email', id: 'signinEmail', autocomplete: 'email', required: true, placeholder: 'name@example.com' });
@@ -369,6 +387,28 @@ function renderSignIn() {
       try { await store.sendCode(pending); toast('A new code is on its way.'); } catch (e) { toast(errorText(e), true); }
     } }, 'Send a new code'),
     h('button', { class: 'btn link', type: 'button', onclick: () => { remember(''); renderSignIn(); } }, 'Use a different email'))));
+}
+
+/* Still signed in, but the sign-in couldn't be renewed yet. Keep trying
+   for about two minutes (supabase-js waits a minute before retrying a
+   failed renewal), then leave it to a button. */
+const reconnect = { tries: 0, timer: null };
+
+function renderReconnecting() {
+  state.signedIn = false;
+  chrome(false);
+  clearTimeout(reconnect.timer);
+  const waiting = reconnect.tries < 24;
+  if (waiting) {
+    reconnect.tries++;
+    reconnect.timer = setTimeout(authCheck, 5000);
+  }
+  show(h('section', { class: 'card', id: 'reconnecting' },
+    h('h2', null, waiting ? 'Connecting to the journal…' : 'Can’t reach the journal'),
+    h('p', null, 'You’re still signed in. ', waiting
+      ? 'The phone hasn’t reached the internet yet. This usually takes a few seconds.'
+      : 'Check that Wi-Fi or cell signal is on, then tap Try again.'),
+    h('button', { class: 'btn primary', type: 'button', onclick: () => { reconnect.tries = 0; authCheck(); } }, 'Try again')));
 }
 
 function renderNotMember() {

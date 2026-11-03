@@ -188,5 +188,5 @@ end $$;
 
 -- The first family member. CHANGE THIS to your own email address.
 insert into public.members (email, name, added_by)
-values ('you@example.com', 'Me', 'setup')
+values ('ricksebastian.skl@gmail.com', 'Me', 'setup')
 on conflict (email) do nothing;
