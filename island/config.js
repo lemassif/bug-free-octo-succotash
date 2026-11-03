@@ -9,6 +9,6 @@
    are what keep the journal private to the family list. Never put the
    service_role key here. */
 window.ISLAND_CONFIG = {
-  supabaseUrl: '',
-  supabaseAnonKey: ''
+  supabaseUrl: 'https://gmbvrhdoqvozqabtzplu.supabase.co',
+  supabaseAnonKey: 'sb_publishable_4m7M6fGWywHSK4tKMHEUwg_0hM9_7nT'
 };
