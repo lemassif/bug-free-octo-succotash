@@ -4,7 +4,6 @@
 >
 > | App | File | Description |
 > |------|------|-------------|
-> | **Island Dreams** | [`island/`](island/index.html) | our family journal from camp in the Thousand Islands: entries, who was there, what we did, photos — see [`ISLAND.md`](ISLAND.md) |
 > | **Chance Academy** | [`chance/`](chance/index.html) | a 60-day science, math &amp; phonics curriculum for a curious second-grader, plus the Spelling Rocket game for his weekly spelling words — see [`CHANCE.md`](CHANCE.md) |
 > | **Cubert** | [`cubert.html`](cubert.html) | cube-hopping isometric arcade with 20 levels you can start from — see [`CUBERT.md`](CUBERT.md) |
 > | **Miner 2049er** | [`miner.html`](miner.html) | platformer (documented below) |
@@ -21,6 +20,10 @@
 > | **Barrel Blitz 3D** | [`barrel.html`](barrel.html) | climb the tower past barrels and fireballs to rescue a puppy: 12 levels, Easy, Medium or Hard — see below |
 > | **Vector Guard** | [`vector.html`](vector.html) | neon vector-style grid shooter: build energy blocks, blast Hackers, beat the Mother Saucer: 12 levels — see below |
 > | **Sky Shield** | [`shield.html`](shield.html) | Missile Command style city defense: 12 waves, Easy, Medium or Hard — see below |
+>
+> **Island Dreams**, our family camp journal, also lives here at
+> [`island/`](island/index.html) but is deliberately left off the arcade menu:
+> it is its own Home Screen app, so it keeps its own sign-in. See [`ISLAND.md`](ISLAND.md).
 >
 > Every page cross-links, so you can hop between the menu and any game.
 >
