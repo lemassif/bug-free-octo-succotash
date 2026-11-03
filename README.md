@@ -1,11 +1,11 @@
-> This repo is a small **retro arcade** with ten self-contained browser games,
+> This repo is a small **retro arcade** with fifteen self-contained browser games,
 > plus a learning app. Open [`index.html`](index.html) for the **menu**, then
 > pick one:
 >
 > | App | File | Description |
 > |------|------|-------------|
 > | **Island Dreams** | [`island/`](island/index.html) | our family journal from camp in the Thousand Islands: entries, who was there, what we did, photos — see [`ISLAND.md`](ISLAND.md) |
-> | **Chance Academy** | [`chance/`](chance/index.html) | a 60-day science, math &amp; phonics curriculum for a curious second-grader — see [`CHANCE.md`](CHANCE.md) |
+> | **Chance Academy** | [`chance/`](chance/index.html) | a 60-day science, math &amp; phonics curriculum for a curious second-grader, plus the Spelling Rocket game for his weekly spelling words — see [`CHANCE.md`](CHANCE.md) |
 > | **Cubert** | [`cubert.html`](cubert.html) | cube-hopping isometric arcade with 20 levels you can start from — see [`CUBERT.md`](CUBERT.md) |
 > | **Miner 2049er** | [`miner.html`](miner.html) | platformer (documented below) |
 > | **Ferrow Light** | [`ferrow-light.html`](ferrow-light.html) | a four-chapter Zork-style text adventure |
@@ -14,8 +14,13 @@
 > | **Lucky Seven Casino** | [`casino.html`](casino.html) | craps, blackjack, roulette, pai gow and hold'em with several players — see below |
 > | **Decathlon** | [`decathlon.html`](decathlon.html) | all ten track and field events for one to five athletes — see below |
 > | **Powder Cup** | [`winter.html`](winter.html) | ski and snowboard: races, moguls, halfpipe and big air — see below |
+> | **Turbo Grand Prix** | [`grandprix.html`](grandprix.html) | 3D open-wheel racing in eight cities with a World Tour — see below |
+> | **ChanceCraft** | [`chancecraft.html`](chancecraft.html) | block-building adventure: 20 levels on Earth and in space, boats, rockets and bosses — see below |
 > | **Super Strikers** | [`soccer.html`](soccer.html) | 3D five-a-side soccer with goal celebrations — see below |
-> | **Brain Box** | [`logic.html`](logic.html) | logic puzzles: clue grids, sudoku, picture cross and queens — see below |
+> | **Brain Box** | [`logic.html`](logic.html) | logic puzzles and word search: clue grids, sudoku, picture cross, queens and hidden words — see below |
+> | **Barrel Blitz 3D** | [`barrel.html`](barrel.html) | climb the tower past barrels and fireballs to rescue a puppy: 12 levels, Easy, Medium or Hard — see below |
+> | **Vector Guard** | [`vector.html`](vector.html) | neon vector-style grid shooter: build energy blocks, blast Hackers, beat the Mother Saucer: 12 levels — see below |
+> | **Sky Shield** | [`shield.html`](shield.html) | Missile Command style city defense: 12 waves, Easy, Medium or Hard — see below |
 >
 > Every page cross-links, so you can hop between the menu and any game.
 >
@@ -307,7 +312,7 @@ easy to edit or extend (see the tile legend in the comments).
 
 # Brain Box
 
-Four kinds of logic puzzles, each at five levels: **Kids, Easy, Medium, Hard
+Five kinds of puzzles, each at five levels: **Kids, Easy, Medium, Hard
 and Expert**. Every puzzle is generated fresh, has exactly one answer, and can
 be solved by reasoning alone. The generator checks this before you ever see it.
 
@@ -317,6 +322,7 @@ be solved by reasoning alone. The generator checks this before you ever see it.
 | **Sudoku** | Each row, column and box holds every number once. Notes mode for pencil marks. Hard needs pairs and pointing; Expert needs more. | 4×4, 6×6, 9×9 |
 | **Picture Cross** | Number clues give the runs of filled squares in each row and column, in order. Drag to paint, switch to × to mark empty squares. Clues dim when a line is satisfied. | 5×5 to 15×15 |
 | **Queens** | One ♛ in every row, column and colored region, and no two queens touching, even at a corner. | 5×5 to 9×9 |
+| **Word Search** | Find every word from a themed list (animals, space, bugs, dinosaurs, soccer and more) hidden in a grid of letters. Drag across a word or tap its first and last letters. Kids hides words across and down; Expert hides them in all eight directions, backwards too. | 8×8 to 15×15 |
 
 - **Undo, Check, Hint and New** on every puzzle. Check shows how many marks
   are wrong; Hint fixes a mistake or fills in one correct square.
@@ -353,3 +359,149 @@ Five-a-side 3D soccer built for young players (the Easy level is tuned for a
   get the TV view from the touchline. `soccer3d.js` draws everything with
   three.js; without WebGL the match still plays on a top-down pitch.
 
+---
+
+# ChanceCraft
+
+A block-building adventure made for Chance: mine and place blocks in a 3D
+block world, fight monsters, and find the glowing boat parts on every level.
+
+- **20 levels.** Levels 1-10 are on Earth: Grassy Island, Forest Isles, Sandy
+  Desert, Snowy Peaks, Jungle Lagoon, Deep Caves, Pirate Islands, Volcano
+  Island and the Launch Pad. Levels 11-20 are in outer space: the Moon (low
+  gravity), Mars, the Asteroid Belt, an Ice Moon, Saturn's Rings, a Crystal
+  Planet, a Lava Moon and the Alien Base. Every level is open on the level map.
+- **Three bosses:** the **Stone Golem King** (level 7, jump his stomp and hit
+  him while he's dizzy), the **Space Dragon** (level 14, dodge the fireballs
+  and hit it when it lands) and the **Alien Overlord** (level 20, smash the
+  four red power crystals to bring the UFO down).
+- **Your boat upgrades at the start of every level**, from the **Noob Raft**
+  through the canoe, rowboat, sailboat, speedboat, pirate ship, hovercraft and
+  jet boat to the **Rocket Boat with Wings** on level 10, which blasts off to
+  outer space. In space it keeps upgrading, up to the **Ultimate Star Rocket**.
+- **Boat parts** glow gold with a beam of light, and an arrow at the top
+  points to the nearest one. Some are buried, some sit on pillars or treetops
+  you have to build up to, some are in caves, and some are on other islands
+  or asteroids you reach by boat.
+- **Double jump, jet boosters and wings.** Tap JUMP twice for a double jump.
+  Hold JUMP in the air to blast up with the jet boosters on your back (the
+  JET bar shows the fuel, which refills on the ground). When the fuel runs
+  out, keep holding to spread your wings and glide.
+- **Build anything.** Blocks never run out, and ALL BLOCKS opens a menu of
+  every block in the game. The **Build World** on the level map is a big
+  island with no monsters where everything you build is saved on the device.
+- **Sun shadows, moving water and a gradient sky** make the world look more
+  real; slower devices turn shadows off by themselves.
+- **Controls:** left thumb moves, drag anywhere else to look, MINE (hold),
+  BUILD, JUMP and BOAT. The 👁 button switches to third person. Keyboard and
+  mouse: WASD, mouse look, left click mine, right click build, 1-8 pick a
+  block, E boat, V camera.
+- Everything, including the pixel textures, is generated in `chancecraft.js`
+  with three.js. Finished levels are saved on the device.
+
+---
+
+# Turbo Grand Prix
+
+3D open-wheel racing against nine computer drivers in eight cities, each with
+its own track shape and scenery:
+
+| City | Track |
+|------|-------|
+| Monte Carlo | tight streets beside a harbour full of yachts, with a tunnel |
+| Melbourne | a flowing park circuit around a lake |
+| Montreal | an island in a river, long straights and a hairpin |
+| Monza | the fastest track, huge straights through the forest |
+| Suzuka | a figure of eight that crosses over itself on a bridge |
+| Singapore | a night race through glowing city streets |
+| Las Vegas | night racing down the neon Strip |
+| São Paulo | up and down the hills, anticlockwise |
+
+- **Single race** in any city, or the **World Tour**: all eight in order with
+  points for the top ten (25, 18, 15, 12, 10, 8, 6, 4, 2, 1) and a champion.
+- Five red start lights, a live position board, lap and best-lap times, a
+  minimap, kerbs, grass that slows you down and walls that bounce you off.
+- **Controls:** ◀ ▶ steer, GAS and BRAKE, BOOST (the blue bar refills as you
+  drive). **Auto gas** (on by default) speeds up by itself, so younger drivers
+  only steer and brake; Easy also adds gentle steering help. Three cameras:
+  chase, high chase and cockpit. Keyboard: arrows or WASD, Space boost, C
+  camera, P pause.
+- 2, 3, 5 or 8 laps; Easy, Medium or Hard rivals; nine team colours and your
+  name on the timing board. Best finishes per city are saved on the device.
+- `grandprix.js` builds the tracks, cars and cities with three.js. Teams and
+  drivers are made up for the game.
+
+# Barrel Blitz 3D
+
+A 3D take on the classic barrel-jumping climber. Big Bongo the gorilla has
+carried Pickles the puppy to the top of a building site; climb up and save her.
+The game plays left and right like the arcade original and is drawn in 3D, with
+three cameras (close, whole tower, and a side angle).
+
+| Level | Stage | What happens |
+|-------|-------|--------------|
+| 1, 5, 9 | 🛢️ Girders | barrels roll down sloped girders, sometimes down ladders; blue barrels light the oil drum and fireballs jump out |
+| 2, 6, 10 | 📦 Factory | conveyor belts push you and carry crates; fireballs wander the floors |
+| 3, 7, 11 | 🛗 Lifts | ride lifts up and down between platforms; Big Bongo throws bouncing springs |
+| 4, 8, 12 | 🔩 Rivets | walk over all 8 rivets and Big Bongo falls; jump the gaps they leave |
+
+- Any level can be played from the level picker. Stars show which levels have
+  been cleared on Easy, Medium and Hard, and the high score is saved.
+- **Easy:** slower hazards, 5 lives, and falls don't hurt. **Medium** and
+  **Hard** are faster, have 3 lives, more fireballs, and a big fall costs a
+  life. Hard also costs a life when the bonus timer runs out.
+- Each round of a stage (levels 1 to 4, 5 to 8, 9 to 12) is faster, with
+  more broken ladders.
+- **Checkpoints:** a green flag goes up each time you reach a higher floor;
+  after losing a life you restart at the flag, blinking and safe for a moment.
+- Hammers smash barrels, crates and fireballs for 9 seconds. Jumping over a
+  hazard is 100 points; the bonus counts down and is added when you finish.
+- **Controls:** ◀ ▶ walk, ▲ ▼ climb, JUMP (also off ladders). ▼ on a platform lies
+  down for up to 3 seconds so barrels, crates and springs bounce over. Keyboard: arrows or WASD, Space
+  to jump, C camera, P pause, M sound.
+- The hero has a jointed body, blinks, looks scared when danger is close,
+  grins when he jumps a barrel, waves when left standing, and talks in speech
+  bubbles.
+- `barrel3d.js` builds the levels and characters with three.js. The
+  characters are made up for the game.
+
+# Vector Guard
+
+A neon, vector-line grid shooter in the spirit of the early-80s Intellivision
+game. Your ship flies over an energy grid around a glowing core. Fly over each
+glowing square and build an energy block there; fill the whole pattern and the
+core blasts every enemy off the grid.
+
+- **Enemies:** pink Hackers fly to your blocks and eat them (they flash red
+  while being hacked), yellow Zappers circle and shoot at you, and orange
+  Bouncers ricochet off the walls.
+- **Energy:** each block costs 1; it refills slowly and shooting enemies adds
+  more. Four blocks in a square make a **power gem** that fires at enemies.
+- **Mother Saucer** on levels 4, 8 and 12: shoot its 3 glowing pods while it
+  drops Hackers and fires spreads of shots.
+- 12 levels with different block patterns. **Easy** has 5 lives, slower
+  enemies, bullets that curve toward enemies, and builds automatically when you
+  hover over a square. Stars and the high score are saved.
+- **Controls:** drag on the left side to fly, FIRE and BUILD on the right.
+  Keyboard: arrows or WASD, Space fire, B or Enter build, P pause, M sound.
+- `vector3d.js` draws everything as glowing wireframes with three.js.
+
+# Sky Shield
+
+A Missile Command style game. Missiles fall on six cities; tap the sky and a
+counter-missile flies there from the nearest of three bases and bursts into a
+fireball. Anything that flies into a fireball explodes, and those explosions
+can catch more missiles.
+
+- 12 waves (pick any to start). Later waves add missiles that split into
+  three, bombers and satellites that drop missiles, and smart bombs that dodge
+  fireballs. Points multiply as the waves go up (up to ×6).
+- After each wave: points for every city standing and every missile left.
+  Points earn spare cities that rebuild lost ones. Lose every city and it's
+  THE END.
+- **Easy:** slower missiles, bigger fireballs, 15 missiles per base and a
+  spare city every 5,000 points. **Medium** and **Hard** are faster with 10
+  per base.
+- **Controls:** tap or click the sky. Keyboard: arrows move the crosshair,
+  Space fires, P pause, M sound. Best played sideways on a phone.
+- `shield3d.js` builds the night scene, cities and bases with three.js.

@@ -317,8 +317,15 @@ window.HWUI = (function () {
 
   /* -------------------- scan: pick a photo -------------------- */
   /* capture="environment" opens the iPad's back camera straight away;
-     without it iOS asks "photo library or camera?" every single time. */
-  function pickPhoto(body, useCamera) {
+     without it iOS asks "photo library or camera?" every single time.
+
+     opts (optional) lets another screen reuse the scan and the grown-up
+     check — the Spelling Rocket uses it to save a week's word list:
+       wordsOnly   leave out the math section
+       startLabel  the label on the finishing button
+       onStart     fn(words, math, file) instead of building a lesson
+       onBack      fn() for the Back button */
+  function pickPhoto(body, useCamera, opts) {
     var input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -327,14 +334,14 @@ window.HWUI = (function () {
     input.addEventListener('change', function () {
       var f = input.files && input.files[0];
       input.remove();
-      if (f) readPhoto(body, f);
+      if (f) readPhoto(body, f, opts);
     });
     document.body.appendChild(input);
     input.click();
   }
 
   /* ---------------- scan: read the words off it ---------------- */
-  function readPhoto(body, file) {
+  function readPhoto(body, file, opts) {
     body.innerHTML = '';
     App.setActions([]);
     var card = el('div', 'card');
@@ -351,29 +358,29 @@ window.HWUI = (function () {
     body.appendChild(card);
 
     if (!Scan.available()) {
-      return failed(body, file, 'This copy of the app cannot read photos. Open Chance Academy from its home-screen icon (the GitHub link), or type the words instead.');
+      return failed(body, file, 'This copy of the app cannot read photos. Open Chance Academy from its home-screen icon (the GitHub link), or type the words instead.', opts);
     }
     Scan.read(file, function (label, p) {
       status.textContent = label;
       fill.style.width = Math.max(2, Math.round(p * 100)) + '%';
     }).then(function (res) {
       var found = Scan.extract(res);
-      showConfirm(body, file, found, res);
+      showConfirm(body, file, found, res, opts);
     }).catch(function () {
-      failed(body, file, 'The word reader could not open. Check the wifi and try again — or type the words instead.');
+      failed(body, file, 'The word reader could not open. Check the wifi and try again — or type the words instead.', opts);
     });
   }
 
-  function failed(body, file, msg) {
+  function failed(body, file, msg, opts) {
     body.innerHTML = '';
     var card = el('div', 'card');
     card.appendChild(el('div', 'big-em', '🤔'));
     card.appendChild(el('h3', null, 'Could not read that photo'));
     card.appendChild(note(msg));
     var r = el('div', 'row');
-    r.appendChild(App.ui.btn('📷', 'Try another picture', function () { pickPhoto(body, true); }));
+    r.appendChild(App.ui.btn('📷', 'Try another picture', function () { pickPhoto(body, true, opts); }));
     r.appendChild(App.ui.btn('⌨️', 'Type the words', function () {
-      showConfirm(body, file, { words: [], math: [], fromList: false }, null);
+      showConfirm(body, file, { words: [], math: [], fromList: false }, null, opts);
     }));
     card.appendChild(r);
     body.appendChild(card);
@@ -384,12 +391,14 @@ window.HWUI = (function () {
      on a misread word would be worse than no lesson at all. So every
      word and problem is shown here to keep, fix or drop before
      Chance sees anything. Unsure readings arrive unticked. */
-  function showConfirm(body, file, found, raw) {
+  function showConfirm(body, file, found, raw, opts) {
+    opts = opts || {};
     body.innerHTML = '';
     App.setActions([]);
+    var goBack = opts.onBack || function () { renderPicker(body); };
 
     var words = found.words.map(function (w) { return { text: w.word, keep: w.keep, unsure: !w.keep }; });
-    var math = found.math.map(function (m) { return { text: m.source, keep: true }; });
+    var math = opts.wordsOnly ? [] : found.math.map(function (m) { return { text: m.source, keep: true }; });
 
     if (file) {
       var fig = el('div', 'hw-photo');
@@ -408,7 +417,7 @@ window.HWUI = (function () {
     head.appendChild(note(words.length
       ? 'Grown-up check: untick anything that is not a homework word, and fix any that are spelled wrong. ' +
         (words.some(function (w) { return w.unsure; }) ? 'Words I was unsure about start unticked. ' : '') +
-        'Then start the lesson.'
+        (opts.doneHint || 'Then start the lesson.')
       : 'Type each homework word in the box below.'));
     body.appendChild(head);
 
@@ -481,11 +490,23 @@ window.HWUI = (function () {
       var c = chosen();
       var n = c.words.length + c.math.length;
       if (!n) {
-        App.setActions([{ label: 'Back', em: '⬅️', cls: 'ghost', fn: function () { renderPicker(body); } }]);
+        App.setActions([{ label: 'Back', em: '⬅️', cls: 'ghost', fn: goBack }]);
+        return;
+      }
+      if (opts.onStart) {
+        App.setActions([
+          { label: 'Back', em: '⬅️', cls: 'ghost compact', fn: goBack },
+          {
+            label: (opts.startLabel || 'Save') + ' (' + n + ')', em: opts.startEm || '✅', cls: 'sun', fn: function () {
+              App.setActions([]);
+              opts.onStart(c.words, c.math, file);
+            }
+          }
+        ]);
         return;
       }
       App.setActions([
-        { label: 'Back', em: '⬅️', cls: 'ghost compact', fn: function () { renderPicker(body); } },
+        { label: 'Back', em: '⬅️', cls: 'ghost compact', fn: goBack },
         {
           label: 'Start the lesson (' + n + ')', em: '▶️', cls: 'sun', fn: function () {
             var title = (c.words.length ? 'Spelling: ' + c.words.slice(0, 3).join(', ') +
@@ -501,8 +522,19 @@ window.HWUI = (function () {
     draw();
   }
 
+  /* For other screens: scan a photo, or type/edit a word list, with
+     the same grown-up check. See pickPhoto for what opts can hold. */
+  function scanFor(body, useCamera, opts) { pickPhoto(body, useCamera, opts); }
+  function checkWords(body, words, opts) {
+    showConfirm(body, null, {
+      words: (words || []).map(function (w) { return { word: w, keep: true }; }),
+      math: [], fromList: false
+    }, null, opts);
+  }
+
   return {
     renderPicker: renderPicker, renderEditor: renderEditor, openPack: openPack,
+    scanFor: scanFor, checkWords: checkWords,
     // exposed for the tests
     _showConfirm: showConfirm, _readPhoto: readPhoto
   };

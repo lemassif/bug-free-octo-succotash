@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#02031a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Sky Shield</title>
+<style>
+  :root { --red: #ff4a4a; --gold: #ffd34d; --sky: #7ac8ff; --ink: #f2f4ff; --mute: #9aa4c8; --panel: rgba(8,8,30,.92); }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #02031a; color: var(--ink); font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; -webkit-user-select: none; user-select: none; touch-action: none; }
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
+  .hide { display: none !important; }
+
+  #hud { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
+  #tl { position: absolute; left: max(10px, env(safe-area-inset-left)); top: max(8px, env(safe-area-inset-top)); display: flex; gap: 6px; flex-wrap: wrap; max-width: calc(100% - 130px); }
+  .chip { background: rgba(4,6,24,.72); border-bottom: 3px solid var(--red); padding: 5px 10px; border-radius: 6px; font-weight: 900; }
+  #score { font-size: 24px; line-height: 1; font-variant-numeric: tabular-nums; } #hi { font-size: 11px; color: var(--mute); }
+  #wave { font-size: 14px; color: var(--gold); } #citiesLeft { font-size: 14px; }
+  #ammoChip { border-bottom-color: var(--sky); } #ammoChip small { display: block; font-size: 10px; color: var(--mute); letter-spacing: .12em; } #ammo { font-size: 16px; color: var(--sky); font-variant-numeric: tabular-nums; }
+  #msg { position: absolute; left: 0; right: 0; top: 30%; text-align: center; font-size: clamp(30px, 7vw, 58px); font-weight: 900; color: #fff; text-shadow: 0 3px 0 #000, 0 0 18px var(--red); opacity: 0; transition: opacity .25s; letter-spacing: .04em; }
+  #msg small { display: block; font-size: 15px; color: var(--gold); text-shadow: 0 2px 0 #000; letter-spacing: .02em; }
+  .turn { display: none; } @media (orientation: portrait) and (max-width: 600px) { .turn { display: inline; } #tapHint { top: 22%; bottom: auto; font-size: 15px; } }
+  #ctl { position: fixed; z-index: 4; top: max(8px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); display: flex; gap: 8px; }
+  .tiny { width: 44px; height: 44px; border: 1px solid rgba(255,255,255,.3); border-radius: 12px; background: rgba(0,0,0,.5); color: #fff; font-weight: 900; font-size: 18px; }
+  #tapHint { position: absolute; left: 0; right: 0; bottom: calc(max(10px, env(safe-area-inset-bottom)) + 4px); text-align: center; color: rgba(255,255,255,.55); font-size: 13px; font-weight: 700; }
+
+  .screen { position: fixed; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 14px; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); text-align: center; overflow-y: auto; touch-action: pan-y; background: radial-gradient(120% 90% at 50% 15%, rgba(90,20,40,.5), rgba(2,3,20,.9)); }
+  .screen > :first-child { margin-top: auto; } .screen > :last-child { margin-bottom: auto; }
+  .logo { margin: 0; font-size: clamp(48px, 13vw, 100px); line-height: .9; font-weight: 900; color: #fff; text-shadow: 4px 4px 0 var(--red), 8px 8px 0 #4a0010; letter-spacing: .02em; }
+  .logo span { color: var(--sky); text-shadow: 4px 4px 0 #1a4aa8, 8px 8px 0 #0a1a4a; }
+  .logo small { display: block; font-size: .2em; letter-spacing: .38em; color: var(--gold); text-shadow: none; margin-top: .8em; }
+  .tag { margin: 0; max-width: 44ch; font-size: clamp(14px, 3.6vw, 18px); font-weight: 700; line-height: 1.45; color: #e2e6ff; }
+  .btn { border: 0; border-radius: 10px; padding: 14px 34px; font: inherit; font-weight: 900; font-size: 18px; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; color: #fff; background: linear-gradient(180deg, #ff6a5a, #c8201a); box-shadow: 0 5px 0 #5a0808; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #5a0808; }
+  .btn.blue { background: linear-gradient(180deg, #8ad8ff, #2a7ad8); color: #021a3a; box-shadow: 0 5px 0 #0a2a5a; }
+  .btn.ghost { background: rgba(255,255,255,.08); box-shadow: none; border: 2px solid rgba(255,255,255,.3); }
+  .panel { background: var(--panel); border: 2px solid #2a2a5a; border-radius: 14px; padding: 16px; width: min(100%, 640px); text-align: left; }
+  .seg { display: flex; gap: 6px; background: rgba(255,255,255,.08); border-radius: 999px; padding: 4px; width: min(100%, 420px); }
+  .seg button { flex: 1; border: 0; border-radius: 999px; padding: 10px 6px; font: inherit; font-weight: 900; font-size: 16px; color: var(--mute); background: none; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: #fff; color: #02031a; }
+  #levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; width: min(100%, 720px); }
+  .lv { border: 2px solid #2a2a5a; border-radius: 12px; padding: 10px 6px; font: inherit; color: #fff; cursor: pointer; background: #10123a; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .lv b { font-size: 24px; } .lv span { font-size: 12px; color: var(--mute); font-weight: 700; } .lv em { font-style: normal; color: var(--gold); letter-spacing: 2px; }
+  .lv.done { border-color: var(--gold); }
+  .help p { font-size: 15px; line-height: 1.45; margin: 6px 0; } .help b { color: var(--gold); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hide">
+  <div id="tl">
+    <div class="chip"><div id="score">0</div><div id="hi">HI 0</div></div>
+    <div class="chip"><div id="wave">WAVE 1</div><div id="citiesLeft">🏙️ 6</div></div>
+    <div class="chip" id="ammoChip"><small>MISSILES L · C · R</small><div id="ammo"></div></div>
+  </div>
+  <div id="msg"></div>
+  <div id="tapHint">Tap the sky to fire<span class="turn"><br>Turn your phone sideways for a bigger view</span></div>
+</div>
+<div id="ctl" class="hide"><button class="tiny" id="bSnd" type="button" aria-label="Sound">🔊</button><button class="tiny" id="bPause" type="button" aria-label="Pause">II</button></div>
+
+<section class="screen" id="title">
+  <h1 class="logo">SKY<br><span>SHIELD</span><small>DEFEND THE CITIES · 12 WAVES</small></h1>
+  <p class="tag">Missiles are raining down on your six cities! Tap the sky to launch counter-missiles. Their fireballs knock out anything that flies into them.</p>
+  <button class="btn" id="goPlay">Play</button>
+  <button class="btn ghost" id="goHelp">How to play</button>
+  <a href="index.html" style="color:#a8d8ff;font-size:14px">☰ Arcade menu</a>
+</section>
+
+<section class="screen hide" id="help">
+  <div class="panel help">
+    <h2 style="margin:0 0 6px;color:var(--gold)">How to play</h2>
+    <p><b>Tap the sky</b> where you want a fireball. A counter-missile flies there from the closest base and explodes. Any enemy missile that touches the fireball blows up too.</p>
+    <p><b>Aim ahead</b> of a falling missile, so it flies into your fireball. One fireball can catch several missiles at once!</p>
+    <p>You have <b>3 bases</b> with missiles. The middle one shoots fastest. If a base is hit, it can't shoot until the next wave.</p>
+    <p><b>Watch for:</b> missiles that split into 3, bombers and satellites that drop missiles, and from wave 7 smart bombs that dodge your fireballs.</p>
+    <p>After each wave you get points for every city still standing and every missile you didn't use. Points also earn <b>bonus cities</b> that rebuild one you lost. Lose all your cities and the game is over.</p>
+    <p><b>Easy</b> has slower missiles, bigger fireballs and 15 missiles per base. <b>Keyboard:</b> mouse to aim and click, or arrows and Space. P pause, M sound.</p>
+  </div>
+  <button class="btn" id="helpBack">Got it</button>
+</section>
+
+<section class="screen hide" id="select">
+  <h2 style="margin:0;font-size:28px">CHOOSE A WAVE</h2>
+  <div class="seg" id="diff"><button data-v="easy">Easy</button><button data-v="medium">Medium</button><button data-v="hard">Hard</button></div>
+  <div id="levels"></div>
+  <div id="selHi" style="color:var(--mute);font-size:13px"></div>
+  <button class="btn ghost" id="selBack">Back</button>
+</section>
+
+<section class="screen hide" id="pause">
+  <h2 class="logo" style="font-size:56px">PAUSED</h2>
+  <button class="btn" id="resume">Resume</button>
+  <button class="btn ghost" id="restart">Restart wave</button>
+  <button class="btn ghost" id="toLevels">Waves</button>
+</section>
+
+<section class="screen hide" id="clear">
+  <h2 class="logo" id="clearTitle" style="font-size:clamp(34px,9vw,64px)">WAVE CLEAR!</h2>
+  <p class="tag" id="clearSub"></p>
+  <div class="row"><button class="btn blue" id="clearNext">Next wave</button><button class="btn ghost" id="clearLevels">Waves</button></div>
+</section>
+
+<section class="screen hide" id="over">
+  <h2 class="logo" style="font-size:clamp(40px,10vw,72px)">THE END</h2>
+  <p class="tag" id="overScore"></p>
+  <div class="row"><button class="btn" id="overAgain">Try again</button><button class="btn ghost" id="overLevels">Waves</button></div>
+</section>
+
+<script>setTimeout(function () { if (!window.SS || !window.SS.ok) { var t = document.querySelector('#title .tag'); if (t) t.textContent = 'Sky Shield needs a browser with 3D graphics (WebGL). Try Safari or Chrome.'; } }, 6000);</script>
+<script type="module" src="shield3d.js"></script>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }</script>
+</body>
+</html>

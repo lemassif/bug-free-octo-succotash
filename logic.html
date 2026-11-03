@@ -14,7 +14,7 @@
   :root {
     --bg: #0b0d1c; --panel: #151a33; --panel2: #1d2345; --line: rgba(255,255,255,.14); --ink: #eef1ff; --mute: #9aa3c7;
     --gold: #ffd34d; --good: #4fe08a; --bad: #ff5d6c; --accent: #6ec6ff;
-    --grid: #5fd4c4; --sudoku: #6ea8ff; --nonogram: #ff7ab8; --queens: #b98cff;
+    --grid: #5fd4c4; --sudoku: #6ea8ff; --nonogram: #ff7ab8; --queens: #b98cff; --words: #ffb347;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; -webkit-text-size-adjust: 100%; }
@@ -101,6 +101,15 @@
   .qc.q::after { content: '♛'; }
   .qc.clash::after { color: #c3001b; }
 
+  /* word search */
+  .wsTheme { text-align: center; color: var(--mute); font-size: 14px; margin: -2px 0 8px; } .wsTheme b { color: var(--words); }
+  .wsWrap { position: relative; touch-action: none; user-select: none; }
+  .wsMarks { position: absolute; inset: 0; pointer-events: none; z-index: 2; mix-blend-mode: multiply; }
+  .wg { position: relative; display: grid; background: #f4f1e8; border-radius: 8px; box-shadow: 0 0 0 3px #0d1124; }
+  .wc { display: grid; place-items: center; color: #1b1a2e; font-weight: 900; font-family: "Trebuchet MS", sans-serif; }
+  .wsList { display: flex; flex-wrap: wrap; gap: 6px 8px; justify-content: center; margin: 12px auto 0; max-width: 640px; }
+  .wsList span { padding: 4px 9px; border-radius: 999px; background: var(--panel2); border: 1px solid var(--line); font-weight: 800; font-size: 14px; letter-spacing: .04em; }
+  .wsList span.got { color: #1b1a2e; text-decoration: line-through; border-color: transparent; }
   /* logic grid */
   .clues { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; }
   .clues h4 { margin: 0 0 6px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--mute); font-weight: 700; }
@@ -142,7 +151,7 @@
   <section class="screen on" id="home">
     <div class="top"><a href="index.html">← Arcade</a><span></span></div>
     <h1>BRAIN BOX</h1>
-    <p class="tag">Four kinds of logic puzzles, five levels each. Every puzzle has one answer, and you can always reach it by reasoning. No guessing needed.</p>
+    <p class="tag">Five kinds of puzzles, five levels each. Every puzzle has one answer, and you can always reach it by reasoning. No guessing needed.</p>
     <div class="types" id="types"></div>
   </section>
 
@@ -187,6 +196,8 @@
       how: 'Every row, column and box must contain each number exactly once. Tap a square, then a number. Turn on Notes to pencil in possibilities.' },
     nonogram: { col: 'var(--nonogram)', blurb: 'Use the number clues to fill in squares and reveal a picture.',
       how: 'The numbers say how many filled squares sit together in that row or column, in order, with at least one gap between groups. Drag to paint. Switch to × to mark squares you know are empty.' },
+    words: { col: 'var(--words)', blurb: 'Find every hidden word in a grid of letters. Animals, space, bugs, dinosaurs and more.',
+      how: 'Words hide in straight lines: across and down, and on harder levels diagonally and even backwards. Drag from the first letter to the last, or tap the first letter and then the last.' },
     queens: { col: 'var(--queens)', blurb: 'Place one queen in every row, column and color, with no two touching.',
       how: 'Put exactly one ♛ in each row, each column and each colored region. Queens may not touch each other, not even at the corners. Tap once for ×, twice for a queen.' },
   };
@@ -194,6 +205,7 @@
     grid: '<svg viewBox="0 0 60 60" width="56" height="56"><g fill="none" stroke="#5fd4c4" stroke-width="2"><rect x="6" y="6" width="48" height="48" rx="4"/><path d="M22 6v48M38 6v32M6 22h48M6 38h32"/></g><circle cx="14" cy="14" r="4" fill="#4fe08a"/><path d="M27 10l7 7M34 10l-7 7M43 27l7 7M50 27l-7 7M11 27l7 7M18 27l-7 7" stroke="#ff7a8a" stroke-width="2.4"/><circle cx="46" cy="14" r="0"/><circle cx="30" cy="46" r="4" fill="#4fe08a"/></svg>',
     sudoku: '<svg viewBox="0 0 60 60" width="56" height="56"><rect x="6" y="6" width="48" height="48" rx="4" fill="#1a2042" stroke="#6ea8ff" stroke-width="2"/><path d="M22 6v48M38 6v48M6 22h48M6 38h48" stroke="#6ea8ff" stroke-width="1.6"/><g font-family="Trebuchet MS" font-weight="800" font-size="12" fill="#fff" text-anchor="middle"><text x="14" y="18">5</text><text x="46" y="18">3</text><text x="30" y="34">7</text><text x="14" y="50">9</text><text x="46" y="50" fill="#9fd0ff">1</text></g></svg>',
     nonogram: '<svg viewBox="0 0 60 60" width="56" height="56"><rect x="6" y="6" width="48" height="48" rx="4" fill="#e9ecfb"/><g fill="#ff7ab8"><rect x="18" y="14" width="8" height="8"/><rect x="34" y="14" width="8" height="8"/><rect x="10" y="22" width="40" height="8"/><rect x="14" y="30" width="32" height="8"/><rect x="22" y="38" width="16" height="8"/><rect x="26" y="46" width="8" height="4"/></g></svg>',
+    words: '<svg viewBox="0 0 60 60" width="56" height="56"><rect x="6" y="6" width="48" height="48" rx="5" fill="#f4f1e8"/><line x1="15" y1="16" x2="45" y2="16" stroke="#ffd34d" stroke-width="9" stroke-linecap="round"/><line x1="15" y1="27" x2="35" y2="47" stroke="#7ee081" stroke-width="9" stroke-linecap="round" opacity=".8"/><g font-family="Trebuchet MS" font-weight="900" font-size="10" fill="#1b1a2e" text-anchor="middle"><text x="15" y="20">C</text><text x="25" y="20">A</text><text x="35" y="20">T</text><text x="45" y="20">S</text><text x="15" y="31">S</text><text x="25" y="41">U</text><text x="35" y="51">N</text><text x="45" y="31">O</text><text x="35" y="31">K</text><text x="45" y="45">E</text></g></svg>',
     queens: '<svg viewBox="0 0 60 60" width="56" height="56"><g><rect x="6" y="6" width="24" height="24" fill="#b98cff"/><rect x="30" y="6" width="24" height="24" fill="#ffd166"/><rect x="6" y="30" width="24" height="24" fill="#6ec6ff"/><rect x="30" y="30" width="24" height="24" fill="#7ee081"/></g><text x="18" y="25" font-size="18" text-anchor="middle" fill="#1b1530">♛</text><text x="42" y="49" font-size="18" text-anchor="middle" fill="#1b1530">♛</text></svg>',
   };
   const QCOLS = ['#b98cff', '#ffd166', '#6ec6ff', '#7ee081', '#ff9f80', '#f7a8e0', '#c9d36a', '#8fe3d9', '#ffb3b3'];
@@ -519,7 +531,72 @@
     },
   };
 
-  const VIEWS = { sudoku, nonogram, queens, grid };
+
+  /* =================================================================
+     WORD SEARCH
+     ================================================================= */
+  const WCOLS = ['#ffd34d', '#7ee081', '#6ec6ff', '#ff9f80', '#c49bff', '#f7a8e0', '#8fe3d9', '#ffb3b3', '#c9d36a', '#9fd0ff', '#ffc27a', '#b0f0a0', '#e0b0ff', '#80e0d0', '#ffd0e0'];
+  const words = {
+    init(G) { G.st = G.st || { found: [] }; G.sel = null; tools(common()); this.draw(); },
+    cellsOf(pl) { return Array.from({ length: pl.word.length }, (_, i) => [pl.r + pl.dr * i, pl.c + pl.dc * i]); },
+    draw() {
+      const P = G.P, n = P.n, sz = Math.min(44, fit(n, 6)), st = G.st;
+      let h = '<div class="wsTheme">Theme: <b>' + P.theme + '</b> · ' + st.found.length + ' of ' + P.words.length + ' found</div>';
+      h += '<div class="board"><div class="wsWrap" style="width:' + sz * n + 'px;height:' + sz * n + 'px"><svg class="wsMarks" width="' + sz * n + '" height="' + sz * n + '"></svg><div class="wg" style="grid-template-columns:repeat(' + n + ',' + sz + 'px);grid-auto-rows:' + sz + 'px;font-size:' + Math.round(sz * .55) + 'px">';
+      for (let i = 0; i < n * n; i++) h += '<div class="wc" data-r="' + Math.floor(i / n) + '" data-c="' + (i % n) + '">' + P.grid[i] + '</div>';
+      h += '</div></div></div><div class="wsList">' + P.words.map((w, i) => '<span class="' + (st.found.includes(i) ? 'got' : '') + '" style="' + (st.found.includes(i) ? 'background:' + WCOLS[st.found.indexOf(i) % WCOLS.length] : '') + '">' + w + '</span>').join('') + '</div>';
+      $('area').innerHTML = h; this.sz = sz; this.marks();
+      const wrap = $('area').querySelector('.wsWrap');
+      const cellAt = (x, y) => { const el = document.elementFromPoint(x, y); return el && el.classList.contains('wc') ? [+el.dataset.r, +el.dataset.c] : null; };
+      let start = null, moved = false;
+      wrap.onpointerdown = e => { const c = cellAt(e.clientX, e.clientY); if (!c || G.won) return; e.preventDefault(); wrap.setPointerCapture && wrap.setPointerCapture(e.pointerId);
+        if (G.sel && G.sel.tap) { start = G.sel.a; this.select(start, c); moved = true; return; }   // second tap of tap-tap
+        start = c; moved = false; G.sel = { a: c, b: c }; this.marks(); };
+      wrap.onpointermove = e => { if (!start) return; const c = cellAt(e.clientX, e.clientY); if (!c) return; if (c[0] !== start[0] || c[1] !== start[1]) moved = true; this.select(start, c); };
+      const end = () => { if (!start) return; const s = G.sel; start = null;
+        if (!moved && s && s.a[0] === s.b[0] && s.a[1] === s.b[1]) { G.sel = { a: s.a, b: s.a, tap: true }; this.marks(); msg('Now tap the last letter of the word.'); return; }
+        this.finish(); };
+      wrap.onpointerup = end; wrap.onpointercancel = () => { start = null; G.sel = null; this.marks(); };
+    },
+    select(a, b) {
+      // snap to a straight line: across, down or diagonal
+      let dr = b[0] - a[0], dc = b[1] - a[1];
+      const ar = Math.abs(dr), ac = Math.abs(dc);
+      if (ar && ac && ar !== ac) { if (ar > ac * 2) dc = 0; else if (ac > ar * 2) dr = 0; else { const m = Math.max(ar, ac); dr = Math.sign(dr) * m; dc = Math.sign(dc) * m; } }
+      const n = G.P.n, len = Math.max(Math.abs(dr), Math.abs(dc)), sr = Math.sign(dr), sc = Math.sign(dc);
+      let L = len; while (L > 0 && (a[0] + sr * L < 0 || a[0] + sr * L >= n || a[1] + sc * L < 0 || a[1] + sc * L >= n)) L--;
+      G.sel = { a, b: [a[0] + sr * L, a[1] + sc * L] }; this.marks();
+    },
+    finish() {
+      const P = G.P, s = G.sel; G.sel = null;
+      if (!s) { this.marks(); return; }
+      const dr = Math.sign(s.b[0] - s.a[0]), dc = Math.sign(s.b[1] - s.a[1]), len = Math.max(Math.abs(s.b[0] - s.a[0]), Math.abs(s.b[1] - s.a[1])) + 1;
+      let str = ''; for (let i = 0; i < len; i++) str += P.grid[(s.a[0] + dr * i) * P.n + s.a[1] + dc * i];
+      const rev = str.split('').reverse().join('');
+      const idx = P.place.findIndex((pl, i) => !G.st.found.includes(i) && pl.word.length === len &&
+        ((pl.r === s.a[0] && pl.c === s.a[1] && pl.dr === dr && pl.dc === dc) || (pl.r === s.b[0] && pl.c === s.b[1] && pl.dr === -dr && pl.dc === -dc)));
+      if (idx >= 0) { push(); G.st.found.push(idx); msg('Found ' + P.words[idx] + '!', 'good'); this.draw(); persist(); if (G.st.found.length === P.words.length) won(); }
+      else { if (len > 1) msg(P.words.includes(str) || P.words.includes(rev) ? 'Already found that one.' : 'Not a word on the list. Try again!', 'bad'); this.marks(); }
+    },
+    marks() {
+      const svg = $('area').querySelector('.wsMarks'); if (!svg) return; const sz = this.sz, P = G.P;
+      const line = (a, b, col, op) => { const x1 = (a[1] + .5) * sz, y1 = (a[0] + .5) * sz, x2 = (b[1] + .5) * sz, y2 = (b[0] + .5) * sz; return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="' + col + '" stroke-width="' + sz * .78 + '" stroke-linecap="round" opacity="' + op + '"/>'; };
+      let h = '';
+      G.st.found.forEach((i, k) => { const pl = P.place[i], cells = this.cellsOf(pl); h += line(cells[0], cells[cells.length - 1], WCOLS[k % WCOLS.length], .75); });
+      if (G.sel) h += line(G.sel.a, G.sel.b, '#ffffff', .5);
+      if (this.flash) h += line(this.flash, this.flash, '#ff5d6c', .7);
+      svg.innerHTML = h;
+    },
+    check() { const left = G.P.words.length - G.st.found.length; msg(left ? left + ' word' + (left > 1 ? 's' : '') + ' still hiding.' : 'All found!', 'good'); },
+    hint() {
+      const P = G.P, left = P.place.map((pl, i) => i).filter(i => !G.st.found.includes(i)); if (!left.length) return;
+      const i = left[Math.floor(Math.random() * left.length)], pl = P.place[i];
+      this.flash = [pl.r, pl.c]; this.marks(); msg('Hint: ' + P.words[i] + ' starts at the red letter.', 'good');
+      setTimeout(() => { this.flash = null; this.marks(); }, 2600);
+    },
+  };
+
+  const VIEWS = { sudoku, nonogram, queens, grid, words };
   window.addEventListener('resize', () => { if (G && $('play').classList.contains('on') && !$('area').querySelector('.busy')) VIEWS[G.type].draw(); });
   window.__bb = { get G() { return G; }, start, VIEWS, store, L };
   renderHome();

@@ -420,6 +420,148 @@ table.tbl th { background: #eef4fb; font-size: 13px; letter-spacing: .5px; }
   display: flex; gap: 10px; justify-content: center;
 }
 
+/* -------------------------- SPELLING ROCKET ------------------------- */
+.tile-rocket { border-color: #c9c2ff; background: #f4f2ff; }
+.rk-banner {
+  display: flex; align-items: center; gap: 14px; padding: 16px 18px; margin: 0 0 12px;
+  border-radius: 22px; color: #fff; box-shadow: 0 10px 24px rgba(15, 42, 74, .3);
+  background: radial-gradient(120% 140% at 85% 10%, #3b2b8f 0%, #14164a 55%, #060a24 100%);
+}
+.rk-banner-em { font-size: 54px; line-height: 1; }
+.rk-banner h3 { font-size: 26px; }
+.rk-banner p { margin: 4px 0 0; opacity: .85; font-size: 15px; }
+.rk-note { color: var(--ink-soft); font-size: 15px; margin: 6px 0 10px; }
+.rk-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.rk-chip {
+  padding: 10px 16px; border-radius: 999px; background: #fff; border: 2px solid #c9c2ff;
+  font-size: 20px; font-weight: 800; box-shadow: var(--shadow);
+}
+.rk-chip.got { border-color: var(--leaf); background: #f1fbf5; }
+.rk-chip.got::after { content: ' ⭐'; }
+.rk-chip.practiced { border-color: var(--sun-deep); background: #fff9ec; }
+.rk-go {
+  display: flex; align-items: center; gap: 16px; width: 100%; margin: 14px 0 12px;
+  padding: 22px 18px; text-align: left; border-radius: 24px; color: #fff;
+  background: linear-gradient(160deg, #6d4bff, #2b1f8f); box-shadow: 0 7px 0 #1b1260;
+}
+.rk-go:active { transform: translateY(3px); box-shadow: 0 4px 0 #1b1260; }
+.rk-go-em { font-size: 58px; line-height: 1; }
+.rk-go .scan-text b { font-size: 26px; }
+.rk-packs { display: flex; flex-direction: column; gap: 8px; }
+
+/* the game: full screen, under the sheets and confetti, over the rest */
+.rk-layer {
+  position: fixed; inset: 0; z-index: 55; background: #060a24; overflow: hidden;
+  touch-action: none; -webkit-user-select: none; user-select: none;
+}
+.rk-canvas { position: absolute; inset: 0; display: block; touch-action: none; }
+.rk-hud {
+  position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 8px;
+  padding: max(10px, env(safe-area-inset-top)) 12px 8px;
+}
+.rk-hbtn {
+  width: 52px; height: 52px; flex: 0 0 52px; border-radius: 16px; font-size: 24px;
+  display: grid; place-items: center; color: #fff;
+  background: rgba(255, 255, 255, .14); border: 2px solid rgba(255, 255, 255, .28);
+}
+.rk-hbtn:active { transform: translateY(2px); }
+.rk-pips { display: flex; gap: 6px; flex: 1; justify-content: center; }
+.rk-pips i {
+  width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+  font-style: normal; font-size: 18px;
+  background: rgba(255, 255, 255, .12); border: 2px solid rgba(255, 255, 255, .25);
+}
+.rk-pips i.on { background: rgba(255, 211, 77, .25); border-color: var(--sun); }
+.rk-pips i.now { border-color: #9fe8ff; background: rgba(90, 216, 255, .2); }
+.rk-pips i.off { opacity: .35; filter: grayscale(1); }
+.rk-trail { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+.rk-stop {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 4px;
+  border-radius: 16px; background: rgba(0, 0, 0, .04); border: 2px solid transparent; text-align: center;
+}
+.rk-stop .em { font-size: 30px; line-height: 1.1; }
+.rk-stop .nm { font-weight: 800; font-size: 14px; }
+.rk-stop .ct { font-size: 12px; opacity: .7; }
+.rk-stop.been { background: rgba(47, 191, 113, .14); border-color: #2fbf71; }
+.rk-stop.been .ct::after { content: ' ✓'; }
+.rk-stop.next { border-color: var(--sun); background: rgba(255, 211, 77, .18); }
+.rk-label { color: #fff; font-weight: 800; font-size: 15px; opacity: .9; white-space: nowrap; }
+.rk-layer.soccer .rk-pips, .rk-layer.soccer .rk-label, .rk-layer.soccer .rk-hear { visibility: hidden; }
+.rk-prompt {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  top: calc(max(10px, env(safe-area-inset-top)) + 62px);
+  display: flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 999px;
+  color: #fff; font-weight: 800; font-size: 18px; white-space: nowrap;
+  background: rgba(20, 30, 90, .75); border: 2px solid rgba(159, 232, 255, .6);
+}
+.rk-prompt span { font-size: 22px; }
+.rk-prompt[hidden] { display: none; }
+.rk-panel { position: absolute; left: 50%; transform: translateX(-50%); width: min(560px, calc(100% - 24px)); display: none; }
+.rk-panel.bottom { display: block; bottom: max(14px, env(safe-area-inset-bottom)); }
+.rk-panel.top { display: block; top: calc(max(10px, env(safe-area-inset-top)) + 66px); }
+.rk-card {
+  background: #fff; border-radius: 24px; padding: 16px 18px; text-align: center;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .4); animation: pop2 .2s ease-out;
+}
+.rk-panel.slim .rk-card { padding: 8px 14px; }
+.rk-step { font-size: clamp(20px, 3.4vw, 26px); font-weight: 800; }
+.rk-word {
+  display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; margin: 10px 0 0;
+  font-size: clamp(40px, 7vw, 60px); font-weight: 800; letter-spacing: 1px;
+}
+.rk-big-em { font-size: 56px; line-height: 1.1; }
+.rk-wide { width: 100%; max-width: none; margin-top: 10px; }
+.rk-row { display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+.rk-check { max-width: 260px; }
+.rk-sum { color: var(--ink-soft); font-size: 17px; margin: 8px 0 0; }
+.rk-launch {
+  display: block; width: 100%; margin-top: 12px; min-height: 76px; border-radius: 22px;
+  font-size: 28px; font-weight: 900; color: #fff; letter-spacing: 1px;
+  background: linear-gradient(180deg, #ff8a6a, #e8402a); box-shadow: 0 7px 0 #a8221a;
+}
+.rk-launch:active { transform: translateY(3px); box-shadow: 0 4px 0 #a8221a; }
+
+/* spelling boxes, with the real text field laid invisibly over them so
+   a tap anywhere on the boxes brings up the iPad keyboard */
+.rk-boxwrap { position: relative; margin: 12px auto 6px; display: inline-block; max-width: 100%; }
+.rk-boxes { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; padding: 6px; border-radius: 16px; }
+.rk-boxes.tap-me { animation: rkglow 1.2s infinite; }
+@keyframes rkglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(58, 160, 245, 0); } 50% { box-shadow: 0 0 0 6px rgba(58, 160, 245, .35); } }
+.rk-box {
+  width: clamp(40px, 7vw, 56px); height: clamp(52px, 9vw, 68px); border-radius: 12px;
+  border: 3px solid var(--line); background: #f4f7fb; display: grid; place-items: center;
+  font-size: clamp(28px, 5vw, 40px); font-weight: 800; color: var(--ink);
+}
+.rk-box.now { border-color: var(--sky); background: #fff; }
+.rk-box.ok { border-color: var(--leaf); background: #ecfbf2; color: var(--leaf-deep); }
+.rk-box.fix { border-color: var(--sun-deep); background: #fff4e0; color: #8a4b00; }
+.rk-boxes.win .rk-box { animation: rkhop .5s ease-out; }
+@keyframes rkhop { 40% { transform: translateY(-10px); } }
+.rk-input {
+  position: absolute; inset: 0; width: 100%; height: 100%; opacity: .01;
+  font-size: 16px; color: transparent; caret-color: transparent;
+  background: transparent; border: 0; outline: none;
+}
+.heard b.g { color: var(--leaf-deep); }
+.heard b.o { color: #b26400; }
+.rk-reveal {
+  display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 8px;
+  padding: 8px 12px; border-radius: 14px; background: #fff9ec; border: 2px dashed var(--sun-deep);
+}
+.rk-reveal[hidden] { display: none; }
+.rk-reveal-tag { font-size: 15px; font-weight: 800; color: var(--ink-soft); }
+.rk-reveal-word { font-size: clamp(32px, 6vw, 46px); font-weight: 800; letter-spacing: 3px; }
+
+/* the 3-2-1 countdown */
+.rk-count {
+  position: absolute; left: 0; right: 0; top: 34%; text-align: center; pointer-events: none;
+  font-size: 160px; font-weight: 900; color: #fff; opacity: 0;
+  text-shadow: 0 6px 0 #e8402a, 0 0 30px rgba(255, 180, 80, .8);
+}
+.rk-count.show { animation: rkcount .6s ease-out forwards; }
+.rk-count.wide { font-size: clamp(54px, 11vw, 96px); }
+@keyframes rkcount { 0% { opacity: 0; transform: scale(.4); } 30% { opacity: 1; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
+
 /* ----------------------------- CONFETTI ----------------------------- */
 .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 70; overflow: hidden; }
 .confetti i {

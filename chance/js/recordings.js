@@ -307,6 +307,17 @@ window.Recordings = (function () {
   function inventory() {
     var groups = [];
 
+    // 0. the Spelling Rocket: every direction and every bit of praise
+    //    the rocket game says, plus this week's words
+    if (window.Rocket && Rocket.voiceLines) {
+      groups.push({
+        id: 'rocket', em: '🚀', name: 'Spelling Rocket: your voice',
+        blurb: 'Every direction and every "Great job, Chance!" in the rocket game, plus this week\'s spelling words. ' +
+               'Record these and he hears you, not the computer, the whole way to Venus, Saturn and beyond.',
+        lines: Rocket.voiceLines()
+      });
+    }
+
     // 1. the owl. Every one of these repeats across all 60 days.
     var coach = [];
     Object.keys(Evaluate.allTags()).forEach(function (t) {
@@ -408,4 +419,5 @@ window.Phrases = {
   missionDone: 'Mission complete! Fantastic work today.',
   tapTheAnswer: 'Here is the answer. Tap it with me, and say it out loud.',
   micOff: "I didn't hear you. Hold the microphone button and say it out loud."
+  // the Spelling Rocket keeps its own lines in Rocket.LINES
 };

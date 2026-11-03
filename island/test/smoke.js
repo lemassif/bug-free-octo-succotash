@@ -24,7 +24,8 @@ function check(cond, msg) {
 
 (async () => {
   const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true,
+    serviceWorkers: 'block' }); // the worker would fetch the real config.js past page.route
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -32,6 +33,10 @@ function check(cond, msg) {
   page.on('dialog', (d) => { errors.push('browser dialog used: ' + d.message()); d.dismiss(); });
   const shot = async (name) => { if (SHOTS) await page.screenshot({ path: path.join(SHOTS, name + '.png'), fullPage: true }); };
 
+  // test the this-device mode, whatever the real config.js points at
+  await page.route('**/island/config.js*', (r) => r.fulfill({
+    contentType: 'text/javascript', body: "window.ISLAND_CONFIG = { supabaseUrl: '', supabaseAnonKey: '' };"
+  }));
   await page.goto(BASE);
   await page.waitForSelector('.welcome');
   check(await page.isVisible('#localBanner'), 'this-device banner shows when config.js is blank');
