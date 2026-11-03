@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hold'em">
+<meta name="theme-color" content="#3a0c18">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Texas Hold’em — Lucky Seven Casino</title>
+<link rel="stylesheet" href="casino.css">
+<style>
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .felt { margin: 8px 10px 0; padding: 12px 10px 14px; border-radius: 26px; border: 3px solid var(--gold-lo); box-shadow: 0 0 0 4px #3b1d0e, 0 0 0 7px #1a050b, 0 10px 22px rgba(0,0,0,.5);
+    background: radial-gradient(130% 80% at 50% 30%, var(--felt-hi), var(--felt) 55%, var(--felt-lo)); }
+  .board { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 0 4px; }
+  .cards { display: flex; gap: 4px; justify-content: center; min-height: 74px; align-items: center; }
+  .card { position: relative; width: 50px; height: 72px; border-radius: 6px; background: #fff; color: #111; box-shadow: 0 2px 5px rgba(0,0,0,.5); border: 1px solid #bbb; flex: none; font-weight: 800; user-select: none; }
+  .card.red { color: #c8202f; }
+  .card .r { position: absolute; left: 4px; top: 3px; font: 800 17px/1 var(--sans); letter-spacing: -1px; }
+  .card .s { position: absolute; left: 4px; top: 22px; width: 13px; height: 13px; fill: currentColor; }
+  .card .b { position: absolute; right: 4px; bottom: 4px; width: 26px; height: 26px; fill: currentColor; opacity: .92; }
+  .card.back { background: repeating-linear-gradient(45deg, #7a1d33 0 5px, #5c1426 5px 10px); border: 2px solid #fff; }
+  .card.back::after { content: ""; position: absolute; inset: 5px; border: 1.5px solid rgba(255,227,154,.7); border-radius: 3px; }
+  .card.slot { background: rgba(0,0,0,.18); border: 1.5px dashed rgba(255,227,154,.35); box-shadow: none; }
+  .card.win { box-shadow: 0 0 0 3px var(--gold-hi), 0 0 14px rgba(255,227,154,.7); }
+  .card.fresh { animation: deal .38s cubic-bezier(.2, .8, .3, 1) both; animation-delay: var(--d, 0s); }
+  @keyframes deal { from { opacity: 0; transform: translateY(-50px) rotate(8deg); } }
+  .pot { font-weight: 900; color: var(--gold-hi); font-size: 16px; display: flex; gap: 8px; align-items: center; }
+  .pot .chip { --s: 28px; }
+  .msg { text-align: center; min-height: 36px; }
+  .msg b { font: 700 clamp(15px, 4.4vw, 21px)/1.15 var(--serif); letter-spacing: .04em; text-transform: uppercase; color: var(--gold-hi); text-shadow: 0 2px 0 rgba(0,0,0,.6); }
+  .msg small { display: block; color: #f3e9d2; font-size: 12.5px; margin-top: 2px; }
+
+  .seats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 10px; }
+  .ps { padding: 7px 8px 8px; border-radius: 14px; background: rgba(0,0,0,.3); border: 2px solid rgba(255,255,255,.12); position: relative; display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: center; }
+  .ps.turn { border-color: var(--gold-hi); box-shadow: 0 0 0 2px var(--gold-hi), 0 0 18px rgba(255,227,154,.45); }
+  .ps.fold { opacity: .5; }
+  .ps .hc { display: flex; gap: 2px; }
+  .ps .card { width: 34px; height: 49px; border-radius: 4px; } .ps .card .r { font-size: 13px; left: 3px; top: 2px; } .ps .card .s { width: 10px; height: 10px; top: 16px; left: 3px; } .ps .card .b { width: 16px; height: 16px; right: 2px; bottom: 2px; }
+  .ps .nm { display: flex; align-items: center; gap: 5px; font-weight: 800; font-size: 13px; white-space: nowrap; overflow: hidden; }
+  .ps .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--pc); flex: none; }
+  .ps .cpu { font-size: 8.5px; letter-spacing: .1em; padding: 1px 4px; border-radius: 4px; background: rgba(255,255,255,.14); color: var(--mute); }
+  .ps .bk { font-weight: 900; font-size: 15px; color: var(--gold-hi); }
+  .ps .act { font-size: 11px; font-weight: 800; color: #f3e9d2; min-height: 14px; }
+  .ps .bet { position: absolute; right: 6px; top: -9px; background: #1a060c; border: 1.5px solid var(--gold); color: var(--gold-hi); font-weight: 900; font-size: 11px; border-radius: 999px; padding: 1px 7px; }
+  .ps .btnD { position: absolute; left: -6px; top: -8px; width: 22px; height: 22px; border-radius: 50%; background: #fff; color: #111; font-weight: 900; font-size: 11px; display: grid; place-items: center; border: 2px solid #999; }
+  .ps .hn { grid-column: 1 / -1; font-size: 11px; font-weight: 800; color: var(--good); }
+  .ps .pop { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); font-weight: 900; font-size: 17px; pointer-events: none; animation: rise 1.8s ease-out forwards; text-shadow: 0 2px 4px #000; z-index: 5; }
+  .ps .pop.win { color: var(--good); } .ps .pop.lose { color: var(--bad); }
+  .rebuy { background: var(--gold); color: var(--ink); border: 0; border-radius: 999px; font-size: 10px; font-weight: 900; letter-spacing: .06em; padding: 3px 8px; text-transform: uppercase; }
+  .log { margin: 8px 12px 0; font-size: 11.5px; color: var(--mute); text-align: center; min-height: 15px; }
+
+  .dock { position: sticky; bottom: 0; z-index: 25; padding: 8px 10px max(10px, env(safe-area-inset-bottom)); background: linear-gradient(0deg, #12060a 72%, rgba(18,6,10,0)); }
+  .dock .inner { max-width: 860px; margin: 0 auto; display: grid; gap: 8px; }
+  .dock .who2 { text-align: center; font-size: 12.5px; color: var(--mute); letter-spacing: .04em; } .dock .who2 b { color: var(--gold-hi); }
+  .acts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+  .acts .btn { padding: 13px 4px; font-size: 13px; letter-spacing: .04em; }
+  .raise { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
+  .raise input { width: 100%; accent-color: #e8b94a; }
+  .quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .quick .btn { padding: 8px 2px; font-size: 11px; }
+  .mine { display: flex; gap: 6px; justify-content: center; align-items: center; }
+  .curtain { position: fixed; inset: 0; z-index: 60; background: radial-gradient(circle at 50% 40%, #3a0c18, #12060a 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; padding: 20px; }
+  .curtain h2 { margin: 0; font: 700 28px var(--serif); letter-spacing: .1em; text-transform: uppercase; color: var(--gold-hi); }
+  .curtain p { margin: 0; color: var(--mute); max-width: 30ch; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="sS" viewBox="0 0 24 24"><path d="M12 1.5C8 7 2.8 10 2.8 14.2c0 2.9 2.3 4.9 5 4.9 1.5 0 2.7-.6 3.5-1.7-.3 2.1-1.1 3.4-2.6 4.8h6.6c-1.5-1.4-2.3-2.7-2.6-4.8.8 1.1 2 1.7 3.5 1.7 2.7 0 5-2 5-4.9C21.2 10 16 7 12 1.5z"/></symbol>
+  <symbol id="sH" viewBox="0 0 24 24"><path d="M12 22C4 15.4 1.8 11.8 1.8 8.2 1.8 5 4.2 2.8 7 2.8c2 0 3.6 1 5 3 1.4-2 3-3 5-3 2.8 0 5.2 2.2 5.2 5.4 0 3.6-2.2 7.2-10.2 13.8z"/></symbol>
+  <symbol id="sD" viewBox="0 0 24 24"><path d="M12 1l9 11-9 11L3 12z"/></symbol>
+  <symbol id="sC" viewBox="0 0 24 24"><path d="M12 1.8a4.6 4.6 0 0 0-3.3 7.8A4.8 4.8 0 1 0 11 16.6c-.2 2.2-.9 3.7-2.4 5.6h6.8c-1.5-1.9-2.2-3.4-2.4-5.6a4.8 4.8 0 1 0 2.3-7A4.6 4.6 0 0 0 12 1.8z"/></symbol>
+</defs></svg>
+<header class="top tight">
+  <a class="back" href="casino.html">&#8249; Lobby</a><h1>Texas Hold’em</h1>
+  <div class="tools"><button class="tool" id="bRules" type="button">Rules</button><button class="tool" id="bSnd" type="button" aria-pressed="true" aria-label="Sound">Sound</button></div>
+</header>
+<div id="setup"></div>
+<main id="game" class="wrap" hidden>
+  <section class="felt" aria-label="Poker table">
+    <div class="board"><div class="cards" id="board"></div><div class="pot" id="pot"></div></div>
+    <div class="msg" id="msg" aria-live="polite"></div>
+    <div class="seats" id="seats"></div>
+  </section>
+  <p class="log" id="log"></p>
+</main>
+<footer class="dock" id="dock" hidden><div class="inner" id="dockIn"></div></footer>
+
+<script src="poker-engine.js"></script>
+<script src="casino-core.js"></script>
+<script>
+(function () {
+  'use strict';
+  const P = Poker, { h, money, signed, sfx } = Casino;
+  const $ = id => document.getElementById(id);
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const SB = 5, BB = 10;
+  const S = { ps: [], t: null, seen: new Set(), handNo: 0, reveal: -1, raiseTo: 0, msg: null, busy: false, peek: false };
+  const humans = () => S.ps.filter(p => p.human).length;
+
+  /* ---------- cards ---------- */
+  const SUIT = { S: 'spades', H: 'hearts', D: 'diamonds', C: 'clubs' };
+  function cardEl(c, cls, delay) {
+    const key = c.id + ':' + S.handNo, fresh = !S.seen.has(key); S.seen.add(key);
+    const red = c.s === 'H' || c.s === 'D', rk = P.rankName(c.r);
+    return h('div', { class: 'card' + (red ? ' red' : '') + (fresh ? ' fresh' : '') + (cls ? ' ' + cls : ''), style: fresh ? { '--d': (delay || 0) + 's' } : null, role: 'img', 'aria-label': rk + ' of ' + SUIT[c.s],
+      html: '<span class="r">' + rk + '</span><svg class="s" viewBox="0 0 24 24"><use href="#s' + c.s + '"/></svg><svg class="b" viewBox="0 0 24 24"><use href="#s' + c.s + '"/></svg>' });
+  }
+  const backEl = () => h('div', { class: 'card back', 'aria-label': 'Face-down card' });
+
+  /* ---------- flow ---------- */
+  function start(players) {
+    S.ps = players; S.t = P.heNew(players, { sb: SB, bb: BB });
+    $('setup').hidden = true; $('game').hidden = false; $('dock').hidden = false;
+    try { if (!localStorage.getItem('luckyseven.holdem.seen')) { localStorage.setItem('luckyseven.holdem.seen', '1'); setTimeout(showRules, 400); } } catch (e) { /* ignore */ }
+    newHand();
+  }
+  function newHand() {
+    const t = S.t;
+    S.ps.forEach(p => { if (!p.human && p.bank < BB * 2) { Casino.rebuy(p); Casino.toast(p.name + ' buys back in for ' + money(Casino.START_BANK) + '.'); } });
+    if (!P.heStart(t, window.__heRng || Math.random)) { S.msg = ['Waiting for players', 'At least two players need ' + money(BB) + ' or more. Tap Rebuy.']; render(); return; }
+    S.handNo++; S.reveal = -1; S.peek = false; Casino.save();
+    S.msg = ['New hand', 'Blinds ' + money(SB) + ' / ' + money(BB)];
+    sfx('card'); setTimeout(() => sfx('card'), 160); render();
+    setTimeout(loop, 700);
+  }
+  async function loop() {
+    if (S.busy) return; S.busy = true;
+    try {
+      const t = S.t;
+      for (;;) {
+        if (t.street === 'done') return showdown();
+        const s = t.seats[t.toAct]; if (!s) return;
+        S.msg = [s.p.human ? (s.p.name === 'You' ? 'Your turn' : s.p.name + '’s turn') : s.p.name + ' is thinking…', streetName()];
+        if (s.p.human) { if (humans() > 1 && S.reveal !== t.toAct && S.lastHuman !== t.toAct) return curtain(t.toAct); S.reveal = t.toAct; const L = P.heLegal(t); S.raiseTo = L.minTo; render(); return; }
+        render(); await sleep(650 + Math.random() * 500);
+        const before = t.street, a = P.heBot(t);
+        if (a) { P.heAct(t, a.a, a.to); sfx(a.a === 'fold' ? 'click' : a.a === 'check' ? 'tick' : 'chips'); }
+        if (t.street !== before && t.street !== 'done') { sfx('card'); render(); await sleep(450); }
+      }
+    } finally { S.busy = false; }
+  }
+  function curtain(i) {
+    const p = S.ps[i]; render();
+    const c = h('div', { class: 'curtain' }, h('h2', null, 'Pass to ' + p.name), h('p', null, 'Everyone else look away. ' + p.name + ' will see their two cards.'),
+      h('button', { class: 'btn big', type: 'button', onclick: () => { c.remove(); S.reveal = i; sfx('click'); const L = P.heLegal(S.t); S.raiseTo = L.minTo; render(); } }, 'Show my cards'));
+    document.body.append(c);
+  }
+  function act(a, to) {
+    const t = S.t, s = t.seats[t.toAct]; if (!s || !s.p.human || S.busy) return;
+    const before = t.street; S.lastHuman = t.toAct;
+    if (!P.heAct(t, a, to)) { Casino.toast('You can’t do that now.'); return; }
+    sfx(a === 'fold' ? 'click' : a === 'check' ? 'tick' : 'chips');
+    if (humans() > 1) S.reveal = -1;
+    if (t.street !== before && t.street !== 'done') sfx('card');
+    render(); setTimeout(loop, 350);
+  }
+  function streetName() { const t = S.t; return { preflop: 'Before the flop', flop: 'The flop', turn: 'The turn', river: 'The river' }[t.street] || ''; }
+  function showdown() {
+    const t = S.t, r = t.result; S.ps.forEach(p => Casino.touch(p)); Casino.save();
+    const winners = [...new Set(r.pots.flatMap(p => p.winners))];
+    const main = r.pots[0];
+    const wn = winners.map(i => S.ps[i].name), solo = wn.length === 1, you = solo && wn[0] === 'You';
+    S.msg = r.showdown ? [wn.join(' & ') + (solo ? (you ? ' win' : ' wins') : ' split the pot'), main && main.hand ? main.hand : ''] : [wn[0] + (you ? ' win the pot' : ' wins the pot'), 'Everyone else folded'];
+    render();
+    t.seats.forEach((s, i) => { if (s.total || r.won[i]) { const el = document.querySelector('.ps[data-i="' + i + '"]'); if (el && s.net) Casino.pop(el, signed(s.net), s.net > 0 ? 'win' : 'lose'); } });
+    const humanWin = winners.some(i => S.ps[i].human); sfx(humanWin ? (r.pots.reduce((a, p) => a + p.amt, 0) >= 200 ? 'big' : 'win') : 'lose');
+  }
+
+  /* ---------- rendering ---------- */
+  function renderBoard() {
+    const t = S.t, b = $('board'); b.innerHTML = '';
+    const winCards = t.street === 'done' && t.result && t.result.showdown ? new Set(t.result.pots[0].winners.flatMap(i => t.result.scores[i].cards.map(c => c.id))) : new Set();
+    for (let k = 0; k < 5; k++) { const c = t.board[k]; b.append(c ? cardEl(c, winCards.has(c.id) ? 'win' : '', (k % 3) * .12) : h('div', { class: 'card slot' })); }
+    const pot = P.potTotal(t), pe = $('pot'); pe.innerHTML = '';
+    if (t.street === 'done' && t.pots.length > 1) pe.append(t.pots.map((q, k) => h('span', null, (k ? 'Side pot ' : 'Main pot ') + money(q.amt))).reduce((a, x) => a.concat([x, ' · ']), []).slice(0, -1));
+    else if (pot) pe.append(Casino.chipEl(pot >= 500 ? 500 : pot >= 100 ? 100 : 25), 'Pot ' + money(pot));
+  }
+  function seeCards(i) {
+    const t = S.t, s = t.seats[i];
+    if (t.street === 'done' && t.result && t.result.showdown && !s.folded) return true;
+    if (!s.p.human) return false;
+    return humans() === 1 || S.reveal === i;
+  }
+  function renderSeats() {
+    const t = S.t, box = $('seats'); box.innerHTML = '';
+    const winners = t.street === 'done' && t.result ? new Set(t.result.pots.flatMap(p => p.winners)) : new Set();
+    t.seats.forEach((s, i) => {
+      const p = s.p, turn = t.toAct === i && t.street !== 'done';
+      const winSet = winners.has(i) && t.result.showdown ? new Set(t.result.scores[i].cards.map(c => c.id)) : new Set();
+      const cards = s.hole.length ? (seeCards(i) ? s.hole.map((c, k) => cardEl(c, winSet.has(c.id) ? 'win' : '', k * .15)) : [backEl(), backEl()]) : [];
+      const el = h('div', { class: 'ps' + (turn ? ' turn' : '') + (s.folded && !s.out ? ' fold' : ''), 'data-i': i, style: { '--pc': p.color } },
+        h('div', { class: 'hc' }, cards),
+        h('div', null,
+          h('div', { class: 'nm' }, h('span', { class: 'dot' }), p.name, p.human ? null : h('span', { class: 'cpu' }, 'CPU')),
+          h('div', { class: 'bk' }, money(p.bank)),
+          h('div', { class: 'act' }, s.last || (turn ? 'To act…' : ''))),
+        t.button === i ? h('span', { class: 'btnD', title: 'Dealer button' }, 'D') : null,
+        s.bet ? h('span', { class: 'bet' }, money(s.bet)) : null,
+        t.street === 'done' && t.result && t.result.showdown && !s.folded ? h('div', { class: 'hn', style: { color: winners.has(i) ? 'var(--good)' : '#f3e9d2' } }, t.result.scores[i].name) : null,
+        p.human && p.bank < BB && (t.street === 'done' || t.street === 'idle') ? h('button', { class: 'rebuy', type: 'button', style: { gridColumn: '1 / -1' }, onclick: () => { Casino.rebuy(p); sfx('chips'); if (t.street === 'idle') newHand(); else render(); } }, 'Rebuy ' + money(Casino.START_BANK)) : null);
+      box.append(el);
+    });
+  }
+  function renderDock() {
+    const t = S.t, box = $('dockIn'); box.innerHTML = '';
+    const s = t.seats[t.toAct];
+    if (t.street !== 'done' && s && s.p.human && S.reveal === t.toAct) {
+      const L = P.heLegal(t); if (!L) return;
+      const best = t.board.length ? P.describe(P.best5(s.hole.concat(t.board)).score) : (s.hole[0].r === s.hole[1].r ? 'Pocket pair' : P.rankName(Math.max(s.hole[0].r, s.hole[1].r)) + '-' + P.rankName(Math.min(s.hole[0].r, s.hole[1].r)) + (s.hole[0].s === s.hole[1].s ? ' suited' : ''));
+      box.append(h('div', { class: 'who2' }, h('b', null, s.p.name), ' · ', best, ' · pot ', h('b', null, money(L.pot)), L.call ? h('span', null, ' · ', h('b', null, money(L.call)), ' to call') : null));
+      if (L.canRaise) {
+        S.raiseTo = Math.max(L.minTo, Math.min(L.maxTo, S.raiseTo || L.minTo));
+        const lab = h('b', { style: { color: 'var(--gold-hi)', minWidth: '96px', textAlign: 'right' } }, (S.raiseTo >= L.maxTo ? 'All in ' : (t.curBet ? 'Raise to ' : 'Bet ')) + money(S.raiseTo));
+        const rng = h('input', { type: 'range', min: L.minTo, max: L.maxTo, step: 5, value: S.raiseTo, 'aria-label': 'Raise amount' });
+        rng.addEventListener('input', () => { S.raiseTo = Math.min(L.maxTo, Math.max(L.minTo, Math.round(rng.value / 5) * 5 || L.minTo)); if (+rng.value >= L.maxTo) S.raiseTo = L.maxTo; lab.textContent = (S.raiseTo >= L.maxTo ? 'All in ' : (t.curBet ? 'Raise to ' : 'Bet ')) + money(S.raiseTo); });
+        box.append(h('div', { class: 'raise' }, h('span', { style: { fontSize: '12px', color: 'var(--mute)' } }, money(L.minTo)), rng, lab));
+        const q = (n, v) => h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.raiseTo = Math.max(L.minTo, Math.min(L.maxTo, Math.round(v))); sfx('click'); renderDock(); } }, n);
+        box.append(h('div', { class: 'quick' }, q('Min', L.minTo), q('½ pot', t.curBet + L.call + L.pot / 2), q('Pot', t.curBet + L.call + L.pot + L.call), q('All in', L.maxTo)));
+      }
+      box.append(h('div', { class: 'acts' },
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => act(L.fold ? 'fold' : 'check') }, L.fold ? 'Fold' : 'Check'),
+        h('button', { class: 'btn green', type: 'button', onclick: () => act('call') }, L.call ? (L.call >= s.p.bank ? 'All in ' : 'Call ') + money(L.call) : 'Check'),
+        h('button', { class: 'btn red', type: 'button', disabled: !L.canRaise, onclick: () => act('raise', S.raiseTo) }, L.canRaise ? (S.raiseTo >= L.maxTo ? 'All in' : t.curBet ? 'Raise' : 'Bet') : 'Raise')));
+    } else if (t.street === 'done' || t.street === 'idle') {
+      box.append(h('div', { class: 'acts', style: { gridTemplateColumns: '1fr' } }, h('button', { class: 'btn big green', type: 'button', onclick: () => { sfx('click'); newHand(); } }, 'Next hand')));
+    } else box.append(h('div', { class: 'who2' }, 'Watching the table…'));
+  }
+  function renderMsg() { const m = $('msg'); m.innerHTML = ''; if (S.msg) m.append(h('div', null, h('b', null, S.msg[0]), S.msg[1] ? h('small', null, S.msg[1]) : null)); $('log').textContent = S.t.log.slice(-3).join(' · ').replace(/\bYou (checks|folds|calls|raises|bets|posts|goes)\b/g, (m, v) => 'You ' + { checks: 'check', folds: 'fold', calls: 'call', raises: 'raise', bets: 'bet', posts: 'post', goes: 'go' }[v]); }
+  function render() { renderBoard(); renderMsg(); renderSeats(); renderDock(); }
+
+  function showRules() {
+    Casino.modal('Texas Hold’em', h('div', null,
+      h('p', null, 'No-limit Texas Hold’em with blinds of ' + money(SB) + ' and ' + money(BB) + '. Each player gets two private cards; five shared cards come face up in the middle. Make the best five-card hand from any of your seven.'),
+      h('h3', null, 'Betting'),
+      h('p', null, 'There is a round of betting before the flop (three cards), after the flop, after the turn (fourth card) and after the river (fifth card). ', h('b', null, 'Check'), ' when nobody has bet, ', h('b', null, 'Call'), ' to match a bet, ', h('b', null, 'Raise'), ' to bet more (at least the size of the last raise), or ', h('b', null, 'Fold'), ' to give up the hand. You can go all in at any time; side pots are worked out for you.'),
+      h('h3', null, 'Hands, best to worst'),
+      h('p', null, 'Royal flush, straight flush, four of a kind, full house, flush, straight, three of a kind, two pair, pair, high card.'),
+      h('h3', null, 'Several players'),
+      h('p', null, 'Your stack is your casino bankroll. With more than one human at the table, the game asks everyone else to look away before showing each player their cards. Computer players think about their odds and sometimes bluff. Play money only.')), [{ label: 'Shuffle up and deal', cls: '' }]);
+  }
+
+  $('bRules').addEventListener('click', showRules);
+  const snd = $('bSnd'); snd.setAttribute('aria-pressed', !Casino.isMuted()); snd.addEventListener('click', () => { Casino.setMuted(!Casino.isMuted()); snd.setAttribute('aria-pressed', !Casino.isMuted()); sfx('click'); });
+  window.__he = { S, P, act, newHand, render, loop };
+  Casino.pickSeats($('setup'), { game: 'holdem', max: 6, title: 'Take your seats', blurb: 'Two to six players, no-limit, blinds ' + money(SB) + '/' + money(BB) + '. Your stack is your casino bankroll.', onStart: start });
+  Casino.registerSW();
+})();
+</script>
+</body>
+</html>

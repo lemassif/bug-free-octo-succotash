@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Blackjack">
+<meta name="theme-color" content="#3a0c18">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Blackjack — Lucky Seven Casino</title>
+<link rel="stylesheet" href="casino.css">
+<style>
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .felt { margin: 8px 10px 0; padding: 12px 10px 14px; border-radius: 20px; border: 3px solid var(--gold-lo); box-shadow: 0 0 0 3px #1a050b, 0 10px 22px rgba(0,0,0,.5);
+    background: radial-gradient(130% 80% at 50% 0%, var(--felt-hi), var(--felt) 55%, var(--felt-lo)); position: relative; }
+  .arc { text-align: center; font: 700 11px var(--serif); letter-spacing: .3em; text-indent: .3em; text-transform: uppercase; color: rgba(255,227,154,.7); margin: 0 0 6px; }
+  .dealer { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 124px; }
+  .dealer .lab { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--gold-hi); font-weight: 800; }
+  .msg { margin: 8px auto 6px; text-align: center; min-height: 40px; display: grid; place-items: center; }
+  .msg b { font: 700 clamp(17px, 5vw, 24px)/1.1 var(--serif); letter-spacing: .05em; text-transform: uppercase; color: var(--gold-hi); text-shadow: 0 2px 0 rgba(0,0,0,.6); }
+  .msg small { color: #f3e9d2; font-size: 12.5px; }
+
+  .cards { display: flex; min-height: 62px; align-items: center; }
+  .card { position: relative; width: 42px; height: 60px; border-radius: 6px; background: #fff; color: #111; box-shadow: 0 2px 5px rgba(0,0,0,.5); border: 1px solid #bbb; flex: none; font-weight: 800; user-select: none; }
+  .dealer .card { width: 52px; height: 74px; border-radius: 7px; }
+  .card + .card { margin-left: -17px; } .dealer .card + .card { margin-left: -12px; }
+  .card.red { color: #c8202f; }
+  .card .r { position: absolute; left: 3px; top: 2px; font: 800 14px/1 var(--sans); letter-spacing: -1px; }
+  .dealer .card .r { font-size: 18px; left: 5px; top: 3px; }
+  .card .s { position: absolute; left: 4px; top: 18px; width: 11px; height: 11px; fill: currentColor; }
+  .dealer .card .s { width: 14px; height: 14px; top: 23px; left: 5px; }
+  .card .b { position: absolute; right: 4px; bottom: 4px; width: 22px; height: 22px; fill: currentColor; opacity: .92; }
+  .dealer .card .b { width: 28px; height: 28px; }
+  .card.back { background: repeating-linear-gradient(45deg, #7a1d33 0 5px, #5c1426 5px 10px); border: 2px solid #fff; }
+  .card.back::after { content: ""; position: absolute; inset: 5px; border: 1.5px solid rgba(255,227,154,.7); border-radius: 3px; }
+  .card.fresh { animation: deal .42s cubic-bezier(.2, .8, .3, 1) both; animation-delay: var(--d, 0s); }
+  @keyframes deal { from { opacity: 0; transform: translate(40px, -110px) rotate(14deg); } }
+  .tot { display: inline-block; margin-top: 4px; min-width: 26px; padding: 1px 8px; border-radius: 999px; background: rgba(0,0,0,.55); color: #fff; font-weight: 900; font-size: 13px; text-align: center; }
+  .tot.bust { background: var(--bad); color: #2a0509; } .tot.bj { background: var(--gold); color: var(--ink); }
+
+  .seats { display: flex; gap: 6px; overflow-x: auto; padding: 12px 2px 4px; scroll-snap-type: x proximity; justify-content: safe center; scrollbar-width: none; }
+  .seats::-webkit-scrollbar { display: none; }
+  .bs { flex: none; scroll-snap-align: center; min-width: 104px; padding: 8px 8px 10px; border-radius: 16px; background: rgba(0,0,0,.28); border: 2px solid rgba(255,255,255,.12); text-align: center; position: relative; cursor: pointer; }
+  .bs[aria-pressed="true"] { border-color: var(--pc); }
+  .bs.turn { box-shadow: 0 0 0 3px var(--gold-hi), 0 0 22px rgba(255,227,154,.5); border-color: var(--gold-hi); }
+  .bs .nm { display: flex; justify-content: center; align-items: center; gap: 6px; font-weight: 800; font-size: 13px; white-space: nowrap; }
+  .bs .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--pc); box-shadow: 0 0 0 2px rgba(0,0,0,.4); }
+  .bs .cpu { font-size: 9px; letter-spacing: .1em; padding: 1px 5px; border-radius: 4px; background: rgba(255,255,255,.14); color: var(--mute); }
+  .bs .bk { font-weight: 900; font-size: 16px; color: var(--gold-hi); }
+  .hands { display: flex; gap: 10px; justify-content: center; margin: 8px 0 2px; min-height: 96px; align-items: flex-start; }
+  .hand { display: flex; flex-direction: column; align-items: center; padding: 3px 4px 4px; border-radius: 10px; border: 2px solid transparent; }
+  .hand.act { border-color: var(--gold-hi); background: rgba(255,227,154,.12); }
+  .res { margin-top: 4px; font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+  .res.win { background: var(--good); color: #05210f; } .res.lose { background: var(--bad); color: #2a0509; } .res.push { background: var(--gold); color: var(--ink); }
+  .wager { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 6px; min-height: 40px; font-weight: 900; color: var(--gold-hi); font-size: 14px; }
+  .wager .chip { --s: 34px; }
+  .ins { font-size: 11px; color: var(--gold-hi); font-weight: 800; }
+  .bs .pop { position: absolute; left: 50%; top: 64px; transform: translateX(-50%); font-weight: 900; font-size: 18px; pointer-events: none; animation: rise 1.8s ease-out forwards; text-shadow: 0 2px 4px #000; z-index: 5; }
+  .bs .pop.win { color: var(--good); } .bs .pop.lose { color: var(--bad); } .bs .pop.push { color: var(--gold-hi); }
+
+  .dock { position: sticky; bottom: 0; z-index: 25; padding: 8px 10px max(10px, env(safe-area-inset-bottom)); background: linear-gradient(0deg, #12060a 72%, rgba(18,6,10,0)); }
+  .dock .inner { max-width: 760px; margin: 0 auto; display: grid; gap: 8px; }
+  .dock .who2 { text-align: center; font-size: 12px; color: var(--mute); letter-spacing: .05em; } .dock .who2 b { color: var(--gold-hi); }
+  .acts3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+  .acts3 .btn { padding: 13px 4px; font-size: 13px; letter-spacing: .05em; }
+  .acts2 { display: grid; grid-template-columns: 1fr 1fr 1.6fr; gap: 7px; }
+  .acts2 .btn { padding: 13px 4px; font-size: 13px; }
+  .shoe { text-align: center; font-size: 11px; color: var(--mute); letter-spacing: .08em; }
+  .rebuy { background: var(--gold); color: var(--ink); border: 0; border-radius: 999px; font-size: 10px; font-weight: 900; letter-spacing: .06em; padding: 4px 9px; text-transform: uppercase; margin-top: 4px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="sS" viewBox="0 0 24 24"><path d="M12 1.5C8 7 2.8 10 2.8 14.2c0 2.9 2.3 4.9 5 4.9 1.5 0 2.7-.6 3.5-1.7-.3 2.1-1.1 3.4-2.6 4.8h6.6c-1.5-1.4-2.3-2.7-2.6-4.8.8 1.1 2 1.7 3.5 1.7 2.7 0 5-2 5-4.9C21.2 10 16 7 12 1.5z"/></symbol>
+  <symbol id="sH" viewBox="0 0 24 24"><path d="M12 22C4 15.4 1.8 11.8 1.8 8.2 1.8 5 4.2 2.8 7 2.8c2 0 3.6 1 5 3 1.4-2 3-3 5-3 2.8 0 5.2 2.200 5.200 5.400 0 3.600-2.200 7.200-10.200 13.800z"/></symbol>
+  <symbol id="sD" viewBox="0 0 24 24"><path d="M12 1l9 11-9 11L3 12z"/></symbol>
+  <symbol id="sC" viewBox="0 0 24 24"><path d="M12 1.800a4.600 4.600 0 0 0-3.300 7.800A4.800 4.800 0 1 0 11 16.600c-.2 2.200-.9 3.700-2.400 5.600h6.800c-1.500-1.900-2.200-3.400-2.400-5.600a4.800 4.800 0 1 0 2.300-7A4.600 4.600 0 0 0 12 1.800z"/></symbol>
+</defs></svg>
+<header class="top tight">
+  <a class="back" href="casino.html">&#8249; Lobby</a><h1>Blackjack</h1>
+  <div class="tools"><button class="tool" id="bRules" type="button">Rules</button><button class="tool" id="bSnd" type="button" aria-pressed="true" aria-label="Sound">Sound</button></div>
+</header>
+<div id="setup"></div>
+<main id="game" class="wrap" hidden>
+  <section class="felt" aria-label="Blackjack table">
+    <p class="arc">Blackjack pays 3 to 2 &nbsp;·&nbsp; Dealer stands on 17</p>
+    <div class="dealer" id="dealer"></div>
+    <div class="msg" id="msg" aria-live="polite"></div>
+    <div class="seats" id="seats"></div>
+  </section>
+  <p class="shoe" id="shoe"></p>
+</main>
+<footer class="dock" id="dock" hidden><div class="inner" id="dockIn"></div></footer>
+
+<script src="blackjack-engine.js"></script>
+<script src="casino-core.js"></script>
+<script>
+(function () {
+  'use strict';
+  const B = Blackjack, { h, money, signed, sfx } = Casino;
+  const $ = id => document.getElementById(id);
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const MIN = 5, MAX = 500;
+  const S = { g: null, ps: [], active: 0, chip: 25, bets: [], last: [], phase: 'setup', hold: null, reveal: false, dealerShown: 2, seen: new Set(), turnKey: '', msg: null, results: null, hintOn: false, bust: false };
+  const SUIT_RED = { H: 1, D: 1 };
+  const RANK_NAME = { A: 'Ace', K: 'King', Q: 'Queen', J: 'Jack' };
+  const CPU_UNIT = [10, 25, 5, 50, 15, 100];
+
+  /* ---------- game flow ---------- */
+  function start(players) {
+    S.ps = players; S.g = B.newGame({}, players, window.__bjRng || Math.random);
+    S.bets = players.map(() => 0); S.last = players.map(() => 0);
+    const first = players.findIndex(p => p.human); S.active = first < 0 ? 0 : first;
+    $('setup').hidden = true; $('game').hidden = false; $('dock').hidden = false;
+    try { if (!localStorage.getItem('luckyseven.bj.seen')) { localStorage.setItem('luckyseven.bj.seen', '1'); setTimeout(showRules, 400); } } catch (e) { /* ignore */ }
+    beginBet();
+  }
+  function beginBet() {
+    S.phase = 'bet'; S.hold = null; S.reveal = false; S.dealerShown = 2; S.results = null; S.turnKey = ''; S.msg = ['Place your bets', 'Tap a chip to add it to your bet, then Deal'];
+    S.g.dealer = []; S.g.seats.forEach(s => { s.hands = []; s.insurance = 0; });
+    S.ps.forEach((p, i) => {
+      if (!p.human) { if (p.bank < MIN) { Casino.rebuy(p); Casino.toast(p.name + ' reloads ' + money(Casino.START_BANK) + '.'); } S.bets[i] = Math.min(CPU_UNIT[p.style % 6], Math.floor(p.bank / MIN) * MIN); }
+      else S.bets[i] = S.last[i] && p.bank >= S.last[i] ? S.last[i] : (p.bank >= MIN ? Math.min(S.bets[i] || 0, p.bank) : 0);
+    });
+    Casino.save(); render(); $('seats').scrollLeft = 0;
+  }
+  async function deal() {
+    if (S.phase !== 'bet') return;
+    const bets = S.bets.map((b, i) => b >= MIN && S.ps[i].bank + 1e-9 >= b ? b : 0);
+    if (!bets.some((b, i) => b > 0 && S.ps[i].human)) { Casino.toast('Place a bet of at least ' + money(MIN) + ' first.'); return; }
+    S.last = S.bets.slice(); S.phase = 'dealing'; S.msg = ['Dealing…', '']; S.hold = null; S.reveal = false; S.dealerShown = 2;
+    B.startRound(S.g, bets); render();
+    sfx('card'); for (let i = 1; i < S.g.dealLog.length; i++) setTimeout(() => sfx('card'), i * 180);
+    await sleep(S.g.dealLog.length * 200 + 450);
+    if (S.g.reshuffled) Casino.toast('The shoe was reshuffled.');
+    afterDeal();
+  }
+  async function afterDeal() {
+    const g = S.g;
+    if (g.phase === 'insurance') await insuranceRound();
+    if (g.phase === 'done') { S.reveal = true; S.dealerShown = 2; return finish(g.results, true); }
+    S.phase = 'play'; loop();
+  }
+  async function insuranceRound() {
+    const g = S.g; S.phase = 'insurance';
+    S.msg = ['Insurance?', 'The dealer shows an Ace.']; render();
+    for (let i = 0; i < g.seats.length; i++) {
+      if (!B.canInsure(g, i)) continue;
+      const p = S.ps[i];
+      if (p.human) {
+        const take = await new Promise(res => {
+          const m = Casino.modal(p.name + ' · Insurance?', h('div', null, h('p', null, 'The dealer shows an Ace. Insurance costs ' + money(g.seats[i].bet / 2) + ' and pays 2 to 1 if the dealer has blackjack.'), h('p', null, 'Basic strategy says: never take insurance.')),
+            [{ label: 'No thanks', fn: () => res(false) }, { label: 'Take insurance', cls: '', fn: () => res(true) }]);
+          m.el.addEventListener('click', e => { if (e.target === m.el) res(false); });
+        });
+        if (take) { B.takeInsurance(g, i); sfx('chip'); render(); }
+      }
+    }
+    B.finishInsurance(g);
+    if (g.phase === 'done') { await sleep(300); }
+  }
+
+  let looping = false;   // only one loop may drive the table, otherwise the dealer could play twice
+  async function loop() {
+    if (looping) return; looping = true;
+    try { await loopBody(); } finally { looping = false; }
+  }
+  async function loopBody() {
+    const g = S.g;
+    for (;;) {
+      if (g.phase === 'dealer') return dealerTurn();
+      if (g.phase !== 'play' || !g.turn) return;
+      const s = g.seats[g.turn.seat], p = S.ps[g.turn.seat], h0 = s.hands[g.turn.hand];
+      S.turnKey = g.turn.seat + ':' + g.turn.hand;
+      S.msg = [p.human ? (p.name === 'You' ? 'Your move' : p.name + '’s move') : p.name + ' is thinking…', 'You hold ' + totalText(h0) + ' against a dealer ' + B.val(g.dealer[0]) + (g.dealer[0].r === 'A' ? ' (Ace)' : '')];
+      render(); scrollToTurn();
+      if (p.human) return;                                   // wait for the player's button
+      await sleep(900);
+      const L = B.legal(g); let a = B.basic(h0.cards, B.upValue(g), L, g.rules); if (!L[a]) a = L.hit ? 'hit' : 'stand';
+      act(a, true); await sleep(650);
+    }
+  }
+  function act(a, fromCpu) {
+    const g = S.g; if (S.phase !== 'play' || !g.turn) return;
+    const p = S.ps[g.turn.seat]; if (!fromCpu && !p.human) return;
+    const ok = B.act(g, a); if (!ok) { Casino.toast('You can’t do that now.'); return; }
+    sfx(a === 'stand' || a === 'surrender' ? 'click' : a === 'double' || a === 'split' ? 'chips' : 'card');
+    render();
+    if (!fromCpu) loop();
+  }
+  async function dealerTurn() {
+    const g = S.g; if (S.phase === 'dealer' || S.phase === 'done') return; S.phase = 'dealer'; S.hold = S.ps.map(p => p.bank); S.msg = ['Dealer’s turn', '']; render(); await sleep(500);
+    S.reveal = true; sfx('card'); render(); await sleep(750);
+    const results = B.dealerPlay(g);
+    S.dealerShown = 2;
+    for (let i = 2; i < g.dealer.length; i++) { S.dealerShown = i + 1; sfx('card'); render(); await sleep(800); }
+    finish(results, false);
+  }
+  function finish(results, instant) {
+    const g = S.g; S.hold = null; S.reveal = true; S.dealerShown = g.dealer.length; S.phase = 'done'; S.results = results;
+    const dv = B.handValue(g.dealer).total;
+    S.msg = g.dealerBJ ? ['Dealer has blackjack', ''] : dv > 21 ? ['Dealer busts with ' + dv, 'Every standing hand wins.'] : ['Dealer stands on ' + dv, ''];
+    S.ps.forEach(p => Casino.touch(p)); Casino.save(); render(); $('seats').scrollLeft = 0;
+    let big = false, anyWin = false;
+    const nets = S.ps.map(() => 0); results.forEach(r => { nets[r.seat] = Casino.r2(nets[r.seat] + r.net); });
+    nets.forEach((n, i) => { if (g.seats[i].hands.length) { const el = document.querySelector('.bs[data-i="' + i + '"]'); if (el) Casino.pop(el, n === 0 ? 'Push' : signed(n), n > 0 ? 'win' : n < 0 ? 'lose' : 'push'); if (n > 0) anyWin = true; if (n >= 50) big = true; } });
+    results.forEach(r => { if (r.outcome === 'blackjack') big = true; });
+    sfx(big ? 'big' : anyWin ? 'win' : nets.some(n => n < 0) ? 'lose' : 'push');
+    const humansBusted = S.ps.some(p => p.human && p.bank < MIN);
+    if (humansBusted) Casino.toast('Someone is out of chips. Tap Rebuy on their seat.');
+  }
+
+  /* ---------- betting ---------- */
+  function addChip(i, v) {
+    if (S.phase !== 'bet') return; const p = S.ps[i]; if (!p.human) return;
+    const nb = Casino.r2((S.bets[i] || 0) + v);
+    if (nb > MAX) { Casino.toast('Table maximum is ' + money(MAX) + '.'); return; }
+    if (nb > p.bank + 1e-9) { Casino.toast('Not enough chips.'); sfx('lose'); return; }
+    S.bets[i] = nb; sfx('chip'); render();
+  }
+
+  /* ---------- rendering ---------- */
+  const totalText = hand => { const v = B.handValue(hand.cards); return (v.soft && v.total < 21 ? 'soft ' : '') + v.total; };
+  function cardEl(c, cls, delay) {
+    const fresh = !S.seen.has(c.id); S.seen.add(c.id);
+    const red = SUIT_RED[c.s] ? ' red' : '';
+    return h('div', { class: 'card' + red + (fresh ? ' fresh' : '') + (cls ? ' ' + cls : ''), style: fresh ? { '--d': (delay || 0) + 's' } : null, role: 'img', 'aria-label': (RANK_NAME[c.r] || c.r) + ' of ' + { S: 'spades', H: 'hearts', D: 'diamonds', C: 'clubs' }[c.s],
+      html: '<span class="r">' + c.r + '</span><svg class="s" viewBox="0 0 24 24"><use href="#s' + c.s + '"/></svg><svg class="b" viewBox="0 0 24 24"><use href="#s' + c.s + '"/></svg>' });
+  }
+  const backEl = () => h('div', { class: 'card back', 'aria-label': 'Face-down card' });
+  function delayFor(id) { const i = S.g.dealLog.indexOf(id); return i < 0 ? 0 : Math.min(i, 14) * 0.2; }
+
+  function renderDealer() {
+    const d = $('dealer'), g = S.g; d.innerHTML = '';
+    d.append(h('div', { class: 'lab' }, 'Dealer'));
+    const row = h('div', { class: 'cards' });
+    g.dealer.forEach((c, i) => {
+      if (i === 1 && !S.reveal) { row.append(backEl()); return; }
+      if (i >= S.dealerShown && S.phase === 'dealer') return;
+      row.append(cardEl(c, '', delayFor(c.id)));
+    });
+    d.append(row);
+    if (g.dealer.length) {
+      const showAll = S.reveal && (S.phase === 'done' || S.phase === 'dealer');
+      const shown = showAll ? g.dealer.slice(0, S.phase === 'done' ? g.dealer.length : S.dealerShown) : [g.dealer[0]];
+      const v = B.handValue(shown); const t = h('span', { class: 'tot' + (v.total > 21 ? ' bust' : g.dealerBJ && S.phase === 'done' ? ' bj' : '') }, v.total > 21 ? 'BUST ' + v.total : (S.reveal && g.dealerBJ && shown.length === 2) ? 'Blackjack' : String(v.total));
+      d.append(t);
+    }
+  }
+  function renderSeats() {
+    const box = $('seats'), keep = box.scrollLeft; box.innerHTML = '';
+    const g = S.g;
+    S.ps.forEach((p, i) => {
+      const s = g.seats[i], turn = g.turn && g.turn.seat === i && S.phase === 'play';
+      const bank = S.hold ? S.hold[i] : (S.phase === 'bet' ? Casino.r2(p.bank - (S.bets[i] || 0)) : p.bank);
+      const el = h('div', { class: 'bs' + (turn ? ' turn' : ''), 'data-i': i, 'aria-pressed': i === S.active, style: { '--pc': p.color }, onclick: () => { if (p.human && S.phase === 'bet') { S.active = i; sfx('click'); render(); } } },
+        h('div', { class: 'nm' }, h('span', { class: 'dot' }), p.name, p.human ? null : h('span', { class: 'cpu' }, 'CPU')),
+        h('div', { class: 'bk' }, money(bank)));
+      const hands = h('div', { class: 'hands' });
+      s.hands.forEach((hd, hi) => {
+        const act = turn && g.turn.hand === hi;
+        const v = B.handValue(hd.cards);
+        const hw = h('div', { class: 'hand' + (act ? ' act' : '') },
+          h('div', { class: 'cards' }, hd.cards.map(c => cardEl(c, '', delayFor(c.id)))),
+          h('span', { class: 'tot' + (v.total > 21 ? ' bust' : hd.bj ? ' bj' : '') }, hd.bj ? 'Blackjack' : v.total > 21 ? 'BUST ' + v.total : totalText(hd)));
+        if (S.phase === 'done' && hd.outcome) {
+          const o = hd.outcome, win = o === 'win' || o === 'blackjack', lose = o === 'lose' || o === 'bust' || o === 'surrender';
+          hw.append(h('span', { class: 'res ' + (win ? 'win' : lose ? 'lose' : 'push') }, o === 'blackjack' ? 'Blackjack' : o === 'surrender' ? 'Surrender' : o === 'push' ? 'Push' : win ? 'Win' : o === 'bust' ? 'Bust' : 'Lose'));
+          hw.append(h('div', { class: 'wager', style: { color: hd.net > 0 ? 'var(--good)' : hd.net < 0 ? 'var(--bad)' : 'var(--gold-hi)' } }, hd.net === 0 ? 'Even' : signed(hd.net)));
+        } else hw.append(h('div', { class: 'wager' }, hd.doubled ? 'Double ' + money(hd.bet) : money(hd.bet)));
+        hands.append(hw);
+      });
+      if (!s.hands.length) {
+        if (S.phase === 'bet') {
+          const b = S.bets[i] || 0;
+          hands.append(h('div', { style: { alignSelf: 'center' } }, b >= MIN ? h('div', { class: 'wager' }, Casino.chipEl(chipFor(b)), money(b)) : h('div', { class: 'ins' }, p.bank < MIN ? 'Out of chips' : 'No bet')));
+        } else hands.append(h('div', { class: 'ins', style: { alignSelf: 'center' } }, 'Sitting out'));
+      }
+      el.append(hands);
+      if (s.insurance) el.append(h('div', { class: 'ins' }, 'Insurance ' + money(s.insurance)));
+      if (p.human && p.bank < MIN && S.phase !== 'play' && S.phase !== 'dealer') el.append(h('button', { class: 'rebuy', type: 'button', onclick: e => { e.stopPropagation(); Casino.rebuy(p); sfx('chips'); render(); } }, 'Rebuy ' + money(Casino.START_BANK)));
+      box.append(el);
+    });
+    box.scrollLeft = keep;
+  }
+  const chipFor = b => b >= 500 ? 500 : b >= 100 ? 100 : b >= 25 ? 25 : b >= 5 ? 5 : 1;
+  function scrollToTurn() { const box = $('seats'), el = box.querySelector('.bs.turn'); if (el) box.scrollLeft = el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2; }
+
+  function renderMsg() { const m = $('msg'); m.innerHTML = ''; if (S.msg) m.append(h('div', null, h('b', null, S.msg[0]), S.msg[1] ? h('div', null, h('small', null, S.msg[1])) : null)); }
+  function renderDock() {
+    const box = $('dockIn'); box.innerHTML = ''; const g = S.g;
+    $('shoe').textContent = 'Shoe: ' + B.cardsLeft(g) + ' of ' + g.shoe.cards.length + ' cards left · ' + g.rules.decks + ' decks · table ' + money(MIN) + '–' + money(MAX);
+    if (S.phase === 'bet') {
+      const ap = S.ps[S.active];
+      box.append(Casino.chipTray(S.chip, v => { S.chip = v; addChip(S.active, v); }));
+      box.append(h('div', { class: 'who2' }, ap && ap.human ? h('span', null, 'Betting for ', h('b', null, ap.name), ' · bet ', h('b', null, money(S.bets[S.active] || 0))) : 'Seat a human player to bet'));
+      box.append(h('div', { class: 'acts2' },
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.bets[S.active] = 0; sfx('click'); render(); } }, 'Clear'),
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => { const cur = S.bets[S.active] || 0; if (cur) addChip(S.active, cur); } }, 'Double bet'),
+        h('button', { class: 'btn red', type: 'button', onclick: deal }, 'Deal')));
+    } else if (S.phase === 'play' && g.turn && S.ps[g.turn.seat].human) {
+      const L = B.legal(g), s = g.seats[g.turn.seat], hd = s.hands[g.turn.hand];
+      const rec = B.basic(hd.cards, B.upValue(g), L, g.rules);
+      box.append(h('div', { class: 'who2' }, h('b', null, S.ps[g.turn.seat].name), ' holds ', h('b', null, totalText(hd)), ' · hand ' + (g.turn.hand + 1) + ' of ' + s.hands.length));
+      box.append(h('div', { class: 'acts3' },
+        h('button', { class: 'btn green', type: 'button', disabled: !L.hit, onclick: () => act('hit') }, 'Hit'),
+        h('button', { class: 'btn red', type: 'button', disabled: !L.stand, onclick: () => act('stand') }, 'Stand'),
+        h('button', { class: 'btn', type: 'button', disabled: !L.double, onclick: () => act('double') }, 'Double')));
+      box.append(h('div', { class: 'acts3' },
+        h('button', { class: 'btn', type: 'button', disabled: !L.split, onclick: () => act('split') }, 'Split'),
+        h('button', { class: 'btn ghost', type: 'button', disabled: !L.surrender, onclick: () => act('surrender') }, 'Surrender'),
+        h('button', { class: 'btn ghost', type: 'button', 'aria-pressed': S.hintOn, onclick: () => { S.hintOn = !S.hintOn; render(); } }, S.hintOn ? 'Hint: ' + rec : 'Hint')));
+    } else if (S.phase === 'done') {
+      box.append(h('div', { class: 'acts2', style: { gridTemplateColumns: '1fr' } }, h('button', { class: 'btn big green', type: 'button', onclick: () => { sfx('click'); beginBet(); } }, 'Next hand')));
+    } else {
+      box.append(h('div', { class: 'who2' }, S.phase === 'insurance' ? 'Insurance is being offered…' : S.phase === 'dealer' ? 'Dealer is playing…' : 'Watching the table…'));
+    }
+  }
+  function render() { renderDealer(); renderMsg(); renderSeats(); renderDock(); }
+
+  function showRules() {
+    Casino.modal('How blackjack works', h('div', null,
+      h('p', null, 'Beat the dealer without going over 21. Aces count 1 or 11, face cards count 10. A two-card 21 is a blackjack and pays 3 to 2.'),
+      h('h3', null, 'Your options'),
+      h('p', null, h('b', null, 'Hit'), ' for another card. ', h('b', null, 'Stand'), ' to keep your total. ', h('b', null, 'Double'), ' your bet for exactly one more card. ', h('b', null, 'Split'), ' a pair into two hands (up to four hands; split Aces get one card each). ', h('b', null, 'Surrender'), ' to give up half your bet on your first decision.'),
+      h('h3', null, 'The dealer'),
+      h('p', null, 'The dealer hits to 16 and stands on every 17, including soft 17. With a 10 or Ace showing, the dealer peeks for blackjack first. If the dealer shows an Ace you may buy insurance for half your bet; it pays 2 to 1.'),
+      h('h3', null, 'The edge'),
+      h('p', null, 'Six decks, double after split, late surrender: perfect basic strategy leaves the house about 0.4%. The Hint button shows the basic-strategy play for your hand.'),
+      h('p', null, 'Everyone sits at the same table. Pass the phone around; computer players play by basic strategy. Play money only.')), [{ label: 'Deal me in', cls: '' }]);
+  }
+
+  /* ---------- wiring ---------- */
+  $('bRules').addEventListener('click', showRules);
+  const snd = $('bSnd'); snd.setAttribute('aria-pressed', !Casino.isMuted()); snd.addEventListener('click', () => { Casino.setMuted(!Casino.isMuted()); snd.setAttribute('aria-pressed', !Casino.isMuted()); sfx('click'); });
+  window.__bj = { S, B, deal, act, beginBet, render };
+  Casino.pickSeats($('setup'), { game: 'blackjack', max: 5, title: 'Take your seats', blurb: 'Up to five players at the table. The dealer deals to everyone, and each human plays their hand in turn.', onStart: start });
+  Casino.registerSW();
+})();
+</script>
+</body>
+</html>
