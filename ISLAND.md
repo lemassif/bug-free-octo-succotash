@@ -128,6 +128,16 @@ depart date and time, and add Work on the house, Open camp, Close camp and Get b
 of water to the activity list (once; anything the family removed stays
 removed).
 
+### Looking at the data in Supabase
+
+- **Table Editor → entries** has one row per journal entry; **photos** and
+  **fish** link pictures and fish to their entry.
+- **Storage → photos** holds the pictures, in one folder per entry. **Every
+  photo is two files on purpose:** `name.jpg` is the full-size copy shown when
+  you tap a photo, and `name-t.jpg` is the small thumbnail used in the journal.
+  They are not duplicates. **Don't delete files here.** To remove a photo, edit
+  its entry in the app and tap ✕; that removes both files together.
+
 ### Free-plan limits
 
 - **Photo storage: 1 GB.** That is roughly 3,000 photos at the app's size.
