@@ -14,7 +14,7 @@
 import { createStore } from './store.js';
 import { preparePhoto } from './photos.js';
 
-export const VERSION = '1.3.2';
+export const VERSION = '1.3.3';
 const REPO_GUIDE = 'https://github.com/lemassif/bug-free-octo-succotash/blob/main/ISLAND.md';
 const DRAFT_KEY = 'island-dreams-draft';
 const PENDING_EMAIL_KEY = 'island-dreams-email';
@@ -553,10 +553,23 @@ function chipRow(e) {
     ordered('activity', e.activities).map((a) => h('span', { class: 'chip activity' }, icon(a) + ' ' + a)));
 }
 
+/* Links for photos in the size asked for. If that copy of a photo is
+   missing from storage, use its other copy, so a picture never shows
+   as a blank square or an empty full-screen view. */
+async function pictureUrls(photos, size) {
+  const urls = await store.photoUrls(photos, size);
+  const missing = photos.filter((p) => !urls.has(p.id));
+  if (missing.length) {
+    const other = await store.photoUrls(missing, size === 'thumb' ? 'full' : 'thumb');
+    other.forEach((url, id) => urls.set(id, url));
+  }
+  return urls;
+}
+
 async function fillThumbs(pairs) {
   if (!pairs.length) return;
   try {
-    const urls = await store.photoUrls(pairs.map(([p]) => p), 'thumb');
+    const urls = await pictureUrls(pairs.map(([p]) => p), 'thumb');
     pairs.forEach(([p, img]) => { if (urls.has(p.id)) img.src = urls.get(p.id); });
   } catch (e) { /* thumbnails stay blank offline */ }
 }
@@ -726,8 +739,9 @@ function buildShareBox(box, e) {
     withPhotos.textContent = 'Getting photos ready…';
     try {
       const pics = pictures(e);
-      const urls = await store.photoUrls(pics, 'full');
-      files = await Promise.all(pics.map(async (p, i) => {
+      const urls = await pictureUrls(pics, 'full');
+      const ready = pics.filter((p) => urls.has(p.id));
+      files = await Promise.all(ready.map(async (p, i) => {
         const blob = await (await fetch(urls.get(p.id))).blob();
         return new File([blob], `island-dreams-${e.entry_date}-${i + 1}.jpg`, { type: 'image/jpeg' });
       }));
@@ -768,8 +782,10 @@ async function showLightboxPhoto() {
   $('lbPrev').hidden = lb.photos.length < 2;
   $('lbNext').hidden = lb.photos.length < 2;
   try {
-    const urls = await store.photoUrls([p], 'full');
-    if (lb.photos[lb.index] === p) img.src = urls.get(p.id);
+    const urls = await pictureUrls([p], 'full');
+    if (lb.photos[lb.index] !== p) return;
+    if (urls.has(p.id)) img.src = urls.get(p.id);
+    else toast('This photo’s file is missing. Edit the entry to add it again.', true);
   } catch (e) {
     toast(errorText(e));
   }
