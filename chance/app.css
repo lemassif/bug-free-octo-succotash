@@ -661,7 +661,7 @@ table.tbl th { background: #eef4fb; font-size: 13px; letter-spacing: .5px; }
 .bd-day.today { border: 4px solid var(--coral); background: #fff1ec; transform: scale(1.06); }
 .bd-day.thanks { grid-column: span 2; background: #fff4e0; border-color: #ffcf8a; }
 .bd-hero { margin: 4px 0 12px; border-radius: 20px; overflow: hidden; border: 4px solid var(--line); background: #000; cursor: pointer; }
-.bd-hero img { width: 100%; max-height: 52vh; object-fit: cover; display: block; }
+.bd-hero img { width: 100%; margin: 0 auto; max-height: 44vh; object-fit: cover; display: block; }
 .bd-hero figcaption { background: #fff; color: var(--ink-soft); font-size: 15px; font-weight: 700; padding: 8px 12px; }
 .bd-credit { font-size: 12px; color: var(--ink-soft); margin: 8px 0 24px; }
 .bd-credit summary { font-weight: 800; cursor: pointer; }

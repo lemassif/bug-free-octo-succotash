@@ -1,5 +1,5 @@
 /* Retro Arcade service worker — caches the whole arcade for offline play. */
-const CACHE = 'arcade-v42';
+const CACHE = 'arcade-v43';
 const ASSETS = [
   './',
   './index.html',

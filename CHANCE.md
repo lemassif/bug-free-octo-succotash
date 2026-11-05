@@ -218,7 +218,7 @@ screen. Three short books, every page read aloud, every picture tappable:
 
 | Book | What's in it |
 |---|---|
-| **🩸 My Amazing Blood** (8 pages) | The blood test and the phlebotomist, why the nurse let him shake the tube (it mixes in the medicine that keeps blood from clumping), then **real microscope photos of human blood**. He taps any red cell, white cell or platelet and hears what it does. A blood detective game: find the white cell, 3 platelets, 5 red cells. Why they test blood before surgery. And his own question, *do I get my blood back?* (No. The lab used it, but his bone marrow makes millions of new red cells every second.) |
+| **🩸 My Amazing Blood** (9 pages) | The blood test and the phlebotomist, why the nurse let him shake the tube (it mixes in the medicine that keeps blood from clumping), then **real microscope photos of human blood**. He taps any red cell, white cell or platelet and hears what it does. A blood detective game: find the white cell, 3 platelets, 5 red cells. Why they test blood before surgery. And his own question, *do I get my blood back?* (No. The lab used it, but his bone marrow makes millions of new red cells every second.) |
 | **👄 My Tonsils** (4 pages) | An open mouth to tap: tonsils, uvula, tongue. What tonsils do, what strep is (germs in chains), and why it's fine to live without them. |
 | **📖 Finn's Tonsil Adventure** (18 pages) | A 7-year-old who loves fishing and soccer keeps getting strep. The throat doctor, feelings, the blood test, the night before, the hospital (name bracelet, gown, arm hug, finger light), the team (the sleep doctor, the surgeon, nurses), the operating room (lights, bed, heart monitor, sleep mask, laser), what everyone wears and why (cap, mask, gown, gloves, laser goggles), the special sleep, how a laser works, the wake-up room and the popsicle, soft foods and all the ice cream he wants, games and homework from school, the two weeks of healing, and all better in time for Thanksgiving, wrestling, skiing and Christmas. Ends with "Your turn, Chance." |
 
@@ -243,11 +243,20 @@ Every hospital does things a little differently (a calm-medicine drink, a
 flavored sleep mask, going home the same day). Where the surgeon's instructions
 differ from the story, follow the surgeon.
 
-The microscope photos are from the BCCD Dataset (Shenggan, MIT licence), real
-stained blood smears where every cell was labelled by hand. That labelling is
-what lets him tap an actual cell and hear what it is. The operating-room and
-gear pictures are emoji for now. Each one has a slot for a real photo
-(`photo:` in `chance/js/body.js`, filled from `chance/data/body-photos.js`).
+The photos are real. The light-microscope blood photos are from the BCCD
+Dataset (Shenggan, MIT licence), stained blood smears where every cell was
+labelled by hand. That labelling is what lets him tap an actual cell and hear
+what it is. The hospital and operating-room photos come from Wikimedia Commons
+under free licences: an empty modern operating room, a surgeon in cap, mask,
+gown and gloves, an operating room helper, the operating light, bed, heart
+monitor and the sleep doctor's machine, the cap, mask, gown, gloves and laser
+goggles, a hospital gown, the finger light, the blood pressure machine, blood
+tubes, and a colour electron-microscope photo of a red cell, a white cell and a
+platelet ("Blood in 3D"). Every one was looked at before it went in: no
+patients, no surgery in progress, no blood except the tube of blood like his own.
+Credits are under **📷 Photo credits** on the My Body screen. A few pictures are
+still emoji (name bracelet, thermometer, scale, sleep mask, laser machine,
+shoe covers) because no suitable free photo was found.
 
 ---
 

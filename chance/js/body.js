@@ -68,12 +68,12 @@ window.BodyLab = (function () {
       sub: 'Real blood cells under a microscope',
       pages: [
         {
-          title: 'The blood test', art: '🧑‍⚕️ 💪 🧪',
+          title: 'The blood test', art: '🧑‍⚕️ 💪 🧪', hero: 'tubes_rack',
           text: ['Today a nurse called a phlebotomist took a little bit of your blood.',
             'Phlebotomist is a big word. Fleh-BOT-oh-mist. It means a blood helper!',
             'She filled some small tubes. All together, it was only about a spoonful of blood.'],
           taps: [
-            { em: '🧪', name: 'The tubes', say: 'The tubes have different colored caps. Each color tells the lab which test to do.' },
+            { em: '🧪', name: 'The tubes', photo: 'tube_blood', say: 'The tubes have different colored caps. Each color tells the lab which test to do.' },
             { em: '💪', name: 'Your arm', say: 'The blood came from a vein in your arm. Veins are the bluish lines you can see under your skin.' },
             { em: '🩹', name: 'The bandage', say: 'The bandage covers the tiny hole while it closes up. Platelets in your blood patch it in just a few minutes.' },
             { em: '🥄', name: 'A spoonful', say: 'A boy your size has about seven cups of blood. The nurse took about a spoonful. Your body hardly missed it!' }
@@ -109,6 +109,16 @@ window.BodyLab = (function () {
           text: ['This photo has a white blood cell full of orange and pink dots.',
             'Tap it, and tap the other white cell in the corner too.'],
           white: function (c) { return (c[1] + c[3]) / 2 > 200 ? CELL_SAY.eosino : CELL_SAY.white; }
+        },
+        {
+          title: 'Blood in 3D', art: '🔬 🩸 ✨', hero: 'sem_color',
+          text: ['Some microscopes are so strong they can take pictures of blood cells in 3D. They are called electron microscopes.',
+            'Look at the red blood cell. It really is shaped like a donut with a dent in the middle!',
+            'The spiky yellow one is a platelet getting ready to make a patch. The fuzzy ball is a white blood cell.'],
+          taps: [
+            { em: '🔴', name: 'Lots of red cells', photo: 'sem_bw', say: 'This one has no colors added. Can you find the dented donuts? Those are red blood cells. The two bumpy balls are white blood cells.' },
+            { em: '📏', name: 'How small?', say: 'A red blood cell is so small that about sixty of them in a row would fit across the dot on a letter i.' }
+          ]
         },
         {
           title: 'Blood detective', kind: 'find', photo: 'smear2',
@@ -270,7 +280,7 @@ window.BodyLab = (function () {
           ]
         },
         {
-          title: 'Meet the team', art: '👩‍⚕️ 🧑‍⚕️ 👨‍⚕️',
+          title: 'Meet the team', art: '👩‍⚕️ 🧑‍⚕️ 👨‍⚕️', hero: 'team_tech',
           text: ['Lots of helpers came to say hello.',
             'The sleep doctor gives the medicine for the special sleep, and watches Finn the whole time.',
             'The surgeon is the doctor who takes out the tonsils. The nurses help everybody.'],
@@ -282,7 +292,7 @@ window.BodyLab = (function () {
           ]
         },
         {
-          title: 'The operating room', art: '🚪 💡 🛏️',
+          title: 'The operating room', art: '🚪 💡 🛏️', hero: 'or_room',
           text: ['Then Finn rode into the operating room. It looked like a room on a space ship!',
             'It was a little cold, so the nurses tucked him in with a warm blanket.',
             'Tap the pictures to see what is in the operating room.'],
@@ -290,6 +300,7 @@ window.BodyLab = (function () {
             { em: '💡', name: 'Big lights', photo: 'or_lights', say: 'These giant round lights are super bright, so the doctors can see clearly.' },
             { em: '🛏️', name: 'The bed', photo: 'or_bed', say: 'The operating bed is narrow, just right for a kid. A strap keeps you safe, like a seat belt in a car.' },
             { em: '📈', name: 'Heart monitor', photo: 'or_monitor', say: 'The monitor shows your heartbeat as wiggly lines. Beep, beep, beep. That beeping is your heart\'s song.' },
+            { em: '🫁', name: 'Sleep machine', photo: 'sleep_machine', say: 'This is the sleep doctor\'s machine. It gives the sleep medicine through the mask, and helps watch your breathing the whole time.' },
             { em: '❤️', name: 'Heart stickers', say: 'Sticky circles go on your chest. They tell the monitor about your heartbeat. They peel off like stickers.' },
             { em: '🌬️', name: 'Sleep mask', photo: 'or_mask', say: 'The sleep mask goes over your nose and mouth. You just breathe normally. Some hospitals let you pick a smell, like strawberry or bubble gum.' },
             { em: '🔦', name: 'Laser machine', photo: 'laser', say: 'The laser machine makes a very thin, very strong beam of light. You are asleep the whole time it is used.' },
@@ -297,7 +308,7 @@ window.BodyLab = (function () {
           ]
         },
         {
-          title: 'What everyone wears', art: '🧢 😷 🧤',
+          title: 'What everyone wears', art: '🧢 😷 🧤', hero: 'surgeon',
           text: ['Everyone in the operating room wears special clothes. Underneath, they are smiling at you!',
             'Tap each one to find out why.'],
           taps: [
@@ -593,6 +604,7 @@ window.BodyLab = (function () {
     var ph = photo(k), f = el('figure', 'bd-hero');
     var img = document.createElement('img');
     img.src = ph.src; img.alt = ph.caption || ''; img.draggable = false;
+    if (ph.w < 600) img.style.maxWidth = Math.round(ph.w * 1.6) + 'px';
     f.appendChild(img);
     if (ph.caption) {
       f.appendChild(el('figcaption', null, ph.caption));

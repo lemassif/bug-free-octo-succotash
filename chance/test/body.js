@@ -107,6 +107,14 @@ function check(name, ok, detail) {
   for (let i = 0; i < whites; i++) { p = await tapCell('white', i); await page.mouse.click(p.x, p.y); await wait(60); heard.push(await says()); }
   check('page 5: the eosinophil and the other white cell', heard.some(h => h.includes('eosinophil')) && heard.some(h => h.includes('germ fighter')), heard.join(' / '));
 
+  console.log('BLOOD IN 3D');
+  await action('Next page'); await wait(150);
+  check('a real electron-microscope photo across the top', await page.evaluate(() => {
+    const i = document.querySelector('.bd-hero img'); return !!i && i.naturalWidth > 200;
+  }));
+  await page.click('.bd-hero'); await wait(50);
+  check('tapping the photo says its caption', (await says()).includes('electron microscope'), await says());
+
   console.log('DETECTIVE');
   await action('Next page'); await wait(150);
   check('the find game asks for the white cell', (await page.evaluate(() => document.querySelector('.bd-ask').textContent)).includes('white blood cell'));
@@ -152,11 +160,17 @@ function check(name, ok, detail) {
   const or = titles.indexOf('The operating room'), wear = titles.indexOf('What everyone wears');
   await page.evaluate((i) => BodyLab.openBook('story', i), or); await wait(80);
   const orTaps = await page.evaluate(() => [...document.querySelectorAll('.bd-tap-name')].map(x => x.textContent));
+  check('a real operating room photo', await page.evaluate(() => !!document.querySelector('.bd-hero img')));
+  const withPhotos = await page.evaluate(() => [...document.querySelectorAll('.bd-tap')].filter(b => b.querySelector('img')).map(b => b.textContent));
+  check('real photos on the lights, bed, monitor and sleep machine', ['Big lights', 'The bed', 'Heart monitor', 'Sleep machine'].every(t => withPhotos.includes(t)), withPhotos.join(', '));
   check('operating room: lights, bed, monitor, mask, laser', ['Big lights', 'The bed', 'Heart monitor', 'Sleep mask', 'Laser machine'].every(t => orTaps.includes(t)), orTaps.join(', '));
   await page.evaluate((i) => BodyLab.openBook('story', i), wear); await wait(80);
   await page.evaluate(() => [...document.querySelectorAll('.bd-tap')].find(b => b.textContent.includes('Mask')).click());
   await wait(50);
   check('why the doctor wears a mask', (await says()).includes('breath'), await says());
+  check('real photos of the cap, mask, gown, gloves and goggles', await page.evaluate(() =>
+    ['Hat', 'Mask', 'Gown', 'Gloves', 'Goggles'].every(n => [...document.querySelectorAll('.bd-tap')].some(b => b.textContent === n && b.querySelector('img')))));
+  check('every photo has a credit', await page.evaluate(() => Object.keys(BODY_PHOTOS).filter(k => !k.startsWith('smear')).every(k => /Wikimedia Commons/.test(BODY_PHOTOS[k].credit))));
   await page.evaluate((i) => BodyLab.openBook('story', i), titles.indexOf('How the laser works')); await wait(80);
   check('how the laser works', await page.evaluate(() => document.querySelector('.bd-text').textContent.includes('very thin, very strong beam')));
 
