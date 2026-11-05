@@ -26,8 +26,8 @@ window.Updater = (function () {
 
   /* Bumped by the build. Compared against the copy on the server to
      decide whether there is anything to get. */
-  var VERSION = '1.8.0';
-  var BUILT = '2026-11-02';
+  var VERSION = '1.9.0';
+  var BUILT = '2026-11-05';
 
   function current() { return { version: VERSION, built: BUILT }; }
 

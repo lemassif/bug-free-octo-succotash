@@ -46,6 +46,8 @@ const SCRIPTS = [
   'js/studio.js',
   'js/hwui.js',
   'js/rocket.js',
+  'data/body-photos.js',
+  'js/body.js',
   'js/app.js'
 ];
 

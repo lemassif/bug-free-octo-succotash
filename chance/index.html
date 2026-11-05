@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png" type="image/png">
-<link rel="stylesheet" href="app.css?v=1.8.0">
+<link rel="stylesheet" href="app.css?v=1.9.0">
 <title>Chance Academy — Science, Numbers &amp; Reading</title>
 </head>
 <body>
@@ -51,6 +51,9 @@
     <button class="tile tile-rocket" data-go="rocket">
       <span class="tile-icon">🚀</span><span class="tile-label">Spelling Rocket</span>
       <span class="tile-count" id="tileRocketCount" hidden>0</span>
+    </button>
+    <button class="tile tile-body" data-go="body">
+      <span class="tile-icon">🩺</span><span class="tile-label">My Body</span>
     </button>
     <button class="tile tile-map" data-go="map">
       <span class="tile-icon">🗺️</span><span class="tile-label">Mission Map</span>
@@ -172,6 +175,16 @@
   <div class="scroll" id="rocketBody"></div>
 </section>
 
+<!-- ============================ MY BODY ========================= -->
+<section class="screen" id="screen-body" data-screen="body" hidden>
+  <header class="bar-top">
+    <button class="icon-btn" data-go="home" aria-label="Home">🏠</button>
+    <h2>My Body</h2>
+    <span class="spacer"></span>
+  </header>
+  <div class="scroll" id="bodyBody"></div>
+</section>
+
 <!-- ============================ STUDIO ========================== -->
 <section class="screen" id="screen-studio" data-screen="studio" hidden>
   <header class="bar-top">
@@ -189,25 +202,27 @@
 
 <div class="confetti" id="confetti" aria-hidden="true"></div>
 
-<script src="data/curriculum.js?v=1.8.0"></script>
-<script src="data/unit1-space.js?v=1.8.0"></script>
-<script src="data/unit2-woods.js?v=1.8.0"></script>
-<script src="data/unit3-forces.js?v=1.8.0"></script>
-<script src="js/phonics.js?v=1.8.0"></script>
-<script src="js/updater.js?v=1.8.0"></script>
-<script src="js/homework.js?v=1.8.0"></script>
-<script src="js/scan.js?v=1.8.0"></script>
-<script src="js/recordings.js?v=1.8.0"></script>
-<script src="js/voice.js?v=1.8.0"></script>
-<script src="js/evaluate.js?v=1.8.0"></script>
-<script src="js/progress.js?v=1.8.0"></script>
-<script src="js/rewards.js?v=1.8.0"></script>
-<script src="js/stations.js?v=1.8.0"></script>
-<script src="js/grownup.js?v=1.8.0"></script>
-<script src="js/studio.js?v=1.8.0"></script>
-<script src="js/hwui.js?v=1.8.0"></script>
-<script src="js/rocket.js?v=1.8.0"></script>
-<script src="js/app.js?v=1.8.0"></script>
+<script src="data/curriculum.js?v=1.9.0"></script>
+<script src="data/unit1-space.js?v=1.9.0"></script>
+<script src="data/unit2-woods.js?v=1.9.0"></script>
+<script src="data/unit3-forces.js?v=1.9.0"></script>
+<script src="js/phonics.js?v=1.9.0"></script>
+<script src="js/updater.js?v=1.9.0"></script>
+<script src="js/homework.js?v=1.9.0"></script>
+<script src="js/scan.js?v=1.9.0"></script>
+<script src="js/recordings.js?v=1.9.0"></script>
+<script src="js/voice.js?v=1.9.0"></script>
+<script src="js/evaluate.js?v=1.9.0"></script>
+<script src="js/progress.js?v=1.9.0"></script>
+<script src="js/rewards.js?v=1.9.0"></script>
+<script src="js/stations.js?v=1.9.0"></script>
+<script src="js/grownup.js?v=1.9.0"></script>
+<script src="js/studio.js?v=1.9.0"></script>
+<script src="js/hwui.js?v=1.9.0"></script>
+<script src="js/rocket.js?v=1.9.0"></script>
+<script src="data/body-photos.js?v=1.9.0"></script>
+<script src="js/body.js?v=1.9.0"></script>
+<script src="js/app.js?v=1.9.0"></script>
 <script>
 /* When a new version finishes installing, switch to it. Only if a
    version was already running (the very first install also fires

@@ -307,6 +307,16 @@ window.Recordings = (function () {
   function inventory() {
     var groups = [];
 
+    // 0. My Body: the blood and tonsil books, read in your voice
+    if (window.BodyLab && BodyLab.voiceLines) {
+      groups.push({
+        id: 'body', em: '🩺', name: 'My Body: your voice',
+        blurb: 'Every page of the blood and tonsil books and Finn\'s Tonsil Adventure, and everything the pictures say ' +
+               'when he taps them. Read them like a bedtime story.',
+        lines: BodyLab.voiceLines()
+      });
+    }
+
     // 0. the Spelling Rocket: every direction and every bit of praise
     //    the rocket game says, plus this week's words
     if (window.Rocket && Rocket.voiceLines) {

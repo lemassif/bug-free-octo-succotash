@@ -60,7 +60,8 @@ is still the obvious thing to tap. The little 🏠 in the top corner asks the sa
 question.
 
 The other tiles: **Spelling Rocket** (this week's spelling words as a space game,
-see below), **Mission Map** (all 60 days, jump to any one), **My Rewards**
+see below), **My Body** (blood under a microscope, tonsils, and a story about a
+boy getting his tonsils out, see below), **Mission Map** (all 60 days, jump to any one), **My Rewards**
 (badges, goals, and the share button), **Word Wall** (all 180 phonics words,
 tap any one to hear it sounded out), **Scan Homework** (turn a worksheet photo
 into a lesson).
@@ -207,6 +208,46 @@ it on paper, and taps "I finished it". Sometimes that is all you have time for.
 
 Homework earns stars and feeds the report, but it does **not** consume a day of
 the 60-day course — it is extra, not a substitute.
+
+---
+
+## 🩺 My Body: blood, tonsils, and Finn's Tonsil Adventure
+
+Made for the week before Chance's tonsillectomy. Tap **🩺 My Body** on the home
+screen. Three short books, every page read aloud, every picture tappable:
+
+| Book | What's in it |
+|---|---|
+| **🩸 My Amazing Blood** (8 pages) | The blood test and the phlebotomist, why the nurse let him shake the tube (it mixes in the medicine that keeps blood from clumping), then **real microscope photos of human blood**. He taps any red cell, white cell or platelet and hears what it does. A blood detective game: find the white cell, 3 platelets, 5 red cells. Why they test blood before surgery. And his own question, *do I get my blood back?* (No. The lab used it, but his bone marrow makes millions of new red cells every second.) |
+| **👄 My Tonsils** (4 pages) | An open mouth to tap: tonsils, uvula, tongue. What tonsils do, what strep is (germs in chains), and why it's fine to live without them. |
+| **📖 Finn's Tonsil Adventure** (18 pages) | A 7-year-old who loves fishing and soccer keeps getting strep. The throat doctor, feelings, the blood test, the night before, the hospital (name bracelet, gown, arm hug, finger light), the team (the sleep doctor, the surgeon, nurses), the operating room (lights, bed, heart monitor, sleep mask, laser), what everyone wears and why (cap, mask, gown, gloves, laser goggles), the special sleep, how a laser works, the wake-up room and the popsicle, soft foods and all the ice cream he wants, games and homework from school, the two weeks of healing, and all better in time for Thanksgiving, wrestling, skiing and Christmas. Ends with "Your turn, Chance." |
+
+It is written the way hospital child life specialists prepare a child his age:
+honest and concrete, told through another child, gentle words ("special sleep",
+"sleep doctor", "wake-up room"), every feeling allowed, and what he will see,
+hear and feel in the order it happens. It mentions the sore days (around day 5)
+and the little tube on his hand, so neither is a surprise.
+
+**Grown-ups**, on the My Body screen:
+
+- **Surgery day**: set the date. The home of My Body then counts down ("5 days
+  until surgery day", then "Day 3 of getting better"), and the two-week calendar
+  in Finn's story becomes Chance's, with real dates, today ringed, and
+  Thanksgiving at the end.
+- **Read it in your own voice**: all 220 lines are in the recording booth
+  (Grown-Ups → Use your own voice → **🩺 My Body: your voice**). Record what you
+  like; the rest uses the computer voice.
+- Each finished book earns a ⭐.
+
+Every hospital does things a little differently (a calm-medicine drink, a
+flavored sleep mask, going home the same day). Where the surgeon's instructions
+differ from the story, follow the surgeon.
+
+The microscope photos are from the BCCD Dataset (Shenggan, MIT licence), real
+stained blood smears where every cell was labelled by hand. That labelling is
+what lets him tap an actual cell and hear what it is. The operating-room and
+gear pictures are emoji for now. Each one has a slot for a real photo
+(`photo:` in `chance/js/body.js`, filled from `chance/data/body-photos.js`).
 
 ---
 
@@ -623,6 +664,8 @@ kind.
 | `chance/js/homework.js` | homework photos, the question generator, realistic misspellings, and building a lesson from scanned words |
 | `chance/js/scan.js` | reads the words and math off a homework photo, on the device |
 | `chance/js/hwui.js` | the homework screens: camera, the grown-up word check, the hand-built editor |
+| `chance/js/body.js` | My Body: the blood and tonsil books, Finn's Tonsil Adventure, the microscope taps, the mouth picture and the healing calendar |
+| `chance/data/body-photos.js` | the real microscope photos, embedded, with the dataset's cell positions |
 | `chance/js/rocket.js` | the Spelling Rocket: the week's word list, the space game, the spelling boxes and the soccer break |
 | `chance/vendor/tesseract/` | the text-recognition engine and its English data (Apache-2.0; licence files beside it) |
 | `chance/js/updater.js` | version check and the in-app update |
@@ -636,6 +679,7 @@ kind.
 | `chance/js/app.js` | icon home screen, routing, sheets |
 | `chance/test/regress.js` | the regression suite — see below |
 | `chance/test/scan.js` | photo → words → lesson, end to end |
+| `chance/test/body.js` | My Body, end to end: tapping real cells, the detective game, the mouth, the operating room, the calendar, stars and the booth |
 | `chance/test/rocket.js` | the Spelling Rocket, end to end: tapping planets, microphone, keyboard, rocket pieces, all 4 stops, soccer, your-voice recordings, report |
 
 ## Running the tests
@@ -646,6 +690,7 @@ node chance/test/regress.js         # the multi-file app
 node chance/test/sound.js           # the sound-reliability checks
 node chance/test/scan.js            # scan a worksheet photo into a lesson
 node chance/test/rocket.js          # the Spelling Rocket, Venus to beyond the galaxy
+node chance/test/body.js            # My Body: blood, tonsils and Finn
 BASE=http://127.0.0.1:8099/dist/chance-academy.html node chance/test/regress.js
 ```
 

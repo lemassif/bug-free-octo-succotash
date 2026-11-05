@@ -49,6 +49,7 @@ window.App = (function () {
     if (name === 'homework') HWUI.renderPicker($('homeworkBody'));
     if (name === 'hwedit') HWUI.renderEditor($('hwEditBody'));
     if (name === 'rocket') Rocket.render($('rocketBody'));
+    if (name === 'body') BodyLab.render($('bodyBody'));
     if (name === 'mission' && arg) Stations.run(arg.day, arg.station);
   }
 
@@ -565,7 +566,7 @@ window.App = (function () {
   }
 
   function boot() {
-    ['home', 'mission', 'map', 'rewards', 'wordwall', 'grownup', 'studio', 'homework', 'hwedit', 'rocket'].forEach(function (k) {
+    ['home', 'mission', 'map', 'rewards', 'wordwall', 'grownup', 'studio', 'homework', 'hwedit', 'rocket', 'body'].forEach(function (k) {
       screens[k] = $('screen-' + k);
     });
 

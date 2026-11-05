@@ -572,3 +572,91 @@ table.tbl th { background: #eef4fb; font-size: 13px; letter-spacing: .5px; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ======================= MY BODY (blood, tonsils, Finn) ======================= */
+.tile-body { border-color: #ffc2c2; background: #fff4f4; }
+.bd-banner {
+  display: flex; align-items: center; gap: 14px; padding: 16px 18px; margin: 0 0 12px; border-radius: 22px; color: #fff;
+  background: linear-gradient(135deg, #e5484d, #b4233a); box-shadow: 0 10px 24px rgba(180, 35, 58, .25);
+}
+.bd-banner-em { font-size: 54px; line-height: 1; }
+.bd-banner h3 { font-size: 26px; }
+.bd-banner p { margin: 4px 0 0; opacity: .9; font-size: 15px; }
+.bd-books { display: grid; gap: 12px; margin-bottom: 12px; }
+.bd-book {
+  position: relative; display: flex; align-items: center; gap: 16px; padding: 16px 18px; text-align: left;
+  border: 3px solid; border-radius: 22px; box-shadow: var(--shadow); color: var(--ink); font: inherit;
+}
+.bd-book:active { transform: translateY(3px); }
+.bd-book-em { font-size: 52px; line-height: 1; }
+.bd-book-text { display: flex; flex-direction: column; }
+.bd-book-text b { font-size: 22px; }
+.bd-book-text span { font-size: 15px; color: var(--ink-soft); }
+.bd-done { position: absolute; right: 14px; top: 10px; font-size: 26px; }
+.bd-countdown { font-size: 20px; font-weight: 800; text-align: center; margin: 6px 0 14px; }
+.bd-date { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 4px; }
+.bd-date input { font: inherit; padding: 8px 10px; border-radius: 12px; border: 2px solid var(--line); background: #fff; }
+.bd-credit { font-size: 12px; }
+
+.bd-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.bd-head-title { font-weight: 800; font-size: 17px; }
+.bd-dots { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; max-width: 50%; justify-content: flex-end; }
+.bd-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.bd-dots i.past { background: #9fb3c8; }
+.bd-dots i.on { background: var(--coral); transform: scale(1.3); }
+.bd-page { background: #fff; border: 3px solid var(--line); border-radius: 26px; padding: 16px; box-shadow: var(--shadow); margin-bottom: 110px; }
+.bd-title { font-size: 28px; text-align: center; margin-bottom: 8px; }
+.bd-art { font-size: clamp(64px, 16vw, 120px); text-align: center; line-height: 1.2; letter-spacing: 6px; margin: 4px 0 8px; }
+.bd-text p { font-size: 22px; line-height: 1.45; margin: 0 0 10px; cursor: pointer; }
+.bd-says {
+  background: #fff8e1; border: 2px solid var(--sun); border-radius: 18px; padding: 12px 14px; font-size: 20px;
+  font-weight: 700; margin: 6px 0 12px;
+}
+.bd-says.pop { animation: bdpop .25s ease-out; }
+@keyframes bdpop { from { transform: scale(.96); opacity: .4; } to { transform: none; opacity: 1; } }
+.bd-taps { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; margin-top: 8px; }
+.bd-tap {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; min-height: 112px;
+  background: #f6f9fd; border: 3px solid var(--line); border-radius: 20px; font: inherit; color: var(--ink);
+  box-shadow: 0 4px 0 rgba(16, 42, 74, .12);
+}
+.bd-tap:active { transform: translateY(2px); }
+.bd-tap.lit { border-color: var(--sun); background: #fff8e1; }
+.bd-tap-em { font-size: 48px; line-height: 1.1; }
+.bd-tap-img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; }
+.bd-tap-name { font-weight: 800; font-size: 16px; text-align: center; }
+
+.bd-micro { position: relative; border-radius: 50%; overflow: hidden; aspect-ratio: 4 / 3; border-radius: 22px;
+  border: 6px solid #2b2f3a; box-shadow: inset 0 0 40px rgba(0,0,0,.4); margin-bottom: 12px; touch-action: manipulation; }
+.bd-micro img { width: 100%; height: 100%; display: block; user-select: none; -webkit-user-select: none; }
+.bd-lens { position: absolute; left: 10px; top: 10px; background: rgba(20, 24, 34, .7); color: #fff; font-size: 13px;
+  font-weight: 700; padding: 4px 10px; border-radius: 999px; pointer-events: none; }
+.bd-ring { position: absolute; border-radius: 50%; border: 4px solid #ffd34d; box-shadow: 0 0 0 3px rgba(0,0,0,.35);
+  pointer-events: none; transition: all .15s ease-out; }
+.bd-ring.white { border-color: #4dabf7; }
+.bd-ring.platelet { border-color: #2fbf71; }
+.bd-marks { position: absolute; inset: 0; pointer-events: none; }
+.bd-mark { position: absolute; transform: translate(-50%, -50%); width: 30px; height: 30px; border-radius: 50%;
+  display: grid; place-items: center; font-style: normal; font-weight: 900; color: #fff; background: #2fbf71;
+  border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.4); }
+.bd-ask { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); background: rgba(255,255,255,.95);
+  padding: 8px 14px; border-radius: 999px; font-weight: 800; font-size: 18px; white-space: nowrap; pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,.25); max-width: 94%; overflow: hidden; text-overflow: ellipsis; }
+
+.bd-mouth svg { width: 100%; max-width: 520px; display: block; margin: 0 auto; }
+.bd-mouth [data-part] { cursor: pointer; transition: filter .15s; }
+.bd-mouth [data-part].lit { filter: drop-shadow(0 0 10px #ffd34d) brightness(1.15); }
+.bd-mouth path.lit, .bd-mouth ellipse.lit { stroke: #ffd34d; stroke-width: 6; }
+.bd-mouth-labels { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 10px 0; }
+.bd-chip { font: inherit; font-weight: 800; padding: 8px 16px; border-radius: 999px; border: 2px solid #ffc2dc; background: #fff0f6; color: var(--ink); }
+
+.bd-cal { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.bd-cal-head { grid-column: 1 / -1; font-weight: 800; font-size: 18px; text-align: center; }
+.bd-day { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 16px;
+  border: 2px solid var(--line); background: #f6f9fd; font: inherit; color: var(--ink); }
+.bd-day .n { font-weight: 900; font-size: 14px; color: var(--ink-soft); }
+.bd-day .em { font-size: 34px; line-height: 1.1; }
+.bd-day .dt { font-size: 12px; color: var(--ink-soft); }
+.bd-day.past { opacity: .55; }
+.bd-day.today { border: 4px solid var(--coral); background: #fff1ec; transform: scale(1.06); }
+.bd-day.thanks { grid-column: span 2; background: #fff4e0; border-color: #ffcf8a; }
