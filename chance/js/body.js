@@ -494,7 +494,12 @@ window.BodyLab = (function () {
     body.appendChild(el('p', 'rk-note', 'Every hospital does things a little differently. Many children\'s hospitals offer a ' +
       'tour before surgery and a child life specialist; ask the surgeon\'s office. Follow the surgeon\'s instructions for ' +
       'eating, drinking, medicine and when sports can start, even where they differ from the story.'));
-    body.appendChild(el('p', 'rk-note bd-credit', 'Microscope photos: BCCD Dataset by Shenggan, MIT licence (github.com/Shenggan/BCCD_Dataset).'));
+    var cr = el('details', 'bd-credit');
+    cr.appendChild(el('summary', null, '📷 Photo credits'));
+    cr.appendChild(el('p', null, 'Microscope photos: BCCD Dataset by Shenggan, MIT licence (github.com/Shenggan/BCCD_Dataset).'));
+    var P = window.BODY_PHOTOS || {};
+    Object.keys(P).forEach(function (k) { if (P[k].credit) cr.appendChild(el('p', null, P[k].credit)); });
+    body.appendChild(cr);
   }
 
   /* "4 days until surgery" / "Day 3 of getting better" */
@@ -547,6 +552,7 @@ window.BodyLab = (function () {
     if (pg.kind === 'micro' || pg.kind === 'find') card.appendChild(microscope(pg));
     else if (pg.kind === 'mouth') card.appendChild(mouth());
     else if (pg.kind === 'calendar') card.appendChild(calendar());
+    else if (pg.hero && photo(pg.hero)) card.appendChild(hero(pg.hero));
     else if (pg.art) card.appendChild(el('div', 'bd-art', pg.art));
 
     var txt = el('div', 'bd-text');
@@ -582,6 +588,19 @@ window.BodyLab = (function () {
 
   /* A picture he can touch. If a real photo of it is in BODY_PHOTOS it
      shows the photo; otherwise the picture is the emoji. */
+  /* A real photo across the top of the page. Tapping it says its caption. */
+  function hero(k) {
+    var ph = photo(k), f = el('figure', 'bd-hero');
+    var img = document.createElement('img');
+    img.src = ph.src; img.alt = ph.caption || ''; img.draggable = false;
+    f.appendChild(img);
+    if (ph.caption) {
+      f.appendChild(el('figcaption', null, ph.caption));
+      f.addEventListener('click', function () { Voice.stop(); showSays(ph.caption); talk(ph.caption); });
+    }
+    return f;
+  }
+
   function tapCard(tp) {
     var c = el('button', 'bd-tap');
     var ph = tp.photo && photo(tp.photo);
@@ -814,6 +833,8 @@ window.BodyLab = (function () {
     });
     Object.keys(CELL_SAY).forEach(function (k) { add(CELL_SAY[k], 'tapping a cell'); });
     Object.keys(MOUTH).forEach(function (k) { add(MOUTH[k], 'the mouth picture'); });
+    var P = window.BODY_PHOTOS || {};
+    Object.keys(P).forEach(function (k) { if (P[k].caption) add(P[k].caption, 'photo caption'); });
     DAYS.forEach(function (d) { add(d[1], 'the healing calendar'); });
     ['That is a red blood cell.', 'That is a white blood cell.', 'That is a platelet.',
       'You finished the book! You earned a star.', 'You finished the book again! Great reading.',
