@@ -181,6 +181,10 @@ function check(name, ok, detail) {
   await page.click('.bd-day');
   await wait(50);
   check('tap a day', (await says()).includes('Day 1'), await says());
+  check('the tapped day lights up and its words sit right under the calendar', await page.evaluate(() =>
+    document.querySelector('.bd-day.lit') && document.querySelector('.bd-cal').nextElementSibling.classList.contains('bd-says')));
+  await page.evaluate(() => document.querySelectorAll('.bd-day')[4].click()); await wait(50);
+  check('day 5 is the extra sore day', (await says()).includes('extra sore'), await says());
   // with the surgery date set 3 days ago, today is day 3
   await page.evaluate(() => {
     const d = new Date(Progress.today() + 'T12:00:00'); d.setDate(d.getDate() - 3);

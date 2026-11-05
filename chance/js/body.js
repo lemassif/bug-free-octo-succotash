@@ -634,16 +634,27 @@ window.BodyLab = (function () {
     return c;
   }
 
-  /* What a tap said, in writing too, under the page text. */
+  /* What a tap said, in writing too: right under the picture he
+     tapped (the calendar, the mouth, the microscope), or under the
+     page text for the picture cards, and scrolled into view so a
+     tap never looks like it did nothing. */
   function showSays(text) {
     var s = bodyEl.querySelector('.bd-says');
     if (!s) {
       s = el('div', 'bd-says');
-      var t = bodyEl.querySelector('.bd-text');
+      var t = bodyEl.querySelector('.bd-cal, .bd-mouth, .bd-micro') || bodyEl.querySelector('.bd-text');
       t.parentNode.insertBefore(s, t.nextSibling);
     }
     s.textContent = text;
     s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop');
+    var r = s.getBoundingClientRect(), bar = 120;
+    if (r.bottom > window.innerHeight - bar || r.top < 0) {
+      try { s.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { s.scrollIntoView(); }
+    }
+  }
+  function lightDay(c) {
+    bodyEl.querySelectorAll('.bd-day.lit').forEach(function (x) { x.classList.remove('lit'); });
+    c.classList.add('lit');
   }
 
   function finishBook() {
@@ -813,7 +824,7 @@ window.BodyLab = (function () {
         var dt = new Date(start.getTime() + (i + 1) * 86400000);
         c.appendChild(el('span', 'dt', dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })));
       }
-      c.addEventListener('click', function () { Voice.stop(); showSays(d[1]); talk(d[1]); });
+      c.addEventListener('click', function () { Voice.stop(); lightDay(c); showSays(d[1]); talk(d[1]); });
       wrap.appendChild(c);
     });
     var tg = el('button', 'bd-day thanks');
@@ -825,7 +836,7 @@ window.BodyLab = (function () {
       if (gap > 14) tgLine = 'Then, Thanksgiving! That is ' + gap + ' days after surgery, after all fourteen healing days.';
     }
     tg.appendChild(el('span', 'n', 'Thanksgiving'));
-    tg.addEventListener('click', function () { Voice.stop(); showSays(tgLine); talk(tgLine); });
+    tg.addEventListener('click', function () { Voice.stop(); lightDay(tg); showSays(tgLine); talk(tgLine); });
     wrap.appendChild(tg);
     return wrap;
   }
