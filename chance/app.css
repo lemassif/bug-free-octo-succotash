@@ -668,3 +668,10 @@ table.tbl th { background: #eef4fb; font-size: 13px; letter-spacing: .5px; }
 .bd-credit p { margin: 4px 0; word-break: break-word; }
 .bd-day:active { transform: scale(.95); }
 .bd-day.lit { border-color: var(--sun); background: #fff8e1; box-shadow: 0 0 0 3px rgba(255, 201, 60, .45); opacity: 1; }
+
+/* contractions: "it is ➜ ?" and the apostrophe key */
+.rk-pair { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 6px 0 10px; cursor: pointer; }
+.rk-pair-words { font-size: 30px; font-weight: 900; background: #eef6ff; border: 3px solid #a9d6ff; border-radius: 16px; padding: 4px 16px; }
+.rk-pair-arrow { font-size: 28px; }
+.rk-pair-q { font-size: 30px; font-weight: 900; color: var(--ink-soft); }
+.rk-apo .rk-apo-mark { font-size: 34px; font-weight: 900; line-height: .8; }

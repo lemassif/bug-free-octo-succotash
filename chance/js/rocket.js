@@ -47,6 +47,8 @@ window.Rocket = (function () {
     saidRight: "Yes! That's it!",
     sayAgain: "Let's try that again. Listen.",
     spellIt: 'Now spell it on the keyboard.',
+    squeeze: 'Squeeze these two words into one:',
+    apostrophe: 'The apostrophe takes the place of the missing letters.',
     almost: 'Almost! The green letters are right. Fix the orange ones.',
     soundOut: 'Listen. Let me sound it out for you.',
     copyIt: 'Here is how to spell it. Copy it into the boxes.',
@@ -138,8 +140,15 @@ window.Rocket = (function () {
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function rand(a, b) { return a + Math.random() * (b - a); }
   /* "sh-ad-ow" -> "shadow"; letters and apostrophes only */
-  function cleanWord(w) { return String(w || '').toLowerCase().replace(/-/g, '').replace(/[^a-z']/g, ''); }
+  /* "sh-ad-ow" -> "shadow"; "It’s" -> "it's"; "i'll" -> "I'll" */
+  function cleanWord(w) {
+    return String(w || '').toLowerCase().replace(/[‘’]/g, "'").replace(/-/g, '').replace(/[^a-z']/g, '')
+      .replace(/^i(?='|$)/, 'I');
+  }
+  /* "it's" -> "it is", or null for a word that is not a contraction */
+  function expansion(w) { return window.Homework && Homework.expand ? Homework.expand(w) : null; }
   function partsOf(w) {
+    if (w.indexOf("'") !== -1) return [w];        // a contraction is said whole, not sounded out
     var it = window.Homework ? Homework.wordItem(w) : null;
     return it ? it.parts : [w];
   }
@@ -186,7 +195,11 @@ window.Rocket = (function () {
       if (Array.isArray(v)) v.forEach(function (t, i) { add(t, k + ' ' + (i + 1)); });
       else add(v, k);
     });
-    state.words.forEach(function (w) { add(w, 'this week\'s word'); });
+    state.words.forEach(function (w) {
+      add(w, 'this week\'s word');
+      var e = expansion(w);
+      if (e) add(e, 'the two words in ' + w);
+    });
     return out;
   }
 
@@ -1085,6 +1098,16 @@ window.Rocket = (function () {
     panel.innerHTML = '';
     var card = el('div', 'rk-card');
     card.appendChild(el('div', 'rk-step', '⌨️ Spell it on the keyboard!'));
+    var exp = expansion(w), lw = w.toLowerCase();
+    if (exp) {
+      // the teacher's way: here are the two words, write the contraction
+      var pair = el('div', 'rk-pair');
+      pair.appendChild(el('span', 'rk-pair-words', exp));
+      pair.appendChild(el('span', 'rk-pair-arrow', '➜'));
+      pair.appendChild(el('span', 'rk-pair-q', '?'));
+      pair.addEventListener('click', function () { Voice.stop(); talk(LINES.squeeze); sayWord(exp); });
+      card.appendChild(pair);
+    }
     var reveal = el('div', 'rk-reveal');
     reveal.hidden = true;
     card.appendChild(reveal);
@@ -1111,7 +1134,21 @@ window.Rocket = (function () {
     hear.appendChild(el('span', null, '🔊')); hear.appendChild(el('span', null, 'Hear it'));
     var check = el('button', 'btn-big rk-check');
     check.appendChild(el('span', null, '✅')); check.appendChild(el('span', null, 'Check'));
-    r.appendChild(hear); r.appendChild(check);
+    r.appendChild(hear);
+    if (w.indexOf("'") !== -1) {
+      // on the iPad keyboard the apostrophe hides on the 123 page
+      var apo = el('button', 'btn-big ghost compact rk-apo');
+      apo.appendChild(el('span', 'rk-apo-mark', '\u2019'));
+      apo.appendChild(el('span', null, 'apostrophe'));
+      apo.setAttribute('aria-label', 'Type an apostrophe');
+      ['pointerdown', 'mousedown'].forEach(function (ev) { apo.addEventListener(ev, function (e) { e.preventDefault(); }); });
+      apo.addEventListener('click', function () {
+        if (input.value.length < input.maxLength) input.value += "'";
+        marks = null; draw(); focusInput(input);
+      });
+      r.appendChild(apo);
+    }
+    r.appendChild(check);
     card.appendChild(r);
     panel.appendChild(card);
 
@@ -1146,8 +1183,8 @@ window.Rocket = (function () {
       var val = input.value.toLowerCase();
       if (!val) { Voice.stop(); talk(LINES.typeFirst); focusInput(input); return; }
       G.spellTries++;
-      var ok = val === w;
-      var tag = ok || G.reveal ? null : classify(w, val);
+      var ok = val === lw;
+      var tag = ok || G.reveal ? null : classify(lw, val);
       Progress.logEvent({
         t: Date.now(), dayId: 'rocket', itemId: 'rocket-spell-' + w, station: 'rocket', domain: 'rocket-spelling',
         correct: ok, tag: tag, attempt: G.spellTries, ms: Date.now() - G.spellT0,
@@ -1157,7 +1194,7 @@ window.Rocket = (function () {
 
       // not yet: green for every letter already in the right place
       marks = [];
-      for (var i = 0; i < Math.max(w.length, val.length); i++) marks.push(val[i] === w[i] ? 'ok' : 'fix');
+      for (var i = 0; i < Math.max(w.length, val.length); i++) marks.push(val[i] === lw[i] ? 'ok' : 'fix');
       draw();
       SFX.oops();
       Voice.stop();
@@ -1169,8 +1206,13 @@ window.Rocket = (function () {
         heard.innerHTML = 'Almost! The <b class="g">green</b> letters are right. Fix the <b class="o">orange</b> ones.';
         talk(LINES.almost);
       } else {
-        heard.innerHTML = 'Listen to the sounds, then fix the <b class="o">orange</b> letters.';
-        talk(LINES.soundOut).then(function () { return Voice.soundOut(w, G.parts); });
+        if (exp) {
+          heard.innerHTML = '<b>' + esc(exp) + '</b> squeezed together. The <b>\u2019</b> goes where letters are missing.';
+          talk(LINES.apostrophe); talk(LINES.squeeze); sayWord(exp);
+        } else {
+          heard.innerHTML = 'Listen to the sounds, then fix the <b class="o">orange</b> letters.';
+          talk(LINES.soundOut).then(function () { return Voice.soundOut(w, G.parts); });
+        }
       }
       focusInput(input);
     }
@@ -1187,7 +1229,12 @@ window.Rocket = (function () {
     draw();
     focusInput(input);   // opens the keyboard when we got here from a tap
     Voice.stop();
-    talk(LINES.spellIt).then(function () { if (G && G.mode === 'spell' && G.word === w) return sayWord(w); });
+    if (exp) {
+      talk(LINES.squeeze);
+      sayWord(exp).then(function () { if (G && G.mode === 'spell' && G.word === w) return talk(LINES.spellIt); });
+    } else {
+      talk(LINES.spellIt).then(function () { if (G && G.mode === 'spell' && G.word === w) return sayWord(w); });
+    }
   }
 
   function focusInput(input) {

@@ -459,7 +459,7 @@ window.HWUI = (function () {
       var addBtn = el('button', 'scan-tick', '+');
       addBtn.setAttribute('aria-label', 'Add word');
       function addWord() {
-        addInput.value.split(/[\s,;]+/).map(function (x) { return x.trim().toLowerCase(); })
+        addInput.value.split(/[\s,;]+/).map(function (x) { return x.trim().toLowerCase().replace(/[‘’]/g, "'"); })
           .filter(Boolean).forEach(function (x) { words.push({ text: x, keep: true }); });
         draw();
       }
@@ -479,8 +479,9 @@ window.HWUI = (function () {
 
     function chosen() {
       return {
-        words: words.filter(function (w) { return w.keep && /^[a-zA-Z][a-zA-Z'-]*$/.test(w.text); })
-          .map(function (w) { return w.text.toLowerCase(); }),
+        // the iPad keyboard types a curly apostrophe: it's -> it's
+        words: words.filter(function (w) { return w.keep && /^[a-zA-Z][a-zA-Z'’‘-]*$/.test(w.text); })
+          .map(function (w) { return w.text.toLowerCase().replace(/[‘’]/g, "'"); }),
         math: math.filter(function (m) { return m.keep && Homework.parseMath(m.text); })
           .map(function (m) { return m.text; })
       };

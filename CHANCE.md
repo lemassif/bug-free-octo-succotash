@@ -274,6 +274,23 @@ Tap **🚀 Spelling Rocket** on the home screen.
    works too, and so does a list already scanned through Scan Homework.
 3. Tap **🚀 Save this week's words**.
 
+**School take-home sheets.** A sheet with a letter to the caregiver on top
+and a "Spelling Word" table below (and a "Tricky Word") is recognised. The
+letter is ignored, the table is read a second time on its own in black and
+white, and only the spelling words and the tricky word come back, in the
+teacher's order. A contraction table ("it is | it's") is read from the two-word
+column and turned into the contraction from a built-in list, so a smudged
+apostrophe cannot change the word. On the sample sheet (it's, that's, she's,
+isn't, aren't, wasn't, I'll, you'll, she'll, their) it gets all ten.
+
+**Contractions in the rocket.** Practised the way the teacher asks: the
+spelling step shows and says the two words ("it is ➜ ?") and he types the
+contraction. An **’ apostrophe** key sits next to Check, because on the iPad
+keyboard the apostrophe hides on the 123 page. Leaving it out (isnt) or putting
+it where the space was (is'nt) counts as a miss, and the second miss explains
+that the apostrophe takes the place of the missing letters. "I'll" keeps its
+capital I.
+
 The list stays until you replace it. **New week's words** scans the next list,
 and **Fix or add words** edits this one. After a week the screen reminds you
 that the list is old.
@@ -689,6 +706,7 @@ kind.
 | `chance/test/regress.js` | the regression suite — see below |
 | `chance/test/scan.js` | photo → words → lesson, end to end |
 | `chance/test/body.js` | My Body, end to end: tapping real cells, the detective game, the mouth, the operating room, the calendar, stars and the booth |
+| `chance/test/sheet.js` | a real take-home spelling sheet photo (`test/fixtures/`): exactly its ten words come back, then contractions in the rocket |
 | `chance/test/rocket.js` | the Spelling Rocket, end to end: tapping planets, microphone, keyboard, rocket pieces, all 4 stops, soccer, your-voice recordings, report |
 
 ## Running the tests
@@ -699,6 +717,7 @@ node chance/test/regress.js         # the multi-file app
 node chance/test/sound.js           # the sound-reliability checks
 node chance/test/scan.js            # scan a worksheet photo into a lesson
 node chance/test/rocket.js          # the Spelling Rocket, Venus to beyond the galaxy
+node chance/test/sheet.js           # a school spelling sheet photo, and contractions
 node chance/test/body.js            # My Body: blood, tonsils and Finn
 BASE=http://127.0.0.1:8099/dist/chance-academy.html node chance/test/regress.js
 ```

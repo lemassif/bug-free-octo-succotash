@@ -384,13 +384,43 @@ window.Homework = (function () {
     return h;
   }
 
+  /* Contractions a second grader meets, and the two words each one
+     squeezes together. Used to read them off a spelling sheet and to
+     practise them the way the teacher asks: say the two words, spell
+     the contraction. */
+  var CONTRACTIONS = {};
+  ("it's:it is|that's:that is|she's:she is|he's:he is|what's:what is|there's:there is|here's:here is|" +
+   "who's:who is|where's:where is|let's:let us|isn't:is not|aren't:are not|wasn't:was not|weren't:were not|" +
+   "don't:do not|doesn't:does not|didn't:did not|can't:can not|couldn't:could not|wouldn't:would not|" +
+   "shouldn't:should not|won't:will not|hasn't:has not|haven't:have not|hadn't:had not|" +
+   "i'll:i will|you'll:you will|she'll:she will|he'll:he will|we'll:we will|they'll:they will|it'll:it will|" +
+   "that'll:that will|i'm:i am|you're:you are|we're:we are|they're:they are|i've:i have|you've:you have|" +
+   "we've:we have|they've:they have|i'd:i would|you'd:you would|he'd:he would|she'd:she would|" +
+   "we'd:we would|they'd:they would").split('|').forEach(function (x) {
+    var p = x.split(':'); CONTRACTIONS[p[0]] = p[1];
+  });
+  /* "it's" -> "it is"; "I'll" -> "I will"; anything else -> null */
+  function expand(word) {
+    var e = CONTRACTIONS[String(word || '').toLowerCase().replace(/[‘’]/g, "'")];
+    return e ? e.replace(/^i /, 'I ') : null;
+  }
+
   /* Two wrong spellings for a word: one that SOUNDS right, one that
      LOOKS nearly right, each tagged with the mistake it represents. */
   function misspellings(word) {
-    var w = word.toLowerCase(), out = [], seen = {};
+    var w = word.toLowerCase().replace(/[‘’]/g, "'"), out = [], seen = {};
     seen[w] = 1;
     function add(t, tag) {
-      if (t && !seen[t] && /^[a-z]+$/.test(t) && t.length > 1) { seen[t] = 1; out.push({ t: t, tag: tag }); }
+      if (t && !seen[t] && /^[a-z]+('[a-z]+)?$/.test(t) && t.length > 1) { seen[t] = 1; out.push({ t: t, tag: tag }); }
+    }
+    /* contractions: the two slips every class makes, the apostrophe
+       left out (isnt) or put where the space was (is'nt) */
+    if (CONTRACTIONS[w]) {
+      add(w.replace("'", ''), 'letter-look');
+      var parts = CONTRACTIONS[w].split(' ');
+      add(parts[0] + "'" + w.slice(parts[0].length).replace("'", ''), 'letter-look');
+      if (out.length < 2) add(parts.join(''), 'sound-spelling');
+      return out.slice(0, 2);
     }
     for (var i = 0; i < SOUND_SWAPS.length && out.length < 1; i++) {
       if (SOUND_SWAPS[i][0].test(w)) add(w.replace(SOUND_SWAPS[i][0], SOUND_SWAPS[i][1]), 'sound-spelling');
@@ -511,6 +541,7 @@ window.Homework = (function () {
     createPack: createPack, savePack: savePack, deletePack: deletePack,
     addPhoto: addPhoto, photo: photo, removePhoto: removePhoto,
     parseMath: parseMath, mathItem: mathItem, wordItem: wordItem, askItem: askItem,
+    CONTRACTIONS: CONTRACTIONS, expand: expand,
     spellItem: spellItem, misspellings: misspellings, buildLesson: buildLesson,
     addItem: addItem, removeItem: removeItem, addMany: addMany,
     stats: stats, defaultTitle: defaultTitle

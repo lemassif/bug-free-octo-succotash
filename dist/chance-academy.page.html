@@ -671,6 +671,13 @@ table.tbl th { background: #eef4fb; font-size: 13px; letter-spacing: .5px; }
 .bd-day:active { transform: scale(.95); }
 .bd-day.lit { border-color: var(--sun); background: #fff8e1; box-shadow: 0 0 0 3px rgba(255, 201, 60, .45); opacity: 1; }
 
+/* contractions: "it is ➜ ?" and the apostrophe key */
+.rk-pair { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 6px 0 10px; cursor: pointer; }
+.rk-pair-words { font-size: 30px; font-weight: 900; background: #eef6ff; border: 3px solid #a9d6ff; border-radius: 16px; padding: 4px 16px; }
+.rk-pair-arrow { font-size: 28px; }
+.rk-pair-q { font-size: 30px; font-weight: 900; color: var(--ink-soft); }
+.rk-apo .rk-apo-mark { font-size: 34px; font-weight: 900; line-height: .8; }
+
 </style>
 <!-- ============================= HOME ============================= -->
 <section class="screen" id="screen-home" data-screen="home">
@@ -5591,8 +5598,8 @@ window.Updater = (function () {
 
   /* Bumped by the build. Compared against the copy on the server to
      decide whether there is anything to get. */
-  var VERSION = '1.9.2';
-  var BUILT = '2026-11-05';
+  var VERSION = '1.10.0';
+  var BUILT = '2026-11-06';
 
   function current() { return { version: VERSION, built: BUILT }; }
 
@@ -6084,13 +6091,43 @@ window.Homework = (function () {
     return h;
   }
 
+  /* Contractions a second grader meets, and the two words each one
+     squeezes together. Used to read them off a spelling sheet and to
+     practise them the way the teacher asks: say the two words, spell
+     the contraction. */
+  var CONTRACTIONS = {};
+  ("it's:it is|that's:that is|she's:she is|he's:he is|what's:what is|there's:there is|here's:here is|" +
+   "who's:who is|where's:where is|let's:let us|isn't:is not|aren't:are not|wasn't:was not|weren't:were not|" +
+   "don't:do not|doesn't:does not|didn't:did not|can't:can not|couldn't:could not|wouldn't:would not|" +
+   "shouldn't:should not|won't:will not|hasn't:has not|haven't:have not|hadn't:had not|" +
+   "i'll:i will|you'll:you will|she'll:she will|he'll:he will|we'll:we will|they'll:they will|it'll:it will|" +
+   "that'll:that will|i'm:i am|you're:you are|we're:we are|they're:they are|i've:i have|you've:you have|" +
+   "we've:we have|they've:they have|i'd:i would|you'd:you would|he'd:he would|she'd:she would|" +
+   "we'd:we would|they'd:they would").split('|').forEach(function (x) {
+    var p = x.split(':'); CONTRACTIONS[p[0]] = p[1];
+  });
+  /* "it's" -> "it is"; "I'll" -> "I will"; anything else -> null */
+  function expand(word) {
+    var e = CONTRACTIONS[String(word || '').toLowerCase().replace(/[‘’]/g, "'")];
+    return e ? e.replace(/^i /, 'I ') : null;
+  }
+
   /* Two wrong spellings for a word: one that SOUNDS right, one that
      LOOKS nearly right, each tagged with the mistake it represents. */
   function misspellings(word) {
-    var w = word.toLowerCase(), out = [], seen = {};
+    var w = word.toLowerCase().replace(/[‘’]/g, "'"), out = [], seen = {};
     seen[w] = 1;
     function add(t, tag) {
-      if (t && !seen[t] && /^[a-z]+$/.test(t) && t.length > 1) { seen[t] = 1; out.push({ t: t, tag: tag }); }
+      if (t && !seen[t] && /^[a-z]+('[a-z]+)?$/.test(t) && t.length > 1) { seen[t] = 1; out.push({ t: t, tag: tag }); }
+    }
+    /* contractions: the two slips every class makes, the apostrophe
+       left out (isnt) or put where the space was (is'nt) */
+    if (CONTRACTIONS[w]) {
+      add(w.replace("'", ''), 'letter-look');
+      var parts = CONTRACTIONS[w].split(' ');
+      add(parts[0] + "'" + w.slice(parts[0].length).replace("'", ''), 'letter-look');
+      if (out.length < 2) add(parts.join(''), 'sound-spelling');
+      return out.slice(0, 2);
     }
     for (var i = 0; i < SOUND_SWAPS.length && out.length < 1; i++) {
       if (SOUND_SWAPS[i][0].test(w)) add(w.replace(SOUND_SWAPS[i][0], SOUND_SWAPS[i][1]), 'sound-spelling');
@@ -6211,6 +6248,7 @@ window.Homework = (function () {
     createPack: createPack, savePack: savePack, deletePack: deletePack,
     addPhoto: addPhoto, photo: photo, removePhoto: removePhoto,
     parseMath: parseMath, mathItem: mathItem, wordItem: wordItem, askItem: askItem,
+    CONTRACTIONS: CONTRACTIONS, expand: expand,
     spellItem: spellItem, misspellings: misspellings, buildLesson: buildLesson,
     addItem: addItem, removeItem: removeItem, addMany: addMany,
     stats: stats, defaultTitle: defaultTitle
@@ -6245,6 +6283,15 @@ window.Homework = (function () {
    2. Otherwise every word on the page is taken, minus the usual
       worksheet chrome ("Name", "Date", "Spelling words", "Write each
       word three times").
+   3. A school take-home spelling sheet (a "Spelling Word" table, a
+      "Tricky Word", a letter to the caregiver above it): the letter
+      is ignored. The table is read a second time on its own, in
+      black and white, which reads it far better than the whole
+      page did, and only the spelling column and the tricky word are
+      taken. Contraction tables ("it is | it's") are read from the
+      two-word column, which comes through cleanly, and turned into
+      the contraction from a fixed list, so a misread apostrophe can
+      not change the word.
    Words the engine was unsure about arrive unticked, so a grown-up
    looks at them before Chance does.
    Math problems on the page ("7 x 8 =") are picked up too.
@@ -6343,12 +6390,157 @@ window.Scan = (function () {
         if (/recogniz/i.test(status)) report('Reading the words…', 0.35 + 0.6 * p);
         else report('Loading the word reader…', 0.08 + 0.25 * p);
       }).then(function (w) {
-        return w.recognize(canvas, {}, { text: true, blocks: true });
+        return w.recognize(canvas, {}, { text: true, blocks: true }).then(function (r) {
+          var res = normalise(r.data), head = tableTop(res);
+          if (head == null) return res;
+          /* A spelling sheet: read the table again on its own. */
+          report('Reading the spelling table…', 0.97);
+          var crop = tableCanvas(canvas, head);
+          return w.setParameters({ tessedit_pageseg_mode: '6' })
+            .then(function () { return w.recognize(crop, {}, { text: true, blocks: true }); })
+            .then(function (r2) { res.table = normalise(r2.data); return res; },
+                  function () { return res; })
+            .then(function (out) {
+              return w.setParameters({ tessedit_pageseg_mode: '3' }).then(function () { return out; }, function () { return out; });
+            });
+        });
       });
     }).then(function (res) {
       report('Done', 1);
-      return normalise(res.data);
+      return res;
     });
+  }
+
+  /* Where a school spelling table starts (its "Spelling Word" header,
+     or the first line holding a contraction pair), or null if this is
+     not that kind of sheet. */
+  /* The table's own heading: a short line that is just "Spelling
+     Word(s)", not a sentence that mentions spelling words. */
+  function isHeader(text) {
+    var t = letters(text);
+    return t.length <= 22 && /spel+i?n?g?w[oa]r[dl]/.test(t);
+  }
+  function tableTop(res) {
+    var pairs = 0, first = null;
+    for (var i = 0; i < res.lines.length; i++) {
+      var l = res.lines[i];
+      if (isHeader(l.text) && l.bbox) return Math.max(0, l.bbox.y0 - 10);
+      if (pairInLine(l.text)) { pairs++; if (first == null && l.bbox) first = Math.max(0, l.bbox.y0 - 40); }
+    }
+    return pairs >= 3 ? first : null;
+  }
+
+  /* The table alone, a little larger, in pure black and white with the
+     cut-off chosen from the picture itself (Otsu's method), so a fold
+     or a shadow across the page drops out. */
+  function tableCanvas(src, top) {
+    var w = src.width, h = src.height - top, k = 1.5;
+    var c = document.createElement('canvas');
+    c.width = Math.round(w * k); c.height = Math.round(h * k);
+    var g = c.getContext('2d');
+    g.drawImage(src, 0, top, w, h, 0, 0, c.width, c.height);
+    try {
+      var d = g.getImageData(0, 0, c.width, c.height), px = d.data, hist = new Array(256).fill(0), n = 0, i;
+      for (i = 0; i < px.length; i += 4) { hist[px[i]]++; n++; }
+      var sum = 0; for (i = 0; i < 256; i++) sum += i * hist[i];
+      var sb = 0, wb = 0, best = 0, cut = 128;
+      for (i = 0; i < 256; i++) {
+        wb += hist[i]; if (!wb) continue;
+        var wf = n - wb; if (!wf) break;
+        sb += i * hist[i];
+        var mb = sb / wb, mf = (sum - sb) / wf, between = wb * wf * (mb - mf) * (mb - mf);
+        if (between > best) { best = between; cut = i; }
+      }
+      for (i = 0; i < px.length; i += 4) { var v = px[i] < cut ? 0 : 255; px[i] = px[i + 1] = px[i + 2] = v; }
+      g.putImageData(d, 0, 0);
+    } catch (e) {}
+    return c;
+  }
+
+  /* ---------------------- contractions ---------------------- */
+  function letters(t) { return String(t || '').toLowerCase().replace(/[^a-z]/g, ''); }
+  function near(a, b) {                    // edit distance of at most 1
+    if (a === b) return true;
+    if (Math.abs(a.length - b.length) > 1 || Math.min(a.length, b.length) < 3) return false;
+    var i = 0, j = 0, edits = 0;
+    while (i < a.length && j < b.length) {
+      if (a[i] === b[j]) { i++; j++; continue; }
+      if (++edits > 1) return false;
+      if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; }
+    }
+    return edits + (a.length - i) + (b.length - j) <= 1;
+  }
+  /* "it is" (or "itis", "you wil") somewhere in the line -> "it's" */
+  function pairInLine(text) {
+    var toks = String(text || '').toLowerCase().split(/[^a-z]+/).filter(Boolean);
+    var C = window.Homework ? Homework.CONTRACTIONS : {};
+    for (var i = 0; i < toks.length; i++) {
+      for (var c in C) {
+        var p = C[c].split(' ');
+        var one = toks[i] === p[0] || (p[0].length > 3 && near(toks[i], p[0]));
+        if (one && toks[i + 1] && (toks[i + 1] === p[1] || (p[1].length > 3 && near(toks[i + 1], p[1])))) return c;
+        if (toks[i].length >= 5 && near(toks[i], p.join(''))) return c;
+      }
+    }
+    return null;
+  }
+  /* a lone contraction, read however badly: "isn’", "arent", "wasn’!" */
+  function contractionInLine(text) {
+    var C = window.Homework ? Homework.CONTRACTIONS : {};
+    var toks = String(text || '').split(/\s+/);
+    for (var i = toks.length - 1; i >= 0; i--) {
+      var raw = toks[i].replace(/[‘’`]/g, "'"), t = letters(raw);
+      if (t.length < 3) continue;
+      for (var c in C) {
+        var cl = letters(c);
+        if (t === cl && (raw.indexOf("'") !== -1 || !REAL[t])) return c;
+        if (raw.indexOf("'") !== -1 && cl.length >= 4 && near(t, cl)) return c;
+      }
+    }
+    return null;
+  }
+  // contractions that are also ordinary words without the apostrophe
+  var REAL = { its: 1, shell: 1, well: 1, hell: 1, ill: 1, were: 1, wed: 1, id: 1, hed: 1, shed: 1, wont: 1, cant: 1, lets: 1 };
+
+  /* The words off a school spelling sheet, in the teacher's order:
+     the spelling column of the table, then the tricky word(s). */
+  function sheetWords(res) {
+    var lines = (res.table && res.table.lines.length ? res.table.lines : res.lines), out = [], tricky = [];
+    var started = !!res.table, seen = {};
+    lines.forEach(function (l) {
+      var t = l.text || '';
+      var tm = /tricky\s*words?\s*[:;.]?\s*(.*)$/i.exec(t);
+      if (tm) {
+        tm[1].split(/[,;&]|\s+and\s+|\s+/).forEach(function (x) {
+          var w = x.toLowerCase().replace(/[‘’`]/g, "'").replace(/^[^a-z]+|[^a-z']+$/g, '');
+          if (isWord(w) && tricky.indexOf(w) === -1 && tricky.length < 3) tricky.push(w);
+        });
+        started = false;          // nothing after the tricky word is a spelling word
+        return;
+      }
+      if (isHeader(t)) { started = true; return; }
+      if (!started) return;
+      var c = pairInLine(t) || contractionInLine(t);
+      if (c) { if (!seen[c]) { seen[c] = 1; out.push(c); } return; }
+      // an ordinary spelling table: the right-hand column, if read with confidence
+      var ws = (l.words || []).filter(function (x) { return x.conf >= 80; });
+      var last = ws.length ? ws[ws.length - 1].text : '';
+      var w = last.toLowerCase().replace(/[‘’`]/g, "'").replace(/^[^a-z]+|[^a-z']+$/g, '');
+      if (ws.length && ws.length <= 3 && isWord(w) && !CHROME[w] && !seen[w]) { seen[w] = 1; out.push(w); }
+    });
+    // anything the whole-page read found in the table that the table read missed
+    if (res.table) {
+      var inTable = false;
+      res.lines.forEach(function (l) {
+        if (isHeader(l.text)) { inTable = true; return; }
+        if (/tricky/i.test(l.text)) inTable = false;
+        if (!inTable) return;
+        var c = pairInLine(l.text) || contractionInLine(l.text);
+        if (c && !seen[c]) { seen[c] = 1; out.push(c); }
+      });
+    }
+    tricky.forEach(function (w) { if (!seen[w]) { seen[w] = 1; out.push(w); } });
+    return out;
   }
 
   function normalise(data) {
@@ -6357,7 +6549,7 @@ window.Scan = (function () {
       (b.paragraphs || []).forEach(function (p) {
         (p.lines || []).forEach(function (l) {
           lines.push({
-            text: l.text || '',
+            text: l.text || '', bbox: l.bbox || null,
             words: (l.words || []).map(function (w) { return { text: w.text || '', conf: w.confidence || 0 }; })
           });
         });
@@ -6384,11 +6576,19 @@ window.Scan = (function () {
   var LOW_CONFIDENCE = 65;
 
   function clean(t) {
-    return String(t || '').toLowerCase().replace(/[’']/g, "'").replace(/^[^a-z]+|[^a-z']+$/g, '').replace(/'s$/, '');
+    var w = String(t || '').toLowerCase().replace(/[’']/g, "'").replace(/^[^a-z]+|[^a-z']+$/g, '');
+    var C = window.Homework ? Homework.CONTRACTIONS : {};
+    return C[w] ? w : w.replace(/'s$/, '');          // keep "it's", drop the 's of "Chance's"
   }
   function isWord(w) { return /^[a-z][a-z'-]{1,15}$/.test(w) && !/^[a-z]$/.test(w); }
 
   function extract(res) {
+    if (res.table || tableTop(res) != null) {
+      var sw = sheetWords(res);
+      if (sw.length >= 2) {
+        return { words: sw.map(function (w) { return { word: w, conf: 100, keep: true }; }), math: [], fromList: true, sheet: true };
+      }
+    }
     var conf = {};
     res.lines.forEach(function (l) {
       l.words.forEach(function (w) {
@@ -6454,7 +6654,7 @@ window.Scan = (function () {
       !!document.querySelector('script[src*="js/scan.js"]');
   }
 
-  return { read: read, extract: extract, available: available };
+  return { read: read, extract: extract, available: available, _sheetWords: sheetWords, _pairInLine: pairInLine };
 })();
 
 
@@ -10094,7 +10294,7 @@ window.HWUI = (function () {
       var addBtn = el('button', 'scan-tick', '+');
       addBtn.setAttribute('aria-label', 'Add word');
       function addWord() {
-        addInput.value.split(/[\s,;]+/).map(function (x) { return x.trim().toLowerCase(); })
+        addInput.value.split(/[\s,;]+/).map(function (x) { return x.trim().toLowerCase().replace(/[‘’]/g, "'"); })
           .filter(Boolean).forEach(function (x) { words.push({ text: x, keep: true }); });
         draw();
       }
@@ -10114,8 +10314,9 @@ window.HWUI = (function () {
 
     function chosen() {
       return {
-        words: words.filter(function (w) { return w.keep && /^[a-zA-Z][a-zA-Z'-]*$/.test(w.text); })
-          .map(function (w) { return w.text.toLowerCase(); }),
+        // the iPad keyboard types a curly apostrophe: it's -> it's
+        words: words.filter(function (w) { return w.keep && /^[a-zA-Z][a-zA-Z'’‘-]*$/.test(w.text); })
+          .map(function (w) { return w.text.toLowerCase().replace(/[‘’]/g, "'"); }),
         math: math.filter(function (m) { return m.keep && Homework.parseMath(m.text); })
           .map(function (m) { return m.text; })
       };
@@ -10226,6 +10427,8 @@ window.Rocket = (function () {
     saidRight: "Yes! That's it!",
     sayAgain: "Let's try that again. Listen.",
     spellIt: 'Now spell it on the keyboard.',
+    squeeze: 'Squeeze these two words into one:',
+    apostrophe: 'The apostrophe takes the place of the missing letters.',
     almost: 'Almost! The green letters are right. Fix the orange ones.',
     soundOut: 'Listen. Let me sound it out for you.',
     copyIt: 'Here is how to spell it. Copy it into the boxes.',
@@ -10317,8 +10520,15 @@ window.Rocket = (function () {
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function rand(a, b) { return a + Math.random() * (b - a); }
   /* "sh-ad-ow" -> "shadow"; letters and apostrophes only */
-  function cleanWord(w) { return String(w || '').toLowerCase().replace(/-/g, '').replace(/[^a-z']/g, ''); }
+  /* "sh-ad-ow" -> "shadow"; "It’s" -> "it's"; "i'll" -> "I'll" */
+  function cleanWord(w) {
+    return String(w || '').toLowerCase().replace(/[‘’]/g, "'").replace(/-/g, '').replace(/[^a-z']/g, '')
+      .replace(/^i(?='|$)/, 'I');
+  }
+  /* "it's" -> "it is", or null for a word that is not a contraction */
+  function expansion(w) { return window.Homework && Homework.expand ? Homework.expand(w) : null; }
   function partsOf(w) {
+    if (w.indexOf("'") !== -1) return [w];        // a contraction is said whole, not sounded out
     var it = window.Homework ? Homework.wordItem(w) : null;
     return it ? it.parts : [w];
   }
@@ -10365,7 +10575,11 @@ window.Rocket = (function () {
       if (Array.isArray(v)) v.forEach(function (t, i) { add(t, k + ' ' + (i + 1)); });
       else add(v, k);
     });
-    state.words.forEach(function (w) { add(w, 'this week\'s word'); });
+    state.words.forEach(function (w) {
+      add(w, 'this week\'s word');
+      var e = expansion(w);
+      if (e) add(e, 'the two words in ' + w);
+    });
     return out;
   }
 
@@ -11264,6 +11478,16 @@ window.Rocket = (function () {
     panel.innerHTML = '';
     var card = el('div', 'rk-card');
     card.appendChild(el('div', 'rk-step', '⌨️ Spell it on the keyboard!'));
+    var exp = expansion(w), lw = w.toLowerCase();
+    if (exp) {
+      // the teacher's way: here are the two words, write the contraction
+      var pair = el('div', 'rk-pair');
+      pair.appendChild(el('span', 'rk-pair-words', exp));
+      pair.appendChild(el('span', 'rk-pair-arrow', '➜'));
+      pair.appendChild(el('span', 'rk-pair-q', '?'));
+      pair.addEventListener('click', function () { Voice.stop(); talk(LINES.squeeze); sayWord(exp); });
+      card.appendChild(pair);
+    }
     var reveal = el('div', 'rk-reveal');
     reveal.hidden = true;
     card.appendChild(reveal);
@@ -11290,7 +11514,21 @@ window.Rocket = (function () {
     hear.appendChild(el('span', null, '🔊')); hear.appendChild(el('span', null, 'Hear it'));
     var check = el('button', 'btn-big rk-check');
     check.appendChild(el('span', null, '✅')); check.appendChild(el('span', null, 'Check'));
-    r.appendChild(hear); r.appendChild(check);
+    r.appendChild(hear);
+    if (w.indexOf("'") !== -1) {
+      // on the iPad keyboard the apostrophe hides on the 123 page
+      var apo = el('button', 'btn-big ghost compact rk-apo');
+      apo.appendChild(el('span', 'rk-apo-mark', '\u2019'));
+      apo.appendChild(el('span', null, 'apostrophe'));
+      apo.setAttribute('aria-label', 'Type an apostrophe');
+      ['pointerdown', 'mousedown'].forEach(function (ev) { apo.addEventListener(ev, function (e) { e.preventDefault(); }); });
+      apo.addEventListener('click', function () {
+        if (input.value.length < input.maxLength) input.value += "'";
+        marks = null; draw(); focusInput(input);
+      });
+      r.appendChild(apo);
+    }
+    r.appendChild(check);
     card.appendChild(r);
     panel.appendChild(card);
 
@@ -11325,8 +11563,8 @@ window.Rocket = (function () {
       var val = input.value.toLowerCase();
       if (!val) { Voice.stop(); talk(LINES.typeFirst); focusInput(input); return; }
       G.spellTries++;
-      var ok = val === w;
-      var tag = ok || G.reveal ? null : classify(w, val);
+      var ok = val === lw;
+      var tag = ok || G.reveal ? null : classify(lw, val);
       Progress.logEvent({
         t: Date.now(), dayId: 'rocket', itemId: 'rocket-spell-' + w, station: 'rocket', domain: 'rocket-spelling',
         correct: ok, tag: tag, attempt: G.spellTries, ms: Date.now() - G.spellT0,
@@ -11336,7 +11574,7 @@ window.Rocket = (function () {
 
       // not yet: green for every letter already in the right place
       marks = [];
-      for (var i = 0; i < Math.max(w.length, val.length); i++) marks.push(val[i] === w[i] ? 'ok' : 'fix');
+      for (var i = 0; i < Math.max(w.length, val.length); i++) marks.push(val[i] === lw[i] ? 'ok' : 'fix');
       draw();
       SFX.oops();
       Voice.stop();
@@ -11348,8 +11586,13 @@ window.Rocket = (function () {
         heard.innerHTML = 'Almost! The <b class="g">green</b> letters are right. Fix the <b class="o">orange</b> ones.';
         talk(LINES.almost);
       } else {
-        heard.innerHTML = 'Listen to the sounds, then fix the <b class="o">orange</b> letters.';
-        talk(LINES.soundOut).then(function () { return Voice.soundOut(w, G.parts); });
+        if (exp) {
+          heard.innerHTML = '<b>' + esc(exp) + '</b> squeezed together. The <b>\u2019</b> goes where letters are missing.';
+          talk(LINES.apostrophe); talk(LINES.squeeze); sayWord(exp);
+        } else {
+          heard.innerHTML = 'Listen to the sounds, then fix the <b class="o">orange</b> letters.';
+          talk(LINES.soundOut).then(function () { return Voice.soundOut(w, G.parts); });
+        }
       }
       focusInput(input);
     }
@@ -11366,7 +11609,12 @@ window.Rocket = (function () {
     draw();
     focusInput(input);   // opens the keyboard when we got here from a tap
     Voice.stop();
-    talk(LINES.spellIt).then(function () { if (G && G.mode === 'spell' && G.word === w) return sayWord(w); });
+    if (exp) {
+      talk(LINES.squeeze);
+      sayWord(exp).then(function () { if (G && G.mode === 'spell' && G.word === w) return talk(LINES.spellIt); });
+    } else {
+      talk(LINES.spellIt).then(function () { if (G && G.mode === 'spell' && G.word === w) return sayWord(w); });
+    }
   }
 
   function focusInput(input) {
