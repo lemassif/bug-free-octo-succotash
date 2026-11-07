@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b2a1a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Grand Slam Tennis</title>
+<style>
+  :root { --gold: #ffd34d; --ink: #f4f7ff; --mute: #a9b8cc; --panel: rgba(6,16,28,.93); --green: #2fbf71; --blue: #3aa0f5; --clay: #d8693a; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b2a1a; color: var(--ink); font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; -webkit-user-select: none; user-select: none; touch-action: none; }
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  .hide { display: none !important; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+
+  /* ------------------------------ HUD ------------------------------ */
+  #hud { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
+  #board { position: absolute; left: max(10px, env(safe-area-inset-left)); top: max(8px, env(safe-area-inset-top)); background: rgba(4,14,24,.86); border-radius: 10px; overflow: hidden; font-weight: 900; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+  #board .ev { background: #0f4a2c; color: var(--gold); font-size: 11px; letter-spacing: 1px; padding: 3px 10px; }
+  #board table { border-collapse: collapse; }
+  #board td { padding: 3px 9px; font-size: 16px; }
+  #board td.nm { min-width: 96px; text-align: left; }
+  #board td.sv { width: 14px; color: var(--gold); }
+  #board td.g { text-align: center; color: #cfe; min-width: 22px; }
+  #board td.p { text-align: center; background: var(--gold); color: #222; min-width: 38px; }
+  #topr { position: absolute; right: max(10px, env(safe-area-inset-right)); top: max(8px, env(safe-area-inset-top)); display: flex; gap: 8px; pointer-events: auto; }
+  .ib { width: 46px; height: 46px; border-radius: 12px; border: 2px solid rgba(255,255,255,.3); background: rgba(4,14,24,.7); font-size: 20px; display: grid; place-items: center; }
+  #call { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); font-size: clamp(30px, 7vw, 64px); font-weight: 900; text-shadow: 0 4px 0 rgba(0,0,0,.45), 0 0 20px rgba(0,0,0,.35); white-space: nowrap; transition: opacity .25s; }
+  #shot { position: absolute; left: 50%; top: calc(max(8px, env(safe-area-inset-top)) + 4px); transform: translateX(-50%); background: rgba(4,14,24,.75); border-radius: 999px; padding: 5px 14px; font-weight: 800; font-size: 15px; white-space: nowrap; }
+  #meter { position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%); width: min(70vw, 360px); height: 22px; border-radius: 11px; background: rgba(4,14,24,.8); border: 2px solid rgba(255,255,255,.4); overflow: hidden; }
+  #meter .zone { position: absolute; top: 0; bottom: 0; left: 78%; width: 16%; background: rgba(47,191,113,.55); }
+  #meter .fill { position: absolute; top: 0; bottom: 0; left: 0; width: 0; background: linear-gradient(90deg, #3aa0f5, #ffd34d, #ff5a3a); }
+  #meter .lbl { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; font-weight: 900; letter-spacing: 1px; }
+  #hint { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); font-weight: 800; font-size: 15px; background: rgba(4,14,24,.7); padding: 6px 14px; border-radius: 999px; white-space: nowrap; }
+
+  /* touch controls */
+  #pad { position: fixed; left: max(14px, env(safe-area-inset-left)); bottom: max(14px, env(safe-area-inset-bottom)); width: 150px; height: 150px; border-radius: 50%; background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.25); z-index: 4; touch-action: none; }
+  #knob { position: absolute; left: 50%; top: 50%; width: 62px; height: 62px; margin: -31px 0 0 -31px; border-radius: 50%; background: rgba(255,255,255,.35); border: 2px solid rgba(255,255,255,.6); }
+  #shots { position: fixed; right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(3, 84px); gap: 10px; z-index: 4; }
+  .sb { height: 84px; border-radius: 50%; border: 3px solid rgba(255,255,255,.55); font-weight: 900; font-size: 13px; line-height: 1.1; display: grid; place-items: center; box-shadow: 0 5px 0 rgba(0,0,0,.35); touch-action: none; }
+  .sb b { display: block; font-size: 22px; }
+  .sb.top { background: radial-gradient(circle at 35% 30%, #6ff0a8, #1e9a55); }
+  .sb.sl { background: radial-gradient(circle at 35% 30%, #8cc8ff, #2a6ad0); }
+  .sb.lob { background: radial-gradient(circle at 35% 30%, #ffe48a, #d89a1a); color: #3a2400; }
+  .sb.on { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,.35); filter: brightness(1.25); }
+
+  /* --------------------------- overlays --------------------------- */
+  .ov { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 18px; background: radial-gradient(ellipse at 50% 20%, rgba(20,80,50,.85), rgba(3,10,18,.96)); overflow-y: auto; }
+  .card { width: min(720px, 100%); background: var(--panel); border-radius: 22px; padding: 22px; box-shadow: 0 20px 50px rgba(0,0,0,.5); text-align: center; margin: auto; }
+  h1 { margin: 0; font-size: clamp(34px, 7vw, 58px); letter-spacing: 2px; color: #fff; text-shadow: 3px 3px 0 #1e9a55, 6px 6px 0 rgba(0,0,0,.35); }
+  h2 { margin: 0 0 6px; font-size: 26px; }
+  .tag { color: var(--mute); margin: 8px 0 16px; }
+  .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 10px 0; }
+  .btn { padding: 14px 22px; border-radius: 14px; border: 0; font-weight: 900; font-size: 18px; background: linear-gradient(180deg, #4fe08f, #1e9a55); box-shadow: 0 5px 0 #136b3a; color: #06210f; }
+  .btn.alt { background: #22384e; box-shadow: 0 5px 0 #13202e; color: var(--ink); }
+  .btn.sel { outline: 3px solid var(--gold); }
+  .btn:active { transform: translateY(3px); box-shadow: none; }
+  .lbl2 { font-size: 12px; letter-spacing: 1.5px; color: var(--mute); font-weight: 900; margin-top: 14px; }
+  #nameIn { font: inherit; font-weight: 900; font-size: 18px; padding: 10px 14px; border-radius: 12px; border: 2px solid #3a5a7a; background: #0c1c2c; color: #fff; width: 200px; text-align: center; }
+  .sw { width: 38px; height: 38px; border-radius: 50%; border: 3px solid transparent; }
+  .sw.sel { border-color: #fff; }
+  .majors { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 12px 0; }
+  .mj { border-radius: 16px; padding: 12px; text-align: left; border: 3px solid transparent; color: #fff; position: relative; }
+  .mj b { display: block; font-size: 18px; }
+  .mj span { font-size: 13px; opacity: .9; }
+  .mj .tro { position: absolute; right: 8px; top: 6px; font-size: 26px; }
+  .mj.next { border-color: var(--gold); }
+  .mj.locked { opacity: .45; }
+  #mapc { width: 100%; max-width: 640px; aspect-ratio: 2 / 1; border-radius: 14px; background: #0d3550; display: block; margin: 8px auto; }
+  .help { text-align: left; color: #d8e4f0; font-size: 15px; line-height: 1.45; }
+  .help b { color: var(--gold); }
+  .bracket { display: grid; gap: 6px; margin: 10px auto; max-width: 420px; text-align: left; }
+  .bracket div { background: #0f2638; border-radius: 10px; padding: 8px 12px; font-weight: 800; }
+  .bracket .won { color: #7ee0a8; } .bracket .now { outline: 2px solid var(--gold); }
+  .big { font-size: 64px; }
+  @media (max-height: 520px) { .sb { height: 66px; } #shots { grid-template-columns: repeat(3, 66px); } #pad { width: 120px; height: 120px; } #meter { bottom: 100px; } #hint { bottom: 80px; } }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hide">
+  <div id="board">
+    <div class="ev" id="evName">MELBOURNE · FINAL</div>
+    <table>
+      <tr><td class="sv" id="sv0"></td><td class="nm" id="nm0">You</td><td class="g" id="s0a"></td><td class="g" id="s0b"></td><td class="g" id="s0c"></td><td class="p" id="pt0">0</td></tr>
+      <tr><td class="sv" id="sv1"></td><td class="nm" id="nm1">Opponent</td><td class="g" id="s1a"></td><td class="g" id="s1b"></td><td class="g" id="s1c"></td><td class="p" id="pt1">0</td></tr>
+    </table>
+  </div>
+  <div id="shot" class="hide"></div>
+  <div id="call" style="opacity:0"></div>
+  <div id="meter" class="hide"><div class="zone"></div><div class="fill"></div><div class="lbl">POWER</div></div>
+  <div id="hint" class="hide"></div>
+  <div id="topr">
+    <button class="ib" id="btnSound" aria-label="Sound">🔊</button>
+    <button class="ib" id="btnPause" aria-label="Pause">⏸</button>
+  </div>
+</div>
+
+<div id="pad" class="hide"><div id="knob"></div></div>
+<div id="shots" class="hide">
+  <button class="sb sl" id="bSlice"><span><b>↘</b>SLICE</span></button>
+  <button class="sb lob" id="bLob"><span><b>⤴</b>LOB</span></button>
+  <button class="sb top" id="bTop"><span><b>⟳</b>TOPSPIN</span></button>
+</div>
+
+<!-- title -->
+<div class="ov" id="title">
+  <div class="card">
+    <div class="big">🎾</div>
+    <h1>GRAND SLAM TENNIS</h1>
+    <p class="tag">Serve, return, spin it. Travel the world and win the four majors: Melbourne, Paris, London and New York.</p>
+    <div class="lbl2">YOUR PLAYER</div>
+    <div class="row"><input id="nameIn" maxlength="12" autocomplete="off" autocapitalize="words" spellcheck="false"></div>
+    <div class="row" id="colors"></div>
+    <div class="lbl2">DIFFICULTY</div>
+    <div class="row" id="diffs">
+      <button class="btn alt" data-d="easy">Easy</button>
+      <button class="btn alt" data-d="medium">Medium</button>
+      <button class="btn alt" data-d="hard">Hard</button>
+    </div>
+    <div class="tag" id="diffNote"></div>
+    <div class="row">
+      <button class="btn" id="goTour">🌍 World Tour</button>
+      <button class="btn alt" id="goQuick">🎾 Quick Match</button>
+      <button class="btn alt" id="goHelp">❓ How to play</button>
+    </div>
+    <div class="row"><a class="btn alt" href="index.html" style="text-decoration:none">🏠 Arcade</a></div>
+  </div>
+</div>
+
+<!-- world tour -->
+<div class="ov hide" id="tour">
+  <div class="card">
+    <h2>🌍 World Tour</h2>
+    <div class="tag" id="tourNote"></div>
+    <canvas id="mapc" width="1280" height="640"></canvas>
+    <div class="majors" id="majors"></div>
+    <div class="row">
+      <button class="btn" id="tourGo">Play</button>
+      <button class="btn alt" id="tourBack">Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- quick match: pick a court -->
+<div class="ov hide" id="quick">
+  <div class="card">
+    <h2>🎾 Quick Match</h2>
+    <p class="tag">Pick a court. One set, first to 4 games.</p>
+    <div class="majors" id="quickCourts"></div>
+    <div class="row"><button class="btn alt" id="quickBack">Back</button></div>
+  </div>
+</div>
+
+<!-- before a match -->
+<div class="ov hide" id="pre">
+  <div class="card">
+    <h2 id="preTitle"></h2>
+    <p class="tag" id="preTag"></p>
+    <div class="bracket" id="preBracket"></div>
+    <p class="tag" id="preOpp"></p>
+    <div class="row"><button class="btn" id="preGo">Walk on court ▶</button></div>
+  </div>
+</div>
+
+<!-- after a match -->
+<div class="ov hide" id="post">
+  <div class="card">
+    <div class="big" id="postEm">🏆</div>
+    <h2 id="postTitle"></h2>
+    <p class="tag" id="postTag"></p>
+    <div class="row" id="postBtns"></div>
+  </div>
+</div>
+
+<!-- pause -->
+<div class="ov hide" id="pause">
+  <div class="card">
+    <h2>Paused</h2>
+    <div class="row">
+      <button class="btn" id="resume">▶ Resume</button>
+      <button class="btn alt" id="quit">🏳️ Leave match</button>
+    </div>
+  </div>
+</div>
+
+<!-- help -->
+<div class="ov hide" id="help">
+  <div class="card help">
+    <h2 style="text-align:center">How to play</h2>
+    <p><b>Moving.</b> On Easy and Medium your player runs to the ball for you. On Hard you move with the joystick (or the arrow keys / WASD).</p>
+    <p><b>Hitting.</b> Tap a shot button as the ball comes to you: <b>Topspin</b> (green) dips into the court and kicks up high, <b>Slice</b> (blue) floats and skids low, <b>Lob</b> (yellow) goes high over a player at the net. Keyboard: J, K, L.</p>
+    <p><b>Aiming.</b> Hit early and the ball goes across the court, hit late and it goes down the line. Or hold the joystick left or right as you hit.</p>
+    <p><b>Serving.</b> Tap where you want to serve in the box (or use the joystick), then tap a serve: <b>Flat</b> (fast), <b>Slice</b> (curves away) or <b>Kick</b> (jumps up high). That tosses the ball. Tap again when the power bar is in the green. Two faults in a row is a double fault.</p>
+    <p><b>The surfaces.</b> Melbourne and New York are hard courts. Paris is red clay: slow, with high bounces and long sliding rallies. London is grass: fast, with low skidding bounces, so go to the net!</p>
+    <p><b>Scoring.</b> Real tennis scoring: 15, 30, 40, game. At 40-40 it is deuce, and you need two points in a row. Win the set to win the match.</p>
+    <div class="row"><button class="btn" id="helpBack">Got it</button></div>
+  </div>
+</div>
+
+<script>setTimeout(function () { if (!window.GST || !window.GST.ok) { var t = document.querySelector('#title .tag'); if (t) t.textContent = 'Grand Slam Tennis needs a browser with 3D graphics (WebGL). Try Safari or Chrome.'; } }, 6000);</script>
+<script type="module" src="tennis3d.js"></script>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }</script>
+</body>
+</html>

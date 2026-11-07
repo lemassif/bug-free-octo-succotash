@@ -20,6 +20,7 @@
 > | **Barrel Blitz 3D** | [`barrel.html`](barrel.html) | climb the tower past barrels and fireballs to rescue a puppy: 12 levels, Easy, Medium or Hard — see below |
 > | **Vector Guard** | [`vector.html`](vector.html) | neon vector-style grid shooter: build energy blocks, blast Hackers, beat the Mother Saucer: 12 levels — see below |
 > | **Sky Shield** | [`shield.html`](shield.html) | Missile Command style city defense: 12 waves, Easy, Medium or Hard — see below |
+> | **Grand Slam Tennis** | [`tennis.html`](tennis.html) | 3D tennis with topspin, slice and lobs, real serving and scoring, and a world tour of the four majors — see below |
 >
 > **Island Dreams**, our family camp journal, also lives here at
 > [`island/`](island/index.html) but is deliberately left off the arcade menu:
@@ -508,3 +509,38 @@ can catch more missiles.
 - **Controls:** tap or click the sky. Keyboard: arrows move the crosshair,
   Space fires, P pause, M sound. Best played sideways on a phone.
 - `shield3d.js` builds the night scene, cities and bases with three.js.
+
+# Grand Slam Tennis
+
+3D singles tennis against computer opponents, with a world tour of the four
+majors in season order: **Melbourne** (January, blue hard court), **Paris**
+(June, red clay), **London** (July, grass) and **New York** (September, hard
+court under the lights). Each major is a Quarterfinal, Semifinal and Final;
+win the Final for the trophy, then fly on. Win all four for a Grand Slam.
+
+- **Shots:** Topspin (dips into the court and kicks up), Slice (floats, then
+  skids low) and Lob (high over a player at the net). Hit early to go across
+  the court, late to go down the line, or hold the joystick left or right.
+  Close to the net you volley.
+- **Serving:** tap where to serve in the box, then Flat (fast), Slice (curves
+  away) or Kick (jumps up high) to toss; tap again with the power bar in the
+  green. Faults, double faults, lets and aces are all called by the umpire.
+- **Scoring:** real tennis: 15, 30, 40, deuce, advantage; one set to 4 games
+  with a tiebreak at 4-4.
+- **The ball is real physics:** gravity, air drag and spin (the Magnus
+  force), with a bounce that depends on the surface and the spin. Clay is slow
+  and high, grass is fast and low, so each major plays differently. Every
+  shot is aimed by solving that physics, so it goes where it was meant to,
+  give or take the errors.
+- **Opponents** are made-up players with styles: baseliners, big servers,
+  serve-and-volleyers, clay specialists and counter-punchers.
+- **Easy:** you run to the ball by yourself and just tap a shot, with a slower
+  ball and a big timing window. **Medium:** you still run by yourself, but the
+  timing is tighter and opponents aim for the corners. **Hard:** you move with
+  the joystick at full speed.
+- **Controls:** shot buttons bottom right, joystick bottom left (Hard).
+  Keyboard: arrows or WASD to move, J topspin (or Space), K slice, L lob, P
+  pause. Your name and shirt colour are saved, along with the tour and your
+  trophies.
+- `tennis3d.js` builds the stadiums, the jointed players and their swings, and
+  the ball physics with three.js.
