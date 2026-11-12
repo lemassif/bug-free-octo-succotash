@@ -5,8 +5,11 @@ chooses a college and a path with animals. It is a plain web app: no
 account, no Claude, no app store. Open it in any browser.
 
 **Open it:** `https://lemassif.github.io/bug-free-octo-succotash/zoology/`
-(or tap **Katie's Field Station** on the arcade menu). On an iPhone or iPad,
-open it in Safari, tap Share, then **Add to Home Screen** for an app icon.
+
+It is deliberately not on the arcade menu and does not link back to it: it is
+its own app, with its own icon, its own offline cache and its own link to
+share. On an iPhone or iPad, open it in Safari, tap Share, then **Add to Home
+Screen** and it launches full-screen like any app.
 
 ## What is in it
 

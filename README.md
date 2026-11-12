@@ -1,10 +1,9 @@
 > This repo is a small **retro arcade** with fifteen self-contained browser games,
-> plus two learning apps. Open [`index.html`](index.html) for the **menu**, then
+> plus a learning app. Open [`index.html`](index.html) for the **menu**, then
 > pick one:
 >
 > | App | File | Description |
 > |------|------|-------------|
-> | **Katie's Field Station** | [`zoology/`](zoology/index.html) | a zoology learning, exploration &amp; travel app: taxonomy in 3D and deep time, a 164-specimen classification project, an insect display studio, the monarch, Roosevelt &amp; the Smithsonian, owls &amp; bird banding, and a map of internships, field stations and safaris — see [`KATIE.md`](KATIE.md) |
 > | **Chance Academy** | [`chance/`](chance/index.html) | a 60-day science, math &amp; phonics curriculum for a curious second-grader, plus the Spelling Rocket game for his weekly spelling words — see [`CHANCE.md`](CHANCE.md) |
 > | **Cubert** | [`cubert.html`](cubert.html) | cube-hopping isometric arcade with 20 levels you can start from — see [`CUBERT.md`](CUBERT.md) |
 > | **Miner 2049er** | [`miner.html`](miner.html) | platformer (documented below) |
@@ -26,6 +25,10 @@
 > **Island Dreams**, our family camp journal, also lives here at
 > [`island/`](island/index.html) but is deliberately left off the arcade menu:
 > it is its own Home Screen app, so it keeps its own sign-in. See [`ISLAND.md`](ISLAND.md).
+>
+> **Katie's Field Station**, a zoology learning, exploration and travel app, lives
+> at [`zoology/`](zoology/index.html) and is likewise kept off the arcade menu: it
+> is its own app with its own link and Home Screen icon. See [`KATIE.md`](KATIE.md).
 >
 > Every page cross-links, so you can hop between the menu and any game.
 >
