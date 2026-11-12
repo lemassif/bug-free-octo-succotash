@@ -1,5 +1,5 @@
 /* Retro Arcade service worker — caches the whole arcade for offline play. */
-const CACHE = 'arcade-v46';
+const CACHE = 'arcade-v47';
 const ASSETS = [
   './',
   './index.html',
@@ -53,6 +53,8 @@ const ASSETS = [
    one only pre-caches its entry point so the menu link works
    offline; opening it once installs the rest. */
 ASSETS.push('./chance/', './chance/index.html', './chance/app.css');
+/* Katie's Field Station under ./zoology/ likewise ships its own worker. */
+ASSETS.push('./zoology/', './zoology/index.html', './zoology/app.css');
 
 self.addEventListener('install', (e) => {
   e.waitUntil(

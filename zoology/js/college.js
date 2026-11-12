@@ -1,0 +1,75 @@
+/* ============================================================
+   college.js — Colleges & Careers
+   Side-by-side comparison, a visit checklist with zoology-specific
+   questions (answers saved per college), honest notes on the vet
+   path, and careers that use both zoology and theatre.
+   ============================================================ */
+(function () {
+  var esc = Media.esc;
+  var COLLEGES = [
+    { id: 'oswego', name: 'SUNY Oswego', place: 'Oswego, NY (Lake Ontario)', degree: 'Zoology BS (stand-alone major), Biology BA/BS', field: 'Rice Creek Field Station: 300+ acres, lab building, pond, five miles of trails, summer field session, songbird banding, cardinal colour-banding study.', vet: 'Published pre-veterinary path with advising; Biology/Zoology cover the prerequisites.', theatre: 'Theatre Department, BA Theatre; four productions a year in Waterman Theatre (Tyler Hall) open to all majors, no audition needed to get involved; Dramafest for high-schoolers.', wild: 'Lake Ontario shore, Derby Hill hawk watch 20 min, Braddock Bay 1.5 h, Montezuma NWR 1 h, Tug Hill and Adirondacks for saw-whets.', url: 'https://www.oswego.edu/programs/undergraduate/zoology-bs' },
+    { id: 'esf', name: 'SUNY ESF', place: 'Syracuse, NY (next to Syracuse University)', degree: 'Wildlife Science BS (Wildlife Society certification track), Conservation Biology, Environmental Biology with pre-health', field: 'Huntington Wildlife Forest (15,000 acres, Adirondacks), Cranberry Lake Biological Station (required summer session for many majors), Thousand Islands.', vet: 'Pre-health track inside Environmental Biology.', theatre: 'No theatre major; ESF students take courses and join productions at Syracuse University (Drama department is strong).', wild: 'Adirondack field stations; Rosamond Gifford Zoo 10 min; Montezuma 45 min.', url: 'https://www.esf.edu/' },
+    { id: 'cornell', name: 'Cornell University', place: 'Ithaca, NY', degree: 'Animal Science; Biological Sciences with an Ecology & Evolutionary Biology concentration (no zoology major by name)', field: 'Shoals Marine Lab (island), Cornell Lab of Ornithology and Sapsucker Woods, Museum of Vertebrates, Cornell University Insect Collection (7 million specimens).', vet: 'College of Veterinary Medicine on campus; precollege summer courses; pre-vet advising and roundtables.', theatre: 'Performing & Media Arts department and Schwartz Center; student theatre groups.', wild: 'Finger Lakes; Montezuma 45 min; Hawk Mountain 3.5 h.', url: 'https://www.vet.cornell.edu/' },
+    { id: 'cobleskill', name: 'SUNY Cobleskill', place: 'Cobleskill, NY (Schoharie Valley)', degree: 'Wildlife Management BT/BS; Fisheries & Aquaculture; Animal Science (pre-vet)', field: 'Campus fish hatchery, wildlife lab, 900-acre campus with working farms.', vet: 'Animal Science pre-vet track; hands-on large-animal work on campus.', theatre: 'Small campus; student clubs rather than a theatre department.', wild: 'Catskills and the Schoharie; two hours to Albany Pine Bush (Karner blue).', url: 'https://www.cobleskill.edu/' }
+  ];
+  var QUESTIONS = [
+    'Can first-year students do research at the field station, or only juniors and seniors?',
+    'Who on the faculty holds a bird-banding permit, and do undergraduates get to work under it?',
+    'Is there an insect collection on campus, and who curates it? Can students add specimens?',
+    'What percentage of pre-vet students from here are admitted to vet school, and where?',
+    'Which courses are field courses (you leave the building), and how many can I take?',
+    'Can a zoology major take theatre classes, act in productions and run crew? Does it fit the schedule?',
+    'What do zoology graduates from the last three years actually do now?',
+    'What is the summer field session like, what does it cost, and does financial aid cover it?',
+    'How do students get to wildlife sites (Montezuma, Braddock Bay, Derby Hill) without a car?',
+    'Are there study-abroad or field-course options in Kenya, Costa Rica or the Galápagos?',
+    'Is there a student chapter of The Wildlife Society or an entomology / birding club?',
+    'What is the animal-care facility like (live animals on campus), and can students work there?'
+  ];
+  function render(el, args) {
+    var tab = args[0] || 'compare';
+    var tabs = [['compare', 'Compare'], ['visit', 'Visit checklist'], ['vet', 'The vet question'], ['careers', 'Careers: zoology + theatre']];
+    el.innerHTML = '<section class="hero"><h1>Colleges &amp; Careers</h1><p class="lede">Four New York options side by side, the questions to ask on a tour (with your answers saved), the honest arithmetic of becoming a veterinarian, and the jobs where a zoologist who can act, build a set and run a show is exactly who they are looking for.</p></section>' +
+      '<div class="chips" style="margin-bottom:14px">' + tabs.map(function (t) { return '<a class="chip ' + (tab === t[0] ? 'on' : '') + '" href="#/college/' + t[0] + '" style="text-decoration:none">' + t[1] + '</a>'; }).join('') + '</div><div id="cbody"></div>';
+    var b = document.getElementById('cbody');
+    if (tab === 'visit') visit(b); else if (tab === 'vet') vet(b); else if (tab === 'careers') careers(b); else compare(b);
+  }
+  function compare(b) {
+    var rows = [['Where', 'place'], ['Degrees', 'degree'], ['Field station', 'field'], ['Pre-vet', 'vet'], ['Theatre', 'theatre'], ['Wild places nearby', 'wild']];
+    b.innerHTML = '<div class="card pad0" style="overflow:auto"><table><tr><th></th>' + COLLEGES.map(function (c) { var r = Store.get('colleges.' + c.id + '.rating', 0); return '<th>' + esc(c.name) + '<br><span class="small" style="text-transform:none;letter-spacing:0">' + (r ? '★'.repeat(r) : '') + '</span></th>'; }).join('') + '</tr>' +
+      rows.map(function (r) { return '<tr><th>' + r[0] + '</th>' + COLLEGES.map(function (c) { return '<td class="small">' + esc(c[r[1]]) + '</td>'; }).join('') + '</tr>'; }).join('') +
+      '<tr><th>Links</th>' + COLLEGES.map(function (c) { return '<td><a class="btn sm" href="' + esc(c.url) + '" target="_blank" rel="noopener">Site ↗</a></td>'; }).join('') + '</tr></table></div>' +
+      '<h2>My ratings and notes</h2><div class="grid">' + COLLEGES.map(function (c) { var st = Store.get('colleges.' + c.id, {}) || {}; return '<div class="card"><h3 style="margin-top:0">' + esc(c.name) + '</h3><div class="row"><label style="margin:0">Visited</label><input type="checkbox" class="cvis" data-id="' + c.id + '" ' + (st.visited ? 'checked' : '') + ' style="width:auto"><label style="margin:0 0 0 12px">Rating</label><select class="crate" data-id="' + c.id + '" style="width:auto">' + [0, 1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '" ' + ((st.rating || 0) === n ? 'selected' : '') + '>' + (n ? '★'.repeat(n) : '—') + '</option>'; }).join('') + '</select></div><div class="field" style="margin-top:8px"><label>Notes</label><textarea class="cnote" data-id="' + c.id + '">' + esc(st.notes || '') + '</textarea></div></div>'; }).join('') + '</div>' +
+      '<div class="callout" style="margin-top:16px"><b>A straight word about the choice.</b> Oswego is the only one of the four with a degree actually called Zoology, a field station on campus and a theatre department that wants non-majors on stage. ESF is the stronger name in wildlife management and would put you with Syracuse’s drama program. Cornell is the vet-school pipeline and the Lab of Ornithology, and the hardest to get into. Cobleskill is the most hands-on and the least known. None of them is wrong; pick the one whose faculty answer the visit-checklist questions with specifics.</div>';
+    b.querySelectorAll('.cvis').forEach(function (i) { i.onchange = function () { Store.set('colleges.' + i.getAttribute('data-id') + '.visited', i.checked); }; });
+    b.querySelectorAll('.crate').forEach(function (i) { i.onchange = function () { Store.set('colleges.' + i.getAttribute('data-id') + '.rating', +i.value); }; });
+    b.querySelectorAll('.cnote').forEach(function (i) { i.onchange = function () { Store.set('colleges.' + i.getAttribute('data-id') + '.notes', i.value); App.toast('Saved'); }; });
+  }
+  function visit(b) {
+    b.innerHTML = '<p class="lede">Ask these on every tour. Write the answer you got; vague answers are an answer too.</p>' + COLLEGES.map(function (c) {
+      var ans = Store.get('colleges.' + c.id + '.answers', {}) || {};
+      return '<details' + (c.id === 'oswego' ? ' open' : '') + '><summary>' + esc(c.name) + ' <span class="tag">' + Object.keys(ans).filter(function (k) { return ans[k]; }).length + '/' + QUESTIONS.length + ' answered</span></summary>' + QUESTIONS.map(function (q, i) { return '<div class="field" style="margin-top:10px"><label>' + (i + 1) + '. ' + esc(q) + '</label><input class="qa" data-c="' + c.id + '" data-q="' + i + '" value="' + esc(ans[i] || '') + '" placeholder="their answer"></div>'; }).join('') + '</details>';
+    }).join('');
+    b.querySelectorAll('.qa').forEach(function (i) { i.onchange = function () { Store.set('colleges.' + i.getAttribute('data-c') + '.answers.' + i.getAttribute('data-q'), i.value); }; });
+  }
+  function vet(b) {
+    b.innerHTML = '<div class="grid"><div class="card"><h3>The arithmetic</h3><ul class="small"><li><b>8 years</b>: four of undergraduate (any major, with the prerequisites: two years of chemistry, biology, physics, biochemistry, statistics), then four of veterinary school for the DVM.</li><li><b>33 vet schools</b> in the US; Cornell is New York’s. Acceptance rates run roughly 10–15% per school, and most applicants apply to several.</li><li><b>Hours.</b> Schools want hundreds of documented hours of veterinary experience (shadowing clinics) and animal experience (farms, zoos, rehab, research). Start logging now; the Field Journal in this app has a place for it.</li><li><b>Cost.</b> Vet school debt commonly runs $150,000–$250,000; starting salaries are around $100,000–$130,000. Rural and large-animal practice have loan-forgiveness programs.</li><li><b>Zoo and wildlife vets</b> are a small specialty reached through internships and residencies after the DVM; most start in general practice.</li></ul></div>' +
+      '<div class="card"><h3>Does zoology lead there?</h3><p class="small">Yes, if the prerequisites are built in. A Zoology BS at Oswego with the pre-vet path, or ESF’s pre-health track, covers them. Vet schools do not prefer “pre-vet” majors; they prefer strong grades in the sciences plus lots of hands-on hours, and a zoology major with field research reads well. The one thing to avoid is discovering in junior year that organic chemistry II was never scheduled.</p><h3>The honest fork</h3><p class="small">Wanting to be a veterinarian since childhood and wanting to be a wildlife biologist or an entomologist are different wants that happen to share the first two years of coursework. Use those two years and the shadowing hours to find out which one survives contact with a Tuesday at 6 a.m. Either answer is a good one; the point of the shadowing is to learn it before, not after, the applications.</p></div></div>' +
+      '<h2>Ways to get hours near Oswego</h2><div class="grid">' + ['seneca', 'rosamond', 'cornellvet', 'wildcenter'].map(function (id) { var p = PLACES.filter(function (x) { return x.id === id; })[0]; return '<div class="card"><h3 style="margin-top:0">' + esc(p.name) + '</h3><p class="small">' + esc(p.what) + '</p><a class="btn sm" href="#/explore/place/' + p.id + '">Details</a></div>'; }).join('') + '<div class="card"><h3 style="margin-top:0">Local clinics and rehabilitators</h3><p class="small">Small-animal and large-animal practices in Oswego County take shadowing students by asking in person with a résumé. New York licenses wildlife rehabilitators through the DEC; several operate near Syracuse and Rochester and are always short of hands in baby-bird season (May–July).</p></div></div>';
+  }
+  function careers(b) {
+    var C = [
+      ['🎭', 'Museum theatre & live programs', 'The Smithsonian, AMNH and most big zoos run live, scripted programs: costumed interpreters, animal-encounter shows, planetarium hosts. A zoologist who can hold a room is rare. Roosevelt’s dioramas are theatre; so is a bird show.'],
+      ['🏗️', 'Exhibit designer', 'Someone decides where the light falls on the elephant. Exhibit design teams want people who understand both the animal and the stagecraft: set design, lighting, sightlines, script. Theatre production experience is a direct qualification.'],
+      ['🎥', 'Science communicator / presenter', 'Documentary presenting, YouTube natural history, podcasting, press officer for a conservation group. Acting training is the difference between knowing it and being watchable saying it.'],
+      ['🦉', 'Field ornithologist / bander', 'Seasonal field jobs at observatories and refuges lead to master’s work and agency or NGO positions. Banding permits, bird ID by ear and a tolerance for 4 a.m. are the entry ticket.'],
+      ['🪲', 'Entomologist / collections manager', 'Museums, universities, agriculture, public health, forestry. Curating a collection is a real career with a real shortage of people who can do it.'],
+      ['🩺', 'Veterinarian (zoo, wildlife, or practice)', 'See the vet tab. Also veterinary technician (two-year degree, licensed, in high demand) and wildlife rehabilitator (DEC licence).'],
+      ['🌲', 'Wildlife biologist / manager', 'State DEC, US Fish and Wildlife Service, tribal and NGO wildlife programs: surveys, habitat, regulations, and a lot of explaining things to the public, which is where the stage experience comes back.'],
+      ['🏫', 'Interpretive naturalist / educator', 'Field stations like Rice Creek, nature centres like The Wild Center, state parks. Half zoology, half performance, every day.']
+    ];
+    b.innerHTML = '<p class="lede">Most people treat “zoologist” and “actor” as a fork. In practice the overlap is where a lot of the jobs are.</p><div class="grid">' + C.map(function (c) { return '<div class="card"><div style="font-size:30px">' + c[0] + '</div><h3 style="margin:6px 0">' + esc(c[1]) + '</h3><p class="small">' + esc(c[2]) + '</p></div>'; }).join('') + '</div>' +
+      '<h2>Build the record now</h2><div class="card"><ul class="small"><li>Keep a <b>species life list</b> and a <b>handling log</b> (hours with animals, hours shadowing vets). Both are in the Field Journal.</li><li>Upload observations to iNaturalist under your own name; by graduation you will have a public record of field skill.</li><li>Act and run crew in school and community theatre; keep a list of productions and roles. Museums ask for it.</li><li>Apply to one real thing this year that scares you a little: the NHRE internship, an SCA crew, an owl-banding volunteer season.</li></ul></div>';
+  }
+  App.register({ id: 'college', title: 'Colleges & Careers', icon: '🎓', blurb: 'Oswego, ESF, Cornell and Cobleskill side by side, a tour checklist with saved answers, the vet path in numbers, and careers that use zoology and theatre together.', render: render });
+})();

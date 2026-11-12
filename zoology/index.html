@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Field Station">
+<meta name="theme-color" content="#2f6b4f">
+<meta name="description" content="Katie's Field Station: a zoology learning, exploration and travel app. Taxonomy in 3D and across deep time, insect display, the monarch, Roosevelt and the Smithsonian, owls and bird banding, and a map of internships, field stations and safaris.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Katie's Field Station — zoology, taxonomy, owls, monarchs and the road ahead</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip" href="#view">Skip to content</a>
+<header class="topbar">
+  <a class="brand" href="#/home" aria-label="Home">
+    <span class="brand-mark" aria-hidden="true">🦉</span>
+    <span class="brand-text"><span class="brand-name">Katie's Field Station</span><span class="brand-sub">zoology · taxonomy · the road ahead</span></span>
+  </a>
+  <nav class="nav" id="nav" aria-label="Sections"></nav>
+  <button class="iconbtn" id="settingsBtn" aria-label="Settings and backup" title="Settings and backup">⚙︎</button>
+</header>
+<main id="view" class="view" tabindex="-1"></main>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="modal" class="modal" hidden><div class="modal-card" role="dialog" aria-modal="true"><button class="modal-x" id="modalX" aria-label="Close">✕</button><div id="modalBody"></div></div></div>
+
+<script src="data/species.js"></script>
+<script src="data/places.js"></script>
+<script src="data/videos.js"></script>
+<script src="js/store.js"></script>
+<script src="js/media.js"></script>
+<script src="js/app.js"></script>
+<script src="js/taxonomy.js"></script>
+<script src="js/insects.js"></script>
+<script src="js/monarch.js"></script>
+<script src="js/roosevelt.js"></script>
+<script src="js/owls.js"></script>
+<script src="js/explore.js"></script>
+<script src="js/college.js"></script>
+<script src="js/journal.js"></script>
+<script type="module" src="js/tree3d.js"></script>
+<script>
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('./sw.js').catch(function () {}); });
+  }
+</script>
+</body>
+</html>
