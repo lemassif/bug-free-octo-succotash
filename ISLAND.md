@@ -151,8 +151,12 @@ removed).
 
 - **Photo storage: 1 GB.** That is roughly 3,000 photos at the app's size.
 - **Pausing.** Supabase pauses a free project after a week with no activity.
-  The data is kept; you restore the project from the Supabase dashboard. If
-  that becomes a nuisance over the winter, the paid plan does not pause.
+  To prevent that, the GitHub workflow `.github/workflows/island-keepalive.yml`
+  makes one small read from the database every third day (it reads no journal
+  data). A red run in the repository's **Actions** tab means the project is
+  paused or unreachable: restore it from the Supabase dashboard; the data is
+  kept. GitHub stops scheduled workflows in a repository with no commits for
+  60 days; if that happens, re-enable it from the Actions tab.
 
 ## Files
 
