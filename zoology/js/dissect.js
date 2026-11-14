@@ -174,7 +174,7 @@
   function startTest() {
     var q = shuffle(stepParts(lab.step).filter(function (p) { return lab.eng.isVisible(p.id); }).map(function (p) { return p.id; }));
     if (!q.length) { App.toast('Nothing new to pin in this step.'); return; }
-    lab.labels = false; lab.eng.select(null); lab.test = { queue: q, i: 0, miss: 0, found: [], first: 0 }; drawTools(); drawBanner(); drawInfo(); drawPanel(); refreshLabels();
+    lab.labels = false; lab.eng.select(null); lab.test = { queue: q, i: 0, miss: 0, found: [], first: 0 }; lab.eng.frame(q); drawTools(); drawBanner(); drawInfo(); drawPanel(); refreshLabels();
   }
   function stopTest(quiet) { if (!lab || !lab.test) return; lab.test = null; lab.eng.hint(null); if (!quiet) { drawBanner(); drawPanel(); refreshLabels(); } else { lab.eng.setPins([]); } }
   function testPick(id) {
@@ -313,7 +313,8 @@
           rb.innerHTML = '<div class="gallery">' + imgs.map(function (m) { return '<a class="photo" href="' + esc(m.page) + '" target="_blank" rel="noopener"><img class="loaded" loading="lazy" src="' + esc(m.thumb) + '" alt="' + esc(m.title) + '"><span class="credit">' + esc(m.credit) + '</span></a>'; }).join('') + '</div><p class="small muted">Tap a photograph for its source and licence on Wikimedia Commons.</p>';
         });
       };
-      if (spec.yt && spec.yt.length) { document.getElementById('dxVid').innerHTML = Media.videoGrid(spec.yt); Media.hydrate(box); }
+      var vids = (window.VIDEOS && VIDEOS.dissect && VIDEOS.dissect[spec.id]) || [];
+      if (vids.length) { document.getElementById('dxVid').innerHTML = '<h4 style="margin:6px 0">Watch it done on a real specimen</h4>' + Media.videoGrid(vids.map(function (v) { return { id: v.id, title: v.title, q: spec.q }; })); Media.hydrate(box); }
     }
   }
 

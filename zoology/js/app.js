@@ -55,7 +55,15 @@ window.App = (function () {
       '<p>' + esc(sp.note) + '</p>' +
       (st.done ? '<p class="tag ok">Pinned in your cabinet on ' + esc(st.date) + '</p>' : '<p><a class="btn primary sm" href="#/taxonomy/project/' + sp.id + '" onclick="App.closeModal()">Classify this specimen</a></p>') +
       '<div id="galleryBox"><p class="muted small">Loading photographs from iNaturalist…</p></div>' +
-      '<div id="wikiBox"></div>');
+      '<div id="wikiBox"></div><div id="linBox"></div>');
+    /* check the label against today's classification */
+    Media.lineage(sp.sci).then(function (l) {
+      var box = document.getElementById('linBox'); if (!box || !l) return;
+      var map = { kingdom: 'kingdom', phylum: 'phylum', cls: 'class', order: 'order', family: 'family', genus: 'genus' };
+      var diffs = Object.keys(map).filter(function (k) { return l.ranks[map[k]] && l.ranks[map[k]] !== sp[k]; });
+      box.innerHTML = '<h3>Its classification today <span class="tag ok">live</span></h3><div class="ranks">' + ['kingdom', 'phylum', 'class', 'order', 'family', 'genus'].map(function (r) { return l.ranks[r] ? '<span class="rank"><b>' + r + '</b>' + esc(l.ranks[r]) + '</span>' : ''; }).join('') + '</div><p class="small muted" style="margin-top:6px">' +
+        (diffs.length ? 'iNaturalist’s current classification differs from the label in your project at: ' + diffs.map(function (k) { return map[k] + ' (' + esc(sp[k]) + ' here, ' + esc(l.ranks[map[k]]) + ' there)'; }).join('; ') + '. Authorities do disagree, and names are revised as evidence comes in: see the lesson “Trees, not ladders”.' : 'Checked just now against iNaturalist: it matches the label in your project.') + '</p>';
+    });
     Media.gallery(sp.sci).then(function (g) {
       var box = document.getElementById('galleryBox'); if (!box) return;
       if (!g.photos.length) { box.innerHTML = '<p class="muted small">No photographs could be loaded (offline?). Try again when connected.</p>'; return; }
@@ -80,7 +88,7 @@ window.App = (function () {
     { id: 'ten', icon: '🗂️', name: '10 specimens', test: function (d) { return d.cabinet.length >= 10; } },
     { id: 'fifty', icon: '🏛️', name: '50 specimens', test: function (d) { return d.cabinet.length >= 50; } },
     { id: 'hundred', icon: '🎖️', name: 'Centurion', test: function (d) { return d.cabinet.length >= 100; } },
-    { id: 'all', icon: '👑', name: 'Curator', test: function (d) { return d.cabinet.length >= SPECIES.length; } },
+    { id: 'all', icon: '👑', name: 'Curator', test: function (d) { return SPECIES.every(function (x) { return x.custom || (d.species[x.id] && d.species[x.id].done); }); } },
     { id: 'owls', icon: '🦉', name: 'Owl drawer', test: function (d) { return setDone(d, 'owls'); } },
     { id: 'insects', icon: '🪲', name: 'Insect drawer', test: function (d) { return setDone(d, 'insects'); } },
     { id: 'monarch', icon: '🦋', name: 'Monarch drawer', test: function (d) { return setDone(d, 'monarch'); } },
@@ -91,6 +99,11 @@ window.App = (function () {
     { id: 'spread', icon: '🦋', name: 'Spread a butterfly', test: function (d) { return !!(d.studio && d.studio.Lepidoptera); } },
     { id: 'uv', icon: '🔦', name: 'Aged an owl', test: function (d) { return !!(d.owls && d.owls.uv); } },
     { id: 'pellet', icon: '🦴', name: 'Pellet lab', test: function (d) { return !!(d.owls && d.owls.pellet); } },
+    { id: 'scalpel', icon: '🔬', name: 'First full dissection', test: function () { return window.DissectStats && DissectStats().full >= 1; } },
+    { id: 'dissect5', icon: '🧫', name: '5 specimens at 100%', test: function () { return window.DissectStats && DissectStats().full >= 5; } },
+    { id: 'dissectall', icon: '🥼', name: 'Every structure named', test: function () { return window.DissectStats && window.DX && DissectStats().full >= DX.list.length; } },
+    { id: 'practical', icon: '🧪', name: 'Aced a practical', test: function (d) { return Object.keys(d.dissect || {}).some(function (k) { return d.dissect[k] && d.dissect[k].best >= 100; }); } },
+    { id: 'ownfind', icon: '🔭', name: 'Added a find', test: function (d) { return (d.custom || []).length >= 1; } },
     { id: 'journal5', icon: '📓', name: '5 field notes', test: function (d) { return (d.journal || []).length >= 5; } },
     { id: 'plan', icon: '🗺️', name: 'Made a plan', test: function (d) { return Object.keys(d.plan || {}).length >= 3; } }
   ];
@@ -116,11 +129,12 @@ window.App = (function () {
     var name = esc(d.settings.name || 'Katie');
     el.innerHTML =
       '<section class="hero"><h1>Welcome back, ' + name + '.</h1>' +
-      '<p class="lede">A field station in your pocket: the tree of life in 3D and across deep time, a long-term classification project, an insect display studio, the monarch’s whole world, Theodore Roosevelt and the Smithsonian, owls and bird banding, and a map of every door worth knocking on between here and a career with animals.</p>' +
+      '<p class="lede">A field station in your pocket: the tree of life in 3D and across deep time, a long-term classification project, a 3D dissection lab, an insect display studio, the monarch’s whole world, Theodore Roosevelt and the Smithsonian, owls and bird banding, and a map of every door worth knocking on between here and a career with animals.</p>' +
       '<div class="row"><a class="btn monarch" href="#/taxonomy/project">Continue the project</a><a class="btn ghost" style="color:#fff;border-color:rgba(255,255,255,.5)" href="#/explore">Open the map</a></div></section>' +
       '<div class="grid">' +
       '<div class="card"><div class="row"><div class="ring" style="--p:' + pct + '"><b>' + pct + '%</b></div><div><h3 style="margin:0">Classification project</h3><p class="muted small" style="margin:0">' + done + ' of ' + total + ' specimens pinned across ' + SPECIES_SETS.length + ' expeditions. Seven ranks each; this is a project for a season, not an afternoon.</p></div></div>' +
       '<div class="row" style="margin-top:10px"><div class="stat"><b>' + Store.streak() + '</b><span>day streak</span></div><div class="stat"><b>' + Object.keys(d.badges).length + '</b><span>badges</span></div><div class="stat"><b>' + (d.journal || []).length + '</b><span>field notes</span></div><div class="stat"><b>' + Object.keys(d.plan || {}).length + '</b><span>places planned</span></div></div></div>' +
+      (window.DissectStats ? (function () { var T = DissectStats(); return '<a class="card" href="#/dissect" style="text-decoration:none;color:inherit"><div class="row"><div class="ring" style="--p:' + Math.round(100 * T.done / Math.max(1, T.total)) + '"><b>' + Math.round(100 * T.done / Math.max(1, T.total)) + '%</b></div><div><h3 style="margin:0">Dissection Lab</h3><p class="muted small" style="margin:0">' + T.done + ' of ' + T.total + ' structures identified. ' + T.full + ' of ' + DX.list.length + ' specimens at 100%. Fifteen animals and organs to open in 3D, step by step.</p></div></div></a>'; })() : '') +
       '<div class="card spec" id="sodCard"><div style="position:relative">' + Media.photoHTML(sod.sci, { icon: '🔍', alt: sod.common }) + '</div><div><span class="tag star">Specimen of the day</span></div><div class="nm">' + esc(sod.common) + '</div><div class="sc">' + esc(sod.sci) + '</div><p class="small muted" style="margin:0">' + esc(sod.note) + '</p><a class="btn primary sm" href="#/taxonomy/project/' + sod.id + '">Classify it</a></div>' +
       '</div>' +
       '<h2>Sections</h2><div class="grid">' + sections.filter(function (s) { return s.id !== 'home'; }).map(function (s) {

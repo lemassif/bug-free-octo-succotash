@@ -216,7 +216,8 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 20px 0; }
 
 /* ---------- dissection lab ---------- */
 .dx-lab { display: grid; grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr); gap: 14px; align-items: start; }
-@media (max-width: 860px) { .dx-lab { grid-template-columns: 1fr; } }
+@media (max-width: 860px) { .dx-lab { grid-template-columns: minmax(0, 1fr); } }
+.dx-lab > * { min-width: 0; }
 .dx-stage { position: relative; height: min(68vh, 620px); min-height: 340px; border-radius: 14px; overflow: hidden; background: #1b2226; border: 1px solid var(--line); touch-action: none; user-select: none; -webkit-user-select: none; }
 .dx-stage.big { height: 86vh; }
 @media (max-width: 860px) { .dx-stage { height: 56vh; } .dx-stage.big { height: 80vh; } }

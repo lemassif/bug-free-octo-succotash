@@ -42,24 +42,77 @@
     ['R. J. Cuninghame & Leslie Tarlton', 'Richard John Cuninghame', 'Professional hunters who ran the safari: 250 porters, gun-bearers, tent-men, skinners, each with a job, walking 15–20 miles a day.']
   ];
   var map = null, timer = null;
+  var GB = 'occurrence/search?institutionCode=USNM&continent=AFRICA&';
+  var YM = [[1909, 3], [1909, 4], [1909, 5], [1909, 6], [1909, 7], [1909, 9], [1909, 11], [1909, 12], [1910, 1], [1910, 2], [1910, 3], [1910, 6]];
+  var MONTHS = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var COUNTRY = { KE: 'Kenya', UG: 'Uganda', SD: 'Sudan', SS: 'South Sudan', CD: 'DR Congo', EG: 'Egypt', TZ: 'Tanzania' };
+  var CLASSKEY = { 359: 'mammals', 212: 'birds', 131: 'amphibians', 11592253: 'lizards and snakes', 216: 'insects', 11418114: 'turtles', 11493978: 'crocodiles', 204: 'ray-finned fishes', 361: 'arachnids', 229: 'crustaceans', 225: 'snails', 137: 'bivalves' };
+  var slim = function (j) { return { count: j.count || 0, items: (j.results || []).map(function (r) { var m = (r.media || [])[0] || {}; return { key: r.key, sci: r.species || r.scientificName || '', cls: r['class'] || '', order: r.order || '', date: (r.eventDate || '').slice(0, 10), loc: r.locality || '', country: r.country || '', cat: r.catalogNumber || '', prep: r.preparations || '', sex: r.sex || '', by: r.recordedBy || '', type: r.typeStatus || '', lat: r.decimalLatitude, lng: r.decimalLongitude, img: m.identifier || '' }; }) }; };
+  function drawers(box) {
+    box.innerHTML = '<h2>Open the Smithsonian’s drawers <span class="tag ok">live</span></h2><p class="small muted">These are the museum’s own catalogue records for specimens collected in Africa in 1909 and 1910, read live from the Global Biodiversity Information Facility (GBIF), where the National Museum of Natural History (collection code USNM) publishes its catalogue. Each card is one real specimen in a drawer in Washington.</p>' +
+      '<div class="grid" id="gbStats"><div class="card"><p class="muted small">Counting the catalogue…</p></div></div>' +
+      '<h3>Who collected it?</h3><div class="chips" id="gbWho"></div><p class="small muted" id="gbInfo" style="margin-top:8px"></p><div class="grid tight" id="gbList"></div><p><button class="btn sm" id="gbMore" hidden>Show more</button></p>';
+    Media.gbif(GB + 'year=1909,1910&limit=0&facet=recordedBy&facet=country&facet=typeStatus&facet=classKey&facetLimit=14', null, function (j) { var f = {}; (j.facets || []).forEach(function (x) { f[x.field] = x.counts; }); return { count: j.count, f: f }; }).then(function (st) {
+      var sb = document.getElementById('gbStats'); if (!sb) return;
+      if (!st) { sb.innerHTML = '<div class="card"><p class="small muted">The live catalogue could not be reached (offline?). The figures above are from the Smithsonian’s published history.</p></div>'; return; }
+      var cls = (st.f.CLASS_KEY || []).filter(function (c) { return CLASSKEY[c.name]; }).slice(0, 6), types = (st.f.TYPE_STATUS || []).reduce(function (a, c) { return Math.max(a, c.count); }, 0);
+      sb.innerHTML = '<div class="card stat"><b>' + st.count.toLocaleString() + '</b><span>catalogue records online today for Africa, 1909–10</span></div>' +
+        '<div class="card"><b>By group</b><table>' + cls.map(function (c) { return '<tr><td>' + esc(CLASSKEY[c.name]) + '</td><td style="text-align:right">' + c.count.toLocaleString() + '</td></tr>'; }).join('') + '</table></div>' +
+        '<div class="card"><b>By country (modern borders)</b><table>' + (st.f.COUNTRY || []).slice(0, 5).map(function (c) { return '<tr><td>' + esc(COUNTRY[c.name] || c.name) + '</td><td style="text-align:right">' + c.count.toLocaleString() + '</td></tr>'; }).join('') + '</table></div>' +
+        '<div class="card stat"><b>' + types.toLocaleString() + '</b><span>are type specimens: the individual animals on which a new species or subspecies name was founded</span></div>';
+      var who = (st.f.RECORDED_BY || []).filter(function (c) { return /Roosevelt|Heller|Mearns|Loring/.test(c.name) && c.name.indexOf('&') < 0; }).slice(0, 5);
+      var wb = document.getElementById('gbWho');
+      wb.innerHTML = who.map(function (c) { return '<button class="chip" data-n="' + esc(c.name) + '">' + esc(c.name) + ' <span class="small muted">' + c.count.toLocaleString() + '</span></button>'; }).join('') + '<button class="chip" data-n="" data-type="1">Type specimens</button>';
+      var cur = null, off = 0;
+      var load = function (reset) {
+        if (reset) { off = 0; document.getElementById('gbList').innerHTML = ''; }
+        var q = GB + 'year=1909,1910&limit=24&offset=' + off + (cur.type ? '&typeStatus=Type' : '&recordedBy=' + encodeURIComponent(cur.name));
+        document.getElementById('gbInfo').textContent = 'Reading the catalogue…';
+        Media.gbif(q, null, slim).then(function (res) {
+          var list = document.getElementById('gbList'); if (!list) return;
+          if (!res) { document.getElementById('gbInfo').textContent = 'The catalogue could not be reached.'; return; }
+          document.getElementById('gbInfo').textContent = res.count.toLocaleString() + ' records' + (cur.type ? ' are type specimens.' : ' list ' + cur.name + ' as collector.') + ' Showing ' + Math.min(res.count, off + res.items.length) + '.';
+          list.insertAdjacentHTML('beforeend', res.items.map(function (r) {
+            return '<a class="card spec" href="https://www.gbif.org/occurrence/' + r.key + '" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">' + (r.img ? '<div class="photo sq"><img class="loaded" loading="lazy" src="' + esc(r.img.replace(/([?&]h=)\d+/, '$1360')) + '" alt="" onerror="this.parentNode.style.display=\'none\'"><span class="credit">Smithsonian NMNH, CC0</span></div>' : '') +
+              '<div class="nm sci">' + esc(r.sci) + '</div><div class="small muted">' + esc(r.cls) + (r.order ? ' · ' + esc(r.order) : '') + '</div><div class="small">' + esc(r.date) + (r.loc ? ' · ' + esc(r.loc) : '') + (r.country ? ', ' + esc(r.country) : '') + '</div><div class="label-paper" style="margin-top:4px">' + esc(r.cat) + (r.sex ? ' ' + esc(r.sex) : '') + '<br>' + esc(r.prep || 'specimen') + '<br>' + esc(r.by || '') + ' leg.' + (r.type ? '<br><b>' + esc(r.type) + '</b>' : '') + '</div></a>';
+          }).join(''));
+          off += res.items.length; document.getElementById('gbMore').hidden = off >= res.count || !res.items.length;
+        });
+      };
+      wb.querySelectorAll('.chip').forEach(function (c) { c.onclick = function () { wb.querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === c); }); cur = { name: c.getAttribute('data-n'), type: !!c.getAttribute('data-type') }; load(true); }; });
+      document.getElementById('gbMore').onclick = function () { load(false); };
+      var first = wb.querySelector('.chip[data-n="T. Roosevelt"]') || wb.querySelector('.chip'); if (first) first.click();
+    });
+  }
   function render(el, args) {
     var tab = args[0] || 'story';
     var tabs = [['story', 'The story'], ['map', 'Expedition map'], ['haul', 'The haul & the people'], ['legacy', 'Legacy & the argument'], ['videos', 'Films']];
     el.innerHTML = '<section class="hero bark"><h1>Roosevelt &amp; the Smithsonian</h1><p class="lede">A sickly boy with a museum in his bedroom became the president who protected 230 million acres, then spent a year in East Africa collecting 11,400 animals for the Smithsonian and opening the whole continent’s fauna to taxonomy. Here is how, where, with whom, and why zoologists still argue about it.</p></section>' +
       '<div class="chips" style="margin-bottom:14px">' + tabs.map(function (t) { return '<a class="chip ' + (tab === t[0] ? 'on' : '') + '" href="#/roosevelt/' + t[0] + '" style="text-decoration:none">' + t[1] + '</a>'; }).join('') + '</div><div id="rbody"></div>';
     var b = document.getElementById('rbody');
-    if (tab === 'map') mapTab(b); else if (tab === 'haul') haul(b); else if (tab === 'legacy') legacy(b); else if (tab === 'videos') b.innerHTML = Media.videoGrid(VIDEOS.roosevelt); else story(b);
+    if (tab === 'map') mapTab(b); else if (tab === 'haul') haul(b); else if (tab === 'legacy') legacy(b); else if (tab === 'videos') { b.innerHTML = Media.videoGrid(VIDEOS.roosevelt) + '<h2>Archive film on Wikimedia Commons <span class="tag ok">live</span></h2><div id="trCommons"></div>'; Media.commonsVideoStrip(document.getElementById('trCommons'), 'Theodore Roosevelt', 6); } else story(b);
   }
   function story(b) {
     b.innerHTML = '<div class="grid" style="grid-template-columns: minmax(200px,1fr) 2fr"><div class="card">' + Media.photoHTML('', { wiki: 'Theodore Roosevelt', alt: 'Theodore Roosevelt', icon: '🎩' }) + '<p class="small muted" style="margin-top:8px">Photograph via Wikipedia.</p></div><div class="card"><h3 style="margin-top:0">The young naturalist</h3><p>Before he was anything else, Theodore Roosevelt was a bird skinner. He kept notebooks of every species he saw, learned taxidermy from Audubon’s own preparator, and at eighteen co-wrote a checklist of Adirondack birds that ornithologists still cite. He went to Harvard to become a zoologist and found that the new biology lived in laboratories, not in the field; he left science for politics but never stopped collecting. The habits of the field, the notebook and the label stayed with him into the White House, where he kept a list of the birds on the grounds.</p><p>The African expedition was his return to the trade. It was planned with the Smithsonian’s secretary, Charles Walcott, as a collecting expedition first and a safari second: every animal measured, skinned, labelled, salted and crated for Washington.</p></div></div>' +
       '<h2>Timeline</h2><div class="timeline">' + TIMELINE.map(function (t) { return '<div class="tl"><div class="yr">' + esc(t[0]) + '</div><div>' + esc(t[1]) + '</div></div>'; }).join('') + '</div>';
   }
   function mapTab(b) {
-    b.innerHTML = '<div class="card"><div class="map" id="rmap"><p class="muted small" style="padding:12px">Loading map…</p></div><div class="row" style="margin-top:10px"><button class="btn sm" id="rplay">▶ Play the year</button><input type="range" id="rrange" min="0" max="' + (ROUTE.length - 1) + '" value="0" style="flex:1" aria-label="Expedition stage"><b id="rdate" style="min-width:110px"></b></div><p id="rcap" style="margin-top:8px"></p></div>' +
+    b.innerHTML = '<div class="card"><div class="map" id="rmap"><p class="muted small" style="padding:12px">Loading map…</p></div><div class="row" style="margin-top:10px"><button class="btn sm" id="rplay">▶ Play the year</button><input type="range" id="rrange" min="0" max="' + (ROUTE.length - 1) + '" value="0" style="flex:1" aria-label="Expedition stage"><b id="rdate" style="min-width:110px"></b></div><p id="rcap" style="margin-top:8px"></p><p class="small" id="rlive" style="margin:0"><span class="tag ok">live</span> <span class="muted">Looking up what was collected that month…</span></p></div>' +
       '<h2>Walk it today</h2><div class="grid"><div class="card"><h3>Laikipia and Mpala</h3><p class="small">Much of Roosevelt’s Kenyan route runs through what is now Laikipia county. The Mpala Research Centre there is run with the Smithsonian and Princeton, and takes undergraduates for field courses: the scientific heir of the expedition.</p></div><div class="card"><h3>Nairobi National Museum</h3><p class="small">Holds East Africa’s own collections, and the Nairobi railway museum has the engine seat Roosevelt rode on.</p></div><div class="card"><h3>Lake Naivasha and Mount Kenya</h3><p class="small">Still the hippo lake and the bongo mountain. Walking safaris and the Mount Kenya forest are within reach of a two-week Kenya program.</p></div></div><p><a class="btn" href="#/explore/safari">Safari programs on the Explore map →</a></p>';
     var range = document.getElementById('rrange'), date = document.getElementById('rdate'), cap = document.getElementById('rcap'), play = document.getElementById('rplay');
-    var marker = null, trail = null;
-    function setI(i) { i = +i; range.value = i; var r = ROUTE[i]; date.textContent = r.d; cap.textContent = r.t; if (map && marker) { marker.setLatLng([r.lat, r.lng]); trail.setLatLngs(ROUTE.slice(1, Math.max(1, i + 1)).map(function (p) { return [p.lat, p.lng]; })); if (i > 0 && i < ROUTE.length - 1) map.panTo([r.lat, r.lng]); } }
+    var marker = null, trail = null, dots = null, Lf = null, liveT = null;
+    function loadStage(i) {
+      clearTimeout(liveT);
+      liveT = setTimeout(function () {
+        var ym = YM[i], lv = document.getElementById('rlive'); if (!lv) return;
+        Media.gbif(GB + 'year=' + ym[0] + '&month=' + ym[1] + '&hasCoordinate=true&limit=300', null, slim).then(function (res) {
+          if (!document.getElementById('rlive')) return;
+          if (dots) { dots.clearLayers(); (res ? res.items : []).forEach(function (r) { if (r.lat == null) return; Lf.circleMarker([r.lat, r.lng], { radius: 5, color: '#3d2e1d', weight: 1, fillColor: '#e07a1f', fillOpacity: 0.8 }).addTo(dots).bindPopup('<i>' + esc(r.sci) + '</i><br>' + esc(r.date) + '<br>' + esc(r.loc) + '<br>' + esc(r.cat) + (r.by ? ' · ' + esc(r.by) : '') + '<br><a href="https://www.gbif.org/occurrence/' + r.key + '" target="_blank" rel="noopener">catalogue record</a>'); }); }
+          lv.innerHTML = '<span class="tag ok">live</span> ' + (res ? (res.count ? res.count.toLocaleString() + ' Smithsonian specimens dated ' + MONTHS[ym[1]] + ' ' + ym[0] + ' have map coordinates in the catalogue' + (res.count > res.items.length ? ' (' + res.items.length + ' shown)' : '') + '. Tap a dot for the animal.' : 'No mapped specimens in the catalogue for ' + MONTHS[ym[1]] + ' ' + ym[0] + ' (the party was at sea or in a city).') : '<span class="muted">The live catalogue could not be reached; the route still plays.</span>');
+        });
+      }, 350);
+    }
+    function setI(i) { i = +i; range.value = i; var r = ROUTE[i]; date.textContent = r.d; cap.textContent = r.t; loadStage(i); if (map && marker) { marker.setLatLng([r.lat, r.lng]); trail.setLatLngs(ROUTE.slice(1, Math.max(1, i + 1)).map(function (p) { return [p.lat, p.lng]; })); if (i > 0 && i < ROUTE.length - 1) map.panTo([r.lat, r.lng]); } }
     range.addEventListener('input', function () { stop(); setI(range.value); });
     function stop() { clearInterval(timer); timer = null; play.textContent = '▶ Play the year'; }
     play.onclick = function () { if (timer) { stop(); return; } var i = 0; setI(0); play.textContent = '⏸ Pause'; timer = setInterval(function () { i++; if (i >= ROUTE.length) { stop(); return; } setI(i); }, 2200); };
@@ -69,6 +122,7 @@
       map = L.map(box, { scrollWheelZoom: false }).setView([2, 34], 5);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 18 }).addTo(map);
       L.polyline(ROUTE.slice(1, ROUTE.length - 1).map(function (p) { return [p.lat, p.lng]; }), { color: '#6b5436', weight: 3, opacity: .35, dashArray: '6 8' }).addTo(map);
+      Lf = L; dots = L.layerGroup().addTo(map);
       trail = L.polyline([], { color: '#6b5436', weight: 5 }).addTo(map);
       marker = L.circleMarker([ROUTE[0].lat, ROUTE[0].lng], { radius: 10, color: '#1a1208', fillColor: '#e07a1f', fillOpacity: 1, weight: 2 }).addTo(map);
       ROUTE.slice(1, ROUTE.length - 1).forEach(function (p) { L.marker([p.lat, p.lng]).addTo(map).bindPopup('<b>' + esc(p.d) + '</b><br>' + esc(p.t)); });
@@ -77,9 +131,10 @@
   }
   function haul(b) {
     b.innerHTML = '<div class="grid"><div class="card stat"><b>11,400</b><span>zoological specimens, about: the figure the Smithsonian uses</span></div><div class="card stat"><b>~5,000</b><span>mammals (Roosevelt’s own count 4,897)</span></div><div class="card stat"><b>~4,000</b><span>birds</span></div><div class="card stat"><b>~2,000</b><span>reptiles and amphibians</span></div><div class="card stat"><b>~500</b><span>fish, plus insects, crabs, millipedes, molluscs</span></div><div class="card stat"><b>thousands</b><span>of plants (Mearns): sources say 5,000 to 10,000</span></div><div class="card stat"><b>512</b><span>big-game animals shot by Theodore (296) and Kermit (216), by his own tally in African Game Trails</span></div><div class="card stat"><b>8 years</b><span>for the Smithsonian to catalogue it all</span></div></div>' +
-      '<h2>The people</h2><div class="grid">' + PEOPLE.map(function (p) { return '<div class="card">' + Media.photoHTML('', { wiki: p[1], alt: p[0], icon: '👤', cls: 'sq' }) + '<h3 style="margin:8px 0 4px">' + esc(p[0]) + '</h3><p class="small">' + esc(p[2]) + '</p></div>'; }).join('') + '</div>' +
+      '<div id="gbBox"></div><h2>The people</h2><div class="grid">' + PEOPLE.map(function (p) { return '<div class="card">' + Media.photoHTML('', { wiki: p[1], alt: p[0], icon: '👤', cls: 'sq' }) + '<h3 style="margin:8px 0 4px">' + esc(p[0]) + '</h3><p class="small">' + esc(p[2]) + '</p></div>'; }).join('') + '</div>' +
       '<h2>What a series is</h2><div class="card"><p>The expedition’s instructions were not “shoot a lion” but “collect a <b>series</b>”: adult males, adult females, young, from several places, with the skull and the measurements and the exact locality. Only a series lets a taxonomist see what varies within a species and what separates two species. That is why Heller could describe new subspecies from the crates, and why those same skins answer new questions a century later: pre-colonial diets from isotopes, historical ranges, genetics of populations that no longer exist. Your classification project asks for the same discipline in miniature: the label is the science.</p></div>' +
       '<h2>Species from the expedition in your project</h2><div class="grid tight">' + SPECIES.filter(function (s) { return s.set === 'africa'; }).slice(0, 12).map(function (s) { return '<div class="card spec" onclick="App.speciesModal(SPECIES[' + s.index + '])">' + Media.photoHTML(s.sci, { cls: 'sq', alt: s.common }) + '<div class="nm">' + esc(s.common) + '</div></div>'; }).join('') + '</div><p><a class="btn" href="#/taxonomy/project/set/africa">Open the Africa drawer →</a></p>';
+    drawers(document.getElementById('gbBox'));
   }
   function legacy(b) {
     b.innerHTML = '<div class="grid"><div class="card"><h3>What he opened</h3><p class="small">Before 1909 the Smithsonian’s African collection fit in a few cases. After it, Washington held one of the great reference collections of African mammals and birds, and American zoologists could work on a continent’s fauna without going to London or Berlin. The expedition also set a template: scientific collecting attached to field expeditions, every specimen with data, published quickly. Akeley’s dioramas, built from the same safaris, taught a century of city children what a savanna looked like.</p></div>' +

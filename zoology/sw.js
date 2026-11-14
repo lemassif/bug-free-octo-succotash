@@ -2,9 +2,11 @@
    opens with no signal; photographs, maps and videos still need a
    connection and are never cached here. Network-first, like the
    arcade's worker, so a published fix is what runs. */
-const CACHE = 'fieldstation-v1.0.0';
+const CACHE = 'fieldstation-v1.1.0';
 const ASSETS = ['./', './index.html', './app.css', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png',
   './data/species.js', './data/places.js', './data/videos.js',
+  './data/dissect/core.js', './data/dissect/worm.js', './data/dissect/crayfish.js', './data/dissect/grasshopper.js', './data/dissect/mussel.js', './data/dissect/squid.js', './data/dissect/seastar.js', './data/dissect/perch.js', './data/dissect/shark.js', './data/dissect/frog.js', './data/dissect/pigeon.js', './data/dissect/pig.js', './data/dissect/heart.js', './data/dissect/brain.js', './data/dissect/eye.js', './data/dissect/kidney.js',
+  './js/dissect.js', './js/dissect3d.js',
   './js/store.js', './js/media.js', './js/app.js', './js/taxonomy.js', './js/tree3d.js', './js/insects.js', './js/monarch.js', './js/roosevelt.js', './js/owls.js', './js/explore.js', './js/college.js', './js/journal.js',
   '../three.module.min.js'];
 self.addEventListener('install', (e) => {

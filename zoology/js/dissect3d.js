@@ -402,6 +402,13 @@ export function mount(container, spec, opts = {}) {
     select, hint, get selected() { return selected; },
     isVisible(id) { return !!byId[id] && vis(byId[id]); },
     focus(id) { const p = byId[id]; if (!p) return; const w = p.anchor.clone(); group.localToWorld(w); glideTo({ t: w, d: Math.min(cam.d, Math.max(L * 0.3, L * 0.55)) }, 600); },
+    /* bring a set of structures into view without changing the viewing angle */
+    frame(ids) {
+      const pts = []; (ids || []).forEach(id => { const p = byId[id]; if (!p) return; p.samples.concat([p.anchor]).forEach(q => { const w = q.clone(); group.localToWorld(w); pts.push(w); }); });
+      if (!pts.length) return; const box = new THREE.Box3().setFromPoints(pts); const c = box.getCenter(new THREE.Vector3());
+      const r = Math.max(L * 0.14, box.getSize(new THREE.Vector3()).length() / 2);
+      glideTo({ t: c, d: Math.min(L * 2.6, r / Math.tan(camera.fov * DEG / 2) * 1.45 / Math.min(1, camera.aspect)) }, 500);
+    },
     resetView() { glideTo({ t: def.t, d: def.d, th: def.th, ph: def.ph }, 500); },
     topView() { glideTo({ ph: 0.12 }, 500); },
     startCut, endCut, finishCut() { if (cut) advanceCut(cut.cps.length); }, get cutting() { return !!cut; },

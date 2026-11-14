@@ -26,6 +26,8 @@ window.Store = (function () {
       plan: {},         // placeId -> { status, note }
       colleges: {},     // collegeId -> { rating, notes, visited }
       journal: [],      // field notes
+      dissect: {},      // specimenId -> { step, at, cuts, ids, best }
+      custom: [],       // species Katie added herself (My Own Finds)
       lastSpecimen: null
     };
   }
@@ -35,7 +37,7 @@ window.Store = (function () {
       if (raw) {
         var parsed = JSON.parse(raw);
         var d = defaults();
-        Object.keys(d).forEach(function (k) { if (parsed[k] !== undefined) d[k] = parsed[k]; });
+        Object.keys(parsed).forEach(function (k) { if (parsed[k] !== undefined && parsed[k] !== null) d[k] = parsed[k]; });
         d.settings = Object.assign(defaults().settings, parsed.settings || {});
         data = d;
       }
