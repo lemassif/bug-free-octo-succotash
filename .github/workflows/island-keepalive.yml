@@ -1,0 +1,52 @@
+# Island Dreams keep-alive.
+#
+# Supabase pauses a free project after about a week with no activity, and
+# a paused project takes the family journal offline until someone restores
+# it by hand. Every three days this makes one small read from the journal's
+# database so the project always counts as active.
+#
+# It uses the same public key the app uses (read from island/config.js).
+# Without a family sign-in the database's rules return nothing, so no
+# journal data is read. A failed run means the project is paused or
+# unreachable: restore it at supabase.com.
+
+name: Island Dreams keep-alive
+
+on:
+  schedule:
+    - cron: '23 14 */3 * *'   # every third day, 14:23 UTC
+  workflow_dispatch:           # "Run workflow" button in the Actions tab
+
+permissions:
+  contents: read
+
+jobs:
+  visit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: island/config.js
+          sparse-checkout-cone-mode: false
+
+      - name: Read the journal's address from the app
+        id: config
+        run: |
+          url=$(sed -n "s/.*supabaseUrl: *'\([^']*\)'.*/\1/p" island/config.js)
+          key=$(sed -n "s/.*supabaseAnonKey: *'\([^']*\)'.*/\1/p" island/config.js)
+          if [ -z "$url" ] || [ -z "$key" ]; then
+            echo "island/config.js has no Supabase address; nothing to keep awake."
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "key=$key" >> "$GITHUB_OUTPUT"
+
+      - name: Visit the journal's database
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --retry 3 --retry-delay 20 --retry-all-errors --max-time 30 \
+            -H "apikey: ${{ steps.config.outputs.key }}" \
+            "${{ steps.config.outputs.url }}/rest/v1/options?select=kind&limit=1"
+          echo
+          echo "The journal's database answered; it stays active."
