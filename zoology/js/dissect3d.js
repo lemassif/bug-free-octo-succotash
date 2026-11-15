@@ -143,7 +143,7 @@ function shapeAnchor(s) {
     if (n === 2) c = [(s.pts[0][0] + s.pts[1][0]) / 2, (s.pts[0][1] + s.pts[1][1]) / 2, (s.pts[0][2] + s.pts[1][2]) / 2];
     else { const q = new THREE.CatmullRomCurve3(s.pts.map(p => new THREE.Vector3(p[0], p[1], p[2])), false, 'centripetal').getPoint(0.5); c = [q.x, q.y, q.z]; }
     /* a cut-away wall has no material on its axis: anchor it on the middle of the wall instead */
-    if (s.arc) { const a = (s.arc[0] + s.arc[1]) / 2 * DEG, r = Array.isArray(s.r) ? s.r[Math.floor(s.r.length / 2)] : s.r; c[1] += Math.cos(a) * r * (s.sy || 1); c[2] += Math.sin(a) * r * (s.sz || 1); }
+    if (s.arc) { const a = (s.arc[0] + s.arc[1]) / 2 * DEG, m = Array.isArray(s.r) ? (s.r.length - 1) / 2 : 0, r = Array.isArray(s.r) ? (s.r[Math.floor(m)] + s.r[Math.ceil(m)]) / 2 : s.r; c[1] += Math.cos(a) * r * (s.sy || 1); c[2] += Math.sin(a) * r * (s.sz || 1); }
     return c;
   }
   if (s.t === 'f') { const c = [0, 0, 0]; s.pts.forEach(p => { c[0] += p[0] / s.pts.length; c[1] += p[1] / s.pts.length; c[2] += p[2] / s.pts.length; }); return c; }
@@ -154,7 +154,7 @@ function shapeAnchor(s) {
 }
 function shapeSamples(s) {
   const out = [];
-  if (s.t === 't') { const n = s.pts.length; const c = n === 2 ? new THREE.LineCurve3(new THREE.Vector3().fromArray(s.pts[0]), new THREE.Vector3().fromArray(s.pts[1])) : new THREE.CatmullRomCurve3(s.pts.map(p => new THREE.Vector3(p[0], p[1], p[2])), false, 'centripetal'); const k = Math.max(4, n * 3); for (let i = 0; i <= k; i++) { const p = c.getPoint(i / k); out.push([p.x, p.y, p.z]); } }
+  if (s.t === 't') { const n = s.pts.length; const c = n === 2 ? new THREE.LineCurve3(new THREE.Vector3().fromArray(s.pts[0]), new THREE.Vector3().fromArray(s.pts[1])) : new THREE.CatmullRomCurve3(s.pts.map(p => new THREE.Vector3(p[0], p[1], p[2])), false, 'centripetal'); const k = Math.max(4, n * 3); for (let i = 0; i <= k; i++) { const p = c.getPoint(i / k); out.push([p.x, p.y, p.z]); } if (s.arc) out.push(shapeAnchor(s)); }
   else out.push(shapeAnchor(s));
   if (s.m) out.slice().forEach(p => out.push([p[0], p[1], -p[2]]));
   return out;

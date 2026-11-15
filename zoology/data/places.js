@@ -91,9 +91,9 @@ window.PLACES = [
     age:'Volunteers by station.', when:'Mid-October to late November.',
     url:'https://www.projectowlnet.org/' },
   { id:'derby', kind:'owls', name:'Derby Hill Bird Observatory', lat:43.5260, lng:-76.2360, where:'Mexico, NY (20 minutes from Oswego)',
-    what:'Onondaga Audubon’s hawk watch on the southeast corner of Lake Ontario, one of the best spring raptor migration sites in the Northeast: tens of thousands of hawks, eagles and vultures in March–May.',
+    what:'Onondaga Audubon’s hawk watch on the southeast corner of Lake Ontario, one of the best spring raptor migration sites in the Northeast: tens of thousands of hawks, eagles and vultures in March–May, counted daily by a paid hawk counter. It is a hawk watch, not a banding station: go to watch the count and talk to the counter. The south lookout is used on north winds, the north lookout on south winds.',
     age:'Everyone.', when:'March–May.',
-    url:'https://onondagaaudubon.org/derby-hill/' },
+    url:'https://onondagaaudubon.com/derby-hill-bird-observatory/', more:[['Directions and lookouts','https://onondagaaudubon.com/derby-hill-bird-observatory/directions/']] },
 
   /* ---- Monarch sites ---- */
   { id:'monarchwatch', kind:'monarch', name:'Monarch Watch — tagging program', lat:38.9580, lng:-95.2480, where:'University of Kansas (tags mailed east of the Rockies)',
