@@ -180,9 +180,11 @@
   function testPick(id) {
     var t = lab.test; if (!id) return; var target = t.queue[t.i];
     if (id === target) {
-      var first = t.miss === 0; if (first) t.first++;
+      var first = t.miss === 0, zoomed = t.miss >= 2; if (first) t.first++;
       lab.P.ids[target] = first ? 1 : (lab.P.ids[target] || 2); save(); lab.eng.hint(null);
       t.found.push(target); t.i++; t.miss = 0; drawProg(); drawDots();
+      /* the hint zoomed in on that one: pull back so the rest are on screen again */
+      if (zoomed && t.i < t.queue.length) lab.eng.frame(t.queue.slice(t.i));
       if (t.i >= t.queue.length) {
         var msg = t.first + ' of ' + t.queue.length + ' on the first tap.'; var q = t.queue.length;
         lab.test = null; lab.eng.setPins([]); lab.lastTest = { first: t.first, n: q }; drawBanner(); drawPanel(); refreshLabels(); App.toast('Step pinned: ' + msg, 3000); App.checkBadges();

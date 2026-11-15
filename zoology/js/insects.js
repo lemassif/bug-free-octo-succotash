@@ -119,7 +119,7 @@
     box.innerHTML = '<p class="small muted">Asking museum collections for pinned specimens of <i>' + esc(sci) + '</i>…</p>';
     Media.specimens(sci, 12).then(function (res) {
       if (!res.items.length) { box.innerHTML = '<p class="small muted">No specimen photographs came back (offline, or none digitised yet).</p>'; return; }
-      box.innerHTML = '<p class="small muted">' + res.total.toLocaleString() + ' preserved specimens of ' + esc(label || sci) + ' with photographs are published by museums through GBIF. Each of these is a real pinned insect in a real drawer: look at where the pin is, how the wings are set, and the labels.</p><div class="gallery">' + res.items.map(function (m) { return '<a class="photo" href="https://www.gbif.org/occurrence/' + m.key + '" target="_blank" rel="noopener"><img class="loaded" loading="lazy" src="' + esc(m.img) + '" alt="" onerror="this.parentNode.style.display=\'none\'"><span class="credit">' + esc(m.holder || m.inst) + (m.date ? ' · ' + esc(m.date.slice(0, 4)) : '') + '</span></a>'; }).join('') + '</div>';
+      box.innerHTML = '<p class="small muted">' + res.total.toLocaleString() + ' preserved specimens of ' + esc(label || sci) + ' with photographs are published by museums through GBIF. Each of these is a real pinned insect in a real drawer: look at where the pin is, how the wings are set, and the labels.</p><div class="gallery">' + res.items.map(function (m) { return '<a class="photo" href="https://www.gbif.org/occurrence/' + m.key + '" target="_blank" rel="noopener">' + Media.specimenImg(m.key, m.img, 500, '') + '<span class="credit">' + esc(m.holder || m.inst) + (m.date ? ' · ' + esc(m.date.slice(0, 4)) : '') + '</span></a>'; }).join('') + '</div>';
     });
   }
   function renderHome(el) {

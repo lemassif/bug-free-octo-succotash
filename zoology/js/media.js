@@ -167,6 +167,30 @@ window.Media = (function () {
   }
   /* ---- museum records (GBIF): path is everything after /v1/ ---- */
   function gbif(path, ttl, map) { return cached('gb:' + path, 'https://api.gbif.org/v1/' + path, ttl || 7 * DAY, map); }
+  /* GBIF keeps a resized copy of every specimen image, addressed by the MD5 of the museum's own URL.
+     Using it means small files from one dependable host instead of full-size originals from dozens. */
+  function md5(str) {
+    var s = unescape(encodeURIComponent(str)), n = s.length, i, w = [], K = [], R = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21];
+    for (i = 0; i < 64; i++) K[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 4294967296) >>> 0;
+    for (i = 0; i < n; i++) w[i >> 2] |= s.charCodeAt(i) << ((i % 4) * 8);
+    w[n >> 2] |= 0x80 << ((n % 4) * 8); var len = (((n + 8) >> 6) + 1) * 16; for (i = 0; i < len; i++) w[i] = w[i] | 0; w[len - 2] = (n * 8) | 0; w[len - 1] = Math.floor(n / 536870912);
+    var a = 0x67452301, b = 0xefcdab89 | 0, c = 0x98badcfe | 0, d = 0x10325476;
+    for (var o = 0; o < len; o += 16) {
+      var A = a, B = b, C = c, D = d;
+      for (i = 0; i < 64; i++) {
+        var f, g, r = Math.floor(i / 16);
+        if (r === 0) { f = (B & C) | (~B & D); g = i; } else if (r === 1) { f = (D & B) | (~D & C); g = (5 * i + 1) % 16; } else if (r === 2) { f = B ^ C ^ D; g = (3 * i + 5) % 16; } else { f = C ^ (B | ~D); g = (7 * i) % 16; }
+        var x = (A + f + K[i] + w[o + g]) | 0, sft = R[r * 4 + (i % 4)]; A = D; D = C; C = B; B = (B + ((x << sft) | (x >>> (32 - sft)))) | 0;
+      }
+      a = (a + A) | 0; b = (b + B) | 0; c = (c + C) | 0; d = (d + D) | 0;
+    }
+    return [a, b, c, d].map(function (v) { var h = ''; for (var k = 0; k < 4; k++) h += ('0' + ((v >>> (k * 8)) & 255).toString(16)).slice(-2); return h; }).join('');
+  }
+  function gbifThumb(key, identifier, w) { return 'https://api.gbif.org/v1/image/cache/fit-in/' + (w || 400) + 'x/occurrence/' + key + '/media/' + md5(identifier); }
+  /* an <img> that tries GBIF's copy first, then the museum's own file, then removes its frame */
+  function specimenImg(key, identifier, w, alt) {
+    return '<img class="loaded" loading="lazy" src="' + esc(gbifThumb(key, identifier, w)) + '" data-fb="' + esc(identifier) + '" alt="' + esc(alt || '') + '" onerror="var f=this.getAttribute(\'data-fb\');if(f){this.removeAttribute(\'data-fb\');this.src=f;}else{this.parentNode.style.display=\'none\';}">';
+  }
   function specimens(sci, n) {
     return gbif('occurrence/search?basisOfRecord=PRESERVED_SPECIMEN&mediaType=StillImage&limit=' + (n || 12) + '&scientificName=' + encodeURIComponent(sci), 14 * DAY, function (j) {
       return { total: j.count || 0, items: (j.results || []).map(function (r) { var m = (r.media || [])[0] || {}; return { key: r.key, img: m.identifier || '', inst: r.institutionCode || '', holder: m.rightsHolder || r.rightsHolder || r.institutionCode || '', date: (r.eventDate || '').slice(0, 10), place: [r.stateProvince, r.country].filter(Boolean).join(', '), by: r.recordedBy || '' }; }).filter(function (x) { return /^https:/.test(x.img); }) };
@@ -257,6 +281,6 @@ window.Media = (function () {
   }
   function videoGrid(list) { return '<div class="grid">' + list.map(videoHTML).join('') + '</div>'; }
 
-  return { taxon: taxon, gallery: gallery, nearby: nearby, wiki: wiki, sounds: sounds, points: points, searchSpecies: searchSpecies, lineage: lineage, gbif: gbif, specimens: specimens, commonsImages: commonsImages, commonsVideos: commonsVideos, commonsVideoStrip: commonsVideoStrip, cached: cached, photoHTML: photoHTML, hydrate: hydrate, videoHTML: videoHTML, videoGrid: videoGrid, esc: esc,
+  return { taxon: taxon, gallery: gallery, nearby: nearby, wiki: wiki, sounds: sounds, points: points, searchSpecies: searchSpecies, lineage: lineage, gbif: gbif, specimens: specimens, gbifThumb: gbifThumb, specimenImg: specimenImg, md5: md5, commonsImages: commonsImages, commonsVideos: commonsVideos, commonsVideoStrip: commonsVideoStrip, cached: cached, photoHTML: photoHTML, hydrate: hydrate, videoHTML: videoHTML, videoGrid: videoGrid, esc: esc,
     clearCache: function () { cache = {}; try { localStorage.removeItem(CKEY); } catch (e) {} } };
 })();
