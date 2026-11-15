@@ -96,7 +96,7 @@
   }
   function drawDots() {
     var box = document.getElementById('dxDots'); var cur = lab.pending != null ? lab.pending : lab.step;
-    box.innerHTML = lab.spec.steps.map(function (s, i) { var n = stepParts(i), d = n.filter(function (p) { return lab.P.ids[p.id]; }).length; return '<button class="dx-dot ' + (i === cur ? 'on' : '') + '" data-i="' + i + '" title="' + esc(s.t) + '">' + (i + 1) + (n.length && d === n.length ? ' ✓' : (s.cut && !lab.P.cuts[i] ? ' ✂' : '')) + '</button>'; }).join('');
+    box.innerHTML = lab.spec.steps.map(function (s, i) { var n = stepParts(i), d = n.filter(function (p) { return lab.P.ids[p.id]; }).length; return '<button class="dx-dot ' + (i === cur ? 'on' : '') + '" data-i="' + i + '" title="' + esc(s.t) + '">' + (s.solo ? '📖 ' : '') + (i + 1) + (n.length && d === n.length ? ' ✓' : (s.cut && !lab.P.cuts[i] ? ' ✂' : '')) + '</button>'; }).join('');
     box.querySelectorAll('.dx-dot').forEach(function (b) { b.onclick = function () { goStep(+b.getAttribute('data-i')); }; });
     var on = box.querySelector('.on'); if (on && on.scrollIntoView) on.scrollIntoView({ inline: 'center', block: 'nearest' });
     document.getElementById('dxPrev').disabled = cur <= 0; document.getElementById('dxNext').disabled = cur >= lab.spec.steps.length - 1;
@@ -247,7 +247,7 @@
       var i = lab.pending != null ? lab.pending : lab.step, st = spec.steps[i], list = stepParts(i);
       var vis = list.filter(function (p) { return !p.sex || !spec.sexes || p.sex === lab.eng.sex; }), other = list.length - vis.length;
       var d = vis.filter(function (p) { return lab.P.ids[p.id]; }).length;
-      var h = '<div class="card"><div class="small muted">Step ' + (i + 1) + ' of ' + spec.steps.length + '</div><h3 style="margin:2px 0 8px">' + esc(st.t) + '</h3><div class="dx-how">' + st.how + '</div>';
+      var h = '<div class="card"><div class="small muted">' + (st.solo ? 'Atlas plate · ' : '') + 'Step ' + (i + 1) + ' of ' + spec.steps.length + '</div><h3 style="margin:2px 0 8px">' + esc(st.t) + '</h3><div class="dx-how">' + st.how + '</div>';
       if (lab.pending != null) h += '<div class="callout">Trace the incision on the specimen to continue. Start at the green dot; the scalpel follows your finger. If your trace drifts, come back to the pulsing dot and carry on.</div>';
       else {
         if (lab.lastTest) { h += '<div class="callout moss">Pinned ' + lab.lastTest.n + ' structures, ' + lab.lastTest.first + ' on the first tap.</div>'; lab.lastTest = null; }

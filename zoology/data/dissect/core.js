@@ -20,6 +20,7 @@
      opts.sex 'm' or 'f' for structures only one sex has
      opts.x   context only: drawn, but not on the identification list
      opts.a   opacity
+     opts.on  extra atlas plates (absolute step numbers) on which the part is also drawn
    ============================================================ */
 window.DX = (function () {
   var list = [];
@@ -56,6 +57,21 @@ window.DX = (function () {
     add: function (spec) {
       var seen = {}; spec.parts.forEach(function (p) { if (seen[p.id]) throw new Error(spec.id + ': duplicate part ' + p.id); seen[p.id] = 1; if (p.s >= spec.steps.length) throw new Error(spec.id + ': part ' + p.id + ' step out of range'); });
       list.push(spec);
+    },
+    /* Atlas plates: standalone views added after the dissection steps (a cleared skeleton, an
+       injected artery tree). fn(base) returns { steps, parts, show }: part steps are absolute
+       (base + k); show maps a plate offset to ids of existing parts to draw there as context. */
+    extend: function (id, fn) {
+      var spec = list.filter(function (s) { return s.id === id; })[0]; if (!spec) throw new Error('extend: no specimen ' + id);
+      var base = spec.steps.length, ex = fn(base, spec), ids = {}, names = {};
+      spec.parts.forEach(function (p) { ids[p.id] = p; names[p.n.toLowerCase()] = 1; });
+      ex.steps.forEach(function (st) { st.solo = true; spec.steps.push(st); });
+      ex.parts.forEach(function (p) {
+        if (ids[p.id]) throw new Error(id + ': duplicate part ' + p.id); if (!p.x && names[p.n.toLowerCase()]) throw new Error(id + ': duplicate name ' + p.n);
+        if (p.s < base || p.s >= spec.steps.length) throw new Error(id + ': part ' + p.id + ' step out of range');
+        ids[p.id] = p; if (!p.x) names[p.n.toLowerCase()] = 1; spec.parts.push(p);
+      });
+      Object.keys(ex.show || {}).forEach(function (k) { ex.show[k].forEach(function (pid) { var q = ids[pid]; if (!q) throw new Error(id + ': show: no part ' + pid); q.on = (q.on || []).concat([base + (+k)]); }); });
     },
     SYS: { ext: 'External', wall: 'Body wall', musc: 'Muscular', skel: 'Skeletal', dig: 'Digestive', resp: 'Respiratory', circ: 'Circulatory', exc: 'Excretory', repro: 'Reproductive', nerv: 'Nervous & senses', endo: 'Endocrine & lymphatic', wvs: 'Water vascular', other: 'Other' },
     /* a shared palette so the same tissue looks the same in every animal */

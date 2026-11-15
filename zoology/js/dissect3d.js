@@ -212,7 +212,9 @@ export function mount(container, spec, opts = {}) {
   /* state */
   let step = 0, sex = spec.sexes ? 'f' : null, filter = null, selected = null, hinted = null, flipT = 0, flipK = 0, hadView = false;
   let labelIds = [], pins = [], dirty = true;
-  const vis = p => p.def.s <= step && (p.def.u == null || step < p.def.u) && (!p.def.sex || p.def.sex === sex) && (!filter || p.def.wall || filter.has(p.def.sys));
+  /* an atlas plate (solo step) shows only its own parts plus any that list it in `on` */
+  const staged = p => (spec.steps[step] && spec.steps[step].solo) ? (p.def.s === step || (!!p.def.on && p.def.on.indexOf(step) >= 0)) : (p.def.s <= step && (p.def.u == null || step < p.def.u));
+  const vis = p => staged(p) && (!p.def.sex || p.def.sex === sex) && (!filter || p.def.wall || filter.has(p.def.sys));
   let flipOverride = null;
   function applyVis(instant) {
     parts.forEach(p => { p.target = vis(p) ? 1 : 0; if (instant) p.k = p.target; });
