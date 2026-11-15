@@ -148,6 +148,8 @@ function shapeAnchor(s) {
   }
   if (s.t === 'f') { const c = [0, 0, 0]; s.pts.forEach(p => { c[0] += p[0] / s.pts.length; c[1] += p[1] / s.pts.length; c[2] += p[2] / s.pts.length; }); return c; }
   if (s.t === 'st') { const i = Math.floor(s.a.length / 2); return [(s.a[i][0] + s.b[i][0]) / 2, (s.a[i][1] + s.b[i][1]) / 2, (s.a[i][2] + s.b[i][2]) / 2]; }
+  /* a ring is hollow: anchor it on the ring itself */
+  if (s.t === 'o' && s.p) { const v = new THREE.Vector3(s.R, 0, 0); if (s.rot) v.applyEuler(new THREE.Euler(s.rot[0] * DEG, s.rot[1] * DEG, s.rot[2] * DEG)); return [s.p[0] + v.x, s.p[1] + v.y, s.p[2] + v.z]; }
   return (s.p || [0, 0, 0]).slice();
 }
 function shapeSamples(s) {
