@@ -48,7 +48,8 @@
   function life(b) {
     b.innerHTML = '<div class="chips" id="stageChips">' + STAGES.map(function (s, i) { return '<button class="chip monarch ' + (i === 0 ? 'on' : '') + '" data-i="' + i + '">' + s.name + '</button>'; }).join('') + '</div><div id="stageBox" style="margin-top:12px"></div>' +
       '<h2>Numbers to carry around</h2><div class="grid"><div class="card stat"><b>4</b><span>generations a year in the North</span></div><div class="card stat"><b>1</b><span>plant family its caterpillar can eat: milkweeds</span></div><div class="card stat"><b>3,000 mi</b><span>longest known insect migration, Ontario to Michoacán</span></div><div class="card stat"><b>0.5 g</b><span>weight of an adult</span></div></div>' +
-      '<h2>Videos</h2>' + Media.videoGrid(VIDEOS.monarch);
+      '<h2>Videos</h2>' + Media.videoGrid(VIDEOS.monarch) + '<h2>Open-licence monarch film <span class="tag ok">live</span></h2><div id="monCommons"></div>';
+    Media.commonsVideoStrip(document.getElementById('monCommons'), 'monarch butterfly Danaus plexippus', 6);
     function show(i) {
       var s = STAGES[i];
       document.querySelectorAll('#stageChips .chip').forEach(function (c, k) { c.classList.toggle('on', k === i); });
@@ -67,16 +68,36 @@
     show(0);
   }
   function migration(b) {
-    b.innerHTML = '<div class="card"><div class="map" id="mmap"><p class="muted small" style="padding:12px">Loading map…</p></div><div class="row" style="margin-top:10px"><button class="btn sm" id="mplay">▶ Play the year</button><input type="range" id="mrange" min="0" max="' + (ROUTE.length - 1) + '" value="0" style="flex:1" aria-label="Month"><b id="mmonth" style="min-width:40px">Aug</b></div><p id="mcap" style="margin-top:8px"></p></div>' +
+    b.innerHTML = '<div class="card"><div class="map" id="mmap"><p class="muted small" style="padding:12px">Loading map…</p></div><div class="row" style="margin-top:10px"><button class="btn sm" id="mplay">▶ Play the year</button><input type="range" id="mrange" min="0" max="' + (ROUTE.length - 1) + '" value="0" style="flex:1" aria-label="Month"><b id="mmonth" style="min-width:40px">Aug</b></div><p id="mcap" style="margin-top:8px"></p><p class="small" id="mlive" style="margin:0"><span class="tag ok">live</span> <span class="muted">Loading real sightings for this month…</span></p><div class="row" style="margin-top:8px"><button class="btn sm" id="mnow">Show the last 14 days</button><span class="small muted">Orange dots: research-grade monarch records on iNaturalist for the month shown, from every year. Blue dots: this fortnight.</span></div></div>' +
       '<h2>Why it works</h2><div class="grid"><div class="card"><h3>A compass in the antennae</h3><p class="small">Monarchs steer by the sun, corrected by a clock in their antennae, and by a magnetic sense as backup. Fliers from Ontario and from Maine converge on the same 12 mountaintops they have never seen.</p></div><div class="card"><h3>Fat, not food</h3><p class="small">They leave with little fat and arrive with more: they feed on fall nectar along the way and glide on thermals to spend as little as possible. In Mexico they live on stored fat for four months.</p></div><div class="card"><h3>The cold keeps them alive</h3><p class="small">At 3,000 m the oyamel forest is cold enough to slow their metabolism but, under the canopy, not cold enough to freeze them. Thin the forest and the microclimate breaks; that is why logging matters so much.</p></div></div>' +
       '<h2>Milestones in the science</h2><div class="timeline">' + [['1930s–1976', 'Fred and Norah Urquhart in Toronto tag monarchs with paper labels; in January 1975 a volunteer couple find the first colony in Michoacán, announced in National Geographic in 1976.'], ['1986', 'Mexico creates the Monarch Butterfly Biosphere Reserve; UNESCO lists it in 2008.'], ['1992', 'Chip Taylor founds Monarch Watch at the University of Kansas; the modern tagging program begins.'], ['1996–97', 'Peak winter population: about 18 hectares of forest covered.'], ['2013–14', 'Record low: 0.67 ha.'], ['2023–24', '0.9 ha. 2024–25: 1.79 ha, nearly double. Each hectare is roughly 21 million butterflies.'], ['Dec 2024', 'US Fish and Wildlife Service proposes listing the monarch as threatened under the Endangered Species Act. Check the current status before you plan anything that involves handling monarchs commercially.']].map(function (t) { return '<div class="tl"><div class="yr">' + esc(t[0]) + '</div><div class="small">' + esc(t[1]) + '</div></div>'; }).join('') + '</div>';
     var range = document.getElementById('mrange'), month = document.getElementById('mmonth'), cap = document.getElementById('mcap'), play = document.getElementById('mplay');
-    var marker = null, trail = null;
+    var marker = null, trail = null, dots = null, nowDots = null, Lf = null, liveT = null;
+    var MN = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 }, MNAME = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    var BOX = [14, -125, 55, -60];
+    function loadMonth(m) {
+      clearTimeout(liveT);
+      liveT = setTimeout(function () {
+        var lv = document.getElementById('mlive'); if (!lv) return;
+        Media.points({ taxon_id: 48662, month: m, box: BOX, n: 200 }).then(function (res) {
+          if (!document.getElementById('mlive')) return;
+          if (dots) { dots.clearLayers(); res.pts.forEach(function (p) { Lf.circleMarker([p[0], p[1]], { radius: 3.5, color: '#b85e0d', weight: 0.5, fillColor: '#f08a1e', fillOpacity: 0.75 }).addTo(dots); }); }
+          lv.innerHTML = '<span class="tag ok">live</span> ' + (res.total ? res.total.toLocaleString() + ' research-grade monarch records in ' + MNAME[m] + ' across North America, all years; a random ' + res.pts.length + ' are mapped. Watch the cloud of dots move with the slider.' : '<span class="muted">No live records loaded (offline?). The route still plays.</span>');
+        });
+      }, 350);
+    }
     function setI(i) {
-      i = +i; range.value = i; var r = ROUTE[i]; month.textContent = r.m; cap.textContent = r.cap;
+      i = +i; range.value = i; var r = ROUTE[i]; month.textContent = r.m; cap.textContent = r.cap; loadMonth(MN[r.m]);
       if (map && marker) { marker.setLatLng([r.lat, r.lng]); trail.setLatLngs(ROUTE.slice(0, i + 1).map(function (p) { return [p.lat, p.lng]; })); }
     }
     range.addEventListener('input', function () { stop(); setI(range.value); });
+    document.getElementById('mnow').onclick = function () {
+      var d = new Date(Date.now() - 14 * 24 * 3600 * 1000), d1 = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); var btn = this; btn.textContent = 'Loading…';
+      Media.points({ taxon_id: 48662, d1: d1, box: BOX, n: 200 }).then(function (res) {
+        btn.textContent = res.total.toLocaleString() + ' monarchs reported since ' + d1;
+        if (nowDots) { nowDots.clearLayers(); res.pts.forEach(function (p) { Lf.circleMarker([p[0], p[1]], { radius: 5, color: '#123a6b', weight: 1, fillColor: '#3f8fd9', fillOpacity: 0.85 }).addTo(nowDots).bindPopup('Monarch, ' + esc(p[2]) + '<br><a href="https://www.inaturalist.org/observations/' + p[3] + '" target="_blank" rel="noopener">open record</a>'); }); }
+      });
+    };
     function stop() { clearInterval(timer); timer = null; play.textContent = '▶ Play the year'; }
     play.onclick = function () { if (timer) { stop(); return; } var i = 0; setI(0); play.textContent = '⏸ Pause'; timer = setInterval(function () { i++; if (i >= ROUTE.length) { stop(); return; } setI(i); }, 1600); };
     setI(0);
@@ -85,6 +106,7 @@
       map = L.map(box, { scrollWheelZoom: false }).setView([32, -92], 4);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 18 }).addTo(map);
       L.polyline(ROUTE.map(function (p) { return [p.lat, p.lng]; }), { color: '#e07a1f', weight: 3, opacity: .35, dashArray: '6 8' }).addTo(map);
+      Lf = L; dots = L.layerGroup().addTo(map); nowDots = L.layerGroup().addTo(map);
       trail = L.polyline([], { color: '#e07a1f', weight: 5 }).addTo(map);
       marker = L.circleMarker([ROUTE[0].lat, ROUTE[0].lng], { radius: 10, color: '#1a1208', fillColor: '#f4a24a', fillOpacity: 1, weight: 2 }).addTo(map);
       [['Oswego / Rice Creek', 43.43, -76.56], ['Point Pelee', 41.96, -82.52], ['Cape May', 38.95, -74.94], ['El Rosario & Sierra Chincua', 19.6, -100.27]].forEach(function (p) { L.marker([p[1], p[2]]).addTo(map).bindPopup(p[0]); });

@@ -12,6 +12,21 @@
   var RANKS = ['kingdom', 'phylum', 'cls', 'order', 'family', 'genus', 'epithet'];
   var RANK_LABEL = { kingdom: 'Kingdom', phylum: 'Phylum', cls: 'Class', order: 'Order', family: 'Family', genus: 'Genus', epithet: 'Species' };
 
+  /* Species Katie adds herself join the project as their own expedition. Their
+     classification is not typed in by anyone: it is fetched from iNaturalist. */
+  if (!SPECIES_SETS.some(function (s) { return s.id === 'mine'; })) SPECIES_SETS.push({ id: 'mine', name: 'My Own Finds', icon: '🔭', blurb: 'Animals and plants you have met yourself. Search for any species on Earth and its real classification is fetched live for you to work out.' });
+  function addCustom(c) {
+    if (!c || !c.sci || SPECIES.some(function (s) { return s.sci === c.sci; })) return null;
+    var o = { sci: c.sci, common: c.common || c.sci, kingdom: c.kingdom, phylum: c.phylum, cls: c.cls, order: c.order, family: c.family, set: 'mine', note: c.note || 'One of your own finds.', custom: true };
+    o.id = 'x-' + c.sci.toLowerCase().replace(/[^a-z]+/g, '-'); o.genus = c.sci.split(' ')[0]; o.epithet = c.sci.split(' ').slice(1).join(' '); o.index = SPECIES.length; SPECIES.push(o); return o;
+  }
+  (Store.data.custom || []).forEach(addCustom);
+  function removeCustom(id) {
+    var i = SPECIES.findIndex(function (s) { return s.id === id && s.custom; }); if (i < 0) return;
+    var sci = SPECIES[i].sci; SPECIES.splice(i, 1); SPECIES.forEach(function (s, k) { s.index = k; });
+    var d = Store.data; d.custom = (d.custom || []).filter(function (c) { return c.sci !== sci; }); delete d.species[id]; d.cabinet = d.cabinet.filter(function (x) { return x !== id; }); Store.save();
+  }
+
   var ORDER_HINTS = {
     Lepidoptera: 'Scale-covered wings; coiled proboscis.', Coleoptera: 'Hardened forewings (elytra) meet in a straight line down the back.', Hymenoptera: 'Two pairs of clear wings hooked together; often a pinched waist.', Diptera: 'Only two wings; the hind pair are tiny halteres.', Hemiptera: 'Piercing beak; forewings half leathery, half membrane.', Odonata: 'Huge eyes, four long wings held out or together.', Orthoptera: 'Big jumping hind legs.', Mantodea: 'Raptorial grabbing forelegs; triangular head.', Phasmatodea: 'Looks like a twig or leaf.', Neuroptera: 'Net-veined, lacy wings held roof-like.', Ephemeroptera: 'Two or three long tail filaments; wings held straight up.', Dermaptera: 'Pincers at the tail.', Megaloptera: 'Big soft wings, long mandibles; aquatic larvae.', Zygentoma: 'Wingless, silvery, three tail filaments.',
     Strigiformes: 'Owls: facial disc, forward eyes, silent flight.', Passeriformes: 'Perching birds: three toes forward, one back; most songbirds.', Accipitriformes: 'Hawks, eagles, vultures: hooked bill, talons.', Anseriformes: 'Waterfowl: ducks, geese, swans.', Galliformes: 'Chicken-like ground birds.', Pelecaniformes: 'Pelicans, herons, ibises (by DNA).', Coraciiformes: 'Kingfishers and rollers.', Piciformes: 'Woodpeckers: two toes forward, two back.', Apodiformes: 'Swifts and hummingbirds.', Gaviiformes: 'Loons.', Charadriiformes: 'Shorebirds, gulls and terns.', Suliformes: 'Cormorants, gannets, frigatebirds.', Struthioniformes: 'Ostriches.', Otidiformes: 'Bustards.', Ciconiiformes: 'Storks.', Gruiformes: 'Cranes and rails.', Psittaciformes: 'Parrots.', Sphenisciformes: 'Penguins.', Phoenicopteriformes: 'Flamingos.',
@@ -204,7 +219,7 @@
   function setProgress(setId) {
     var sp = SPECIES.filter(function (s) { return s.set === setId; });
     var d = sp.filter(function (s) { return Store.data.species[s.id] && Store.data.species[s.id].done; }).length;
-    return { done: d, total: sp.length };
+    return { done: d, total: sp.length, pct: sp.length ? 100 * d / sp.length : 0 };
   }
   function renderProject(el, args) {
     if (args[0] === 'set' && args[1]) return renderSet(el, args[1]);
@@ -214,7 +229,7 @@
       '<div class="card"><div class="row between"><b>' + done + ' of ' + total + ' pinned</b><span class="muted small">' + Math.round(100 * done / total) + '%</span></div><div class="bar"><i style="width:' + (100 * done / total) + '%"></i></div></div>' +
       '<div class="grid">' + SPECIES_SETS.map(function (S) {
         var p = setProgress(S.id);
-        return '<a class="card" href="#/taxonomy/project/set/' + S.id + '" style="text-decoration:none;color:inherit"><div class="row between"><div style="font-size:30px">' + S.icon + '</div>' + (p.done === p.total ? '<span class="tag ok">complete</span>' : '<span class="tag">' + p.done + '/' + p.total + '</span>') + '</div><h3 style="margin:6px 0">' + esc(S.name) + '</h3><p class="small muted" style="margin:0 0 8px">' + esc(S.blurb) + '</p><div class="bar"><i style="width:' + (100 * p.done / p.total) + '%"></i></div></a>';
+        return '<a class="card" href="#/taxonomy/project/set/' + S.id + '" style="text-decoration:none;color:inherit"><div class="row between"><div style="font-size:30px">' + S.icon + '</div>' + (p.total && p.done === p.total ? '<span class="tag ok">complete</span>' : '<span class="tag">' + (S.id === 'mine' && !p.total ? 'add your first' : p.done + '/' + p.total) + '</span>') + '</div><h3 style="margin:6px 0">' + esc(S.name) + '</h3><p class="small muted" style="margin:0 0 8px">' + esc(S.blurb) + '</p><div class="bar"><i style="width:' + p.pct + '%"></i></div></a>';
       }).join('') + '</div>' +
       '<h2>How scoring works</h2><div class="card small"><p>Each rank is a multiple choice drawn from real taxa, so the wrong answers are plausible. A wrong pick lets you try again, but costs a star: three stars for a clean run, two for a couple of slips, one for getting there in the end. Every pinned specimen counts the same toward badges; the stars are for your own pride. You can reopen any pinned specimen to see its photographs and rewrite its label.</p></div>';
   }
@@ -222,13 +237,38 @@
     var S = SPECIES_SETS.filter(function (x) { return x.id === setId; })[0]; if (!S) return renderProject(el, []);
     var sp = SPECIES.filter(function (s) { return s.set === setId; }); var p = setProgress(setId);
     var next = sp.filter(function (s) { return !(Store.data.species[s.id] && Store.data.species[s.id].done); })[0];
-    el.innerHTML = '<p><a href="#/taxonomy/project">← All expeditions</a></p><h2 style="margin-top:0">' + S.icon + ' ' + esc(S.name) + '</h2><p class="lede">' + esc(S.blurb) + '</p>' +
-      '<div class="card"><div class="row between"><b>' + p.done + ' of ' + p.total + ' pinned</b>' + (next ? '<a class="btn primary sm" href="#/taxonomy/project/' + next.id + '">Classify next: ' + esc(next.common) + '</a>' : '<span class="tag ok">Drawer complete</span>') + '</div><div class="bar" style="margin-top:8px"><i style="width:' + (100 * p.done / p.total) + '%"></i></div></div>' +
+    var adder = setId === 'mine' ? '<div class="card" style="margin-bottom:14px"><h3 style="margin-top:0">Add a species <span class="tag ok">live</span></h3><p class="small muted">Type a common or scientific name. The search and the classification come straight from iNaturalist, so anything you can find outdoors can go into your project and onto the 3D tree.</p><div class="row"><input id="ownQ" placeholder="barn swallow, spotted salamander, Papilio polyxenes…" style="flex:1;min-width:180px"><button class="btn primary" id="ownGo">Search</button></div><div id="ownRes" class="grid tight" style="margin-top:10px"></div></div>' : '';
+    el.innerHTML = '<p><a href="#/taxonomy/project">← All expeditions</a></p><h2 style="margin-top:0">' + S.icon + ' ' + esc(S.name) + '</h2><p class="lede">' + esc(S.blurb) + '</p>' + adder +
+      '<div class="card"><div class="row between"><b>' + p.done + ' of ' + p.total + ' pinned</b>' + (next ? '<a class="btn primary sm" href="#/taxonomy/project/' + next.id + '">Classify next: ' + esc(next.common) + '</a>' : (p.total ? '<span class="tag ok">Drawer complete</span>' : '<span class="tag">empty drawer</span>')) + '</div><div class="bar" style="margin-top:8px"><i style="width:' + p.pct + '%"></i></div></div>' +
       '<div class="grid tight">' + sp.map(function (s) {
         var st = Store.data.species[s.id] || {};
-        return '<div class="card spec ' + (st.done ? 'done' : '') + '" style="position:relative" data-id="' + s.id + '">' + Media.photoHTML(s.sci, { cls: 'sq', alt: s.common }) + (st.done ? '<span class="pin">📌</span>' : '') + '<div class="nm">' + esc(s.common) + '</div><div class="sc">' + esc(s.sci) + '</div>' + (st.done ? '<div class="small">' + '★'.repeat(st.stars || 1) + '</div>' : '') + '</div>';
+        return '<div class="card spec ' + (st.done ? 'done' : '') + '" style="position:relative" data-id="' + s.id + '">' + Media.photoHTML(s.sci, { cls: 'sq', alt: s.common }) + (st.done ? '<span class="pin">📌</span>' : '') + '<div class="nm">' + esc(s.common) + '</div><div class="sc">' + esc(s.sci) + '</div>' + (st.done ? '<div class="small">' + '★'.repeat(st.stars || 1) + '</div>' : '') + (s.custom ? '<button class="btn sm ghost rm" data-rm="' + s.id + '" style="min-height:28px;padding:2px 8px;align-self:flex-start">remove</button>' : '') + '</div>';
       }).join('') + '</div>';
-    el.querySelectorAll('.spec').forEach(function (c) {
+    el.querySelectorAll('.rm').forEach(function (bn) { bn.addEventListener('click', function (e) { e.stopPropagation(); if (confirm('Remove this species from your finds?')) { removeCustom(bn.getAttribute('data-rm')); renderSet(el, setId); Media.hydrate(el); } }); });
+    if (setId === 'mine') {
+      var go = function () {
+        var q = document.getElementById('ownQ').value.trim(), box = document.getElementById('ownRes'); if (q.length < 3) { App.toast('Type at least three letters.'); return; }
+        box.innerHTML = '<p class="small muted">Searching iNaturalist…</p>';
+        Media.searchSpecies(q).then(function (rs) {
+          rs = rs.filter(function (r) { return r.sci.split(' ').length === 2; });
+          if (!rs.length) { box.innerHTML = '<p class="small muted">No species matched (or you are offline). Try the scientific name.</p>'; return; }
+          box.innerHTML = rs.map(function (r, i) { var have = SPECIES.some(function (s) { return s.sci === r.sci; }); return '<div class="card spec" data-i="' + i + '" style="cursor:' + (have ? 'default' : 'pointer') + '"><div class="photo sq">' + (r.thumb ? '<img class="loaded" src="' + esc(r.thumb) + '" alt="">' : '<span class="ph">🔍</span>') + '</div><div class="nm">' + esc(r.common) + '</div><div class="sc">' + esc(r.sci) + '</div><span class="tag ' + (have ? '' : 'ok') + '">' + (have ? 'already in your project' : '＋ add') + '</span></div>'; }).join('');
+          box.querySelectorAll('.spec').forEach(function (c) {
+            c.onclick = function () {
+              var r = rs[+c.getAttribute('data-i')]; if (SPECIES.some(function (s) { return s.sci === r.sci; })) return;
+              c.querySelector('.tag').textContent = 'reading its classification…';
+              Media.lineage(r.id).then(function (l) {
+                var k = l && l.ranks; if (!k || !k.kingdom || !k.phylum || !k['class'] || !k.order || !k.family) { App.toast('iNaturalist does not give a full classification for that one. Try another.'); c.querySelector('.tag').textContent = 'unavailable'; return; }
+                var rec = { sci: r.sci, common: r.common, kingdom: k.kingdom, phylum: k.phylum, cls: k['class'], order: k.order, family: k.family, note: 'One of your own finds, added ' + Store.today() + '.' };
+                Store.data.custom = (Store.data.custom || []).concat([rec]); Store.touch(); Store.save(); addCustom(rec); App.checkBadges(); App.toast(r.common + ' added. Now classify it.'); renderSet(el, setId); Media.hydrate(el);
+              });
+            };
+          });
+        });
+      };
+      document.getElementById('ownGo').onclick = go; document.getElementById('ownQ').onkeydown = function (e) { if (e.key === 'Enter') go(); };
+    }
+    el.querySelectorAll('.spec[data-id]').forEach(function (c) {
       c.addEventListener('click', function () {
         var s = SPECIES.filter(function (x) { return x.id === c.getAttribute('data-id'); })[0];
         var st = Store.data.species[s.id] || {};
@@ -245,7 +285,16 @@
     return out;
   }
   function uniq(a) { var s = {}; return a.filter(function (x) { if (!x || s[x]) return false; s[x] = 1; return true; }); }
+  /* never fewer than four choices, even for a species from an unfamiliar corner of the tree */
   function choicesFor(sp, rank) {
+    var list = choicesRaw(sp, rank); if (list.length >= 4) return list;
+    var extra = uniq(SPECIES.map(function (s) { return s[rank]; })).filter(function (x) { return list.indexOf(x) < 0; });
+    for (var k = extra.length - 1; k > 0; k--) { var j = Math.floor(Math.random() * (k + 1)); var t = extra[k]; extra[k] = extra[j]; extra[j] = t; }
+    list = list.concat(extra.slice(0, 4 - list.length));
+    for (var k2 = list.length - 1; k2 > 0; k2--) { var j2 = Math.floor(Math.random() * (k2 + 1)); var t2 = list[k2]; list[k2] = list[j2]; list[j2] = t2; }
+    return list;
+  }
+  function choicesRaw(sp, rank) {
     var all = SPECIES;
     switch (rank) {
       case 'kingdom': return pick(4, sp.kingdom, TAXON_POOLS.kingdom);
