@@ -60,6 +60,7 @@ window.VIDEOS = {
   dissect: {
     frog: [{ id: 'iDRzbRlUzDw', title: 'Frog Dissection: Internal Anatomy' }, { id: '9N27Tj3B4k8', title: 'Frog Dissection, Part 1 (college biology lab)' }],
     pig: [{ id: 'dC0yWBXaM28', title: 'How To Dissect A Fetal Pig (Carolina)' }, { id: '8RWsQvlT3bo', title: 'Fetal Pig Anatomy' }, { id: 'rG1FY25t9Vk', title: 'Fetal Pig Dissection, Part One' }],
+    cat: [{ id: 'DVcl2Lq0NQI', title: 'Cat Dissection, Muscular System (whole video)' }, { id: 'TgOsYm9xBrA', title: 'Internal Organs (Dissection of a Cat)' }, { id: 'kNtTsXvFavw', title: 'Dissection Tour: Arteries and Veins' }, { id: 'KDACmSTCAGo', title: 'Cat G-I organs, including the bile ducts' }],
     perch: [{ id: 'MUVgrpuExmY', title: 'Perch (Bony Fish) Dissection' }, { id: 'pNZQEmGp11k', title: 'Bony Fish (Perch) Anatomy' }, { id: 'r2u5roIr6x0', title: 'Perch Dissection (college biology lab)' }],
     worm: [{ id: '1tVVVu5vY6w', title: 'Worm Dissection' }, { id: 'aCnwF6vtE2g', title: 'Earthworm Dissection (college biology lab)' }],
     crayfish: [{ id: 's2p1KmqUlTY', title: 'Crayfish Dissection' }, { id: '-XOKPCGh17Y', title: 'Crayfish Dissection (college biology lab)' }],
